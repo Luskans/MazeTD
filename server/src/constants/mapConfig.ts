@@ -1,0 +1,35 @@
+const MAPCONFIG = {
+  worldMaxWidth: 0,
+  worldMaxHeight: 0,
+  worldSpace: 0,
+
+  gridBorder: 0,
+  cellSize: 32,
+  minCol: 20,
+  maxCol: 60,
+  minRow: 20,
+  maxRow: 60,
+
+  basePopulation:20,
+  upgradePopulation: 5,
+  minRocks: 0.15,
+  maxRocks: 0.70,
+  minAreaRadius: 64,
+  maxAreaRadius: 192,
+  minAreaMultiplier: 1.1,
+  maxAreaMultiplier: 2,
+
+  baseHp: 100,
+  baseGold: 200,
+  baseIncome: 10,
+  baseSmallWall: 20,
+  baseBigWall: 20,
+  baseTowerUpgrade: 2,
+  baseIncomeUpgrade: 20,
+  baseDestroyUpgrade: 20,
+
+  minPriceMultiplier: 1,
+  maxPriceMultiplier: 10,
+  minUpgradeMultiplier: 0.2,
+  maxUpgradeMultiplier: 2,
+};

@@ -9,6 +9,15 @@ export class GameRoom extends Room<GameState> {
   onCreate(options: any) {
     console.log(`🚀 Dans la game room ${this.roomId}, les joueurs devraient se co à ca !`);
     this.state = new GameState();
+    this.setPrivate();
+
+    generateMapSize(state);
+    generateRocks(state);
+    generateZones(state);
+    generatePortals(state);
+    generateEnemyTypes(state);
+    generateWaves(state);
+    generatePrices(state);
 
     this.onMessage("loaded", (client: Client) => {
       const player = this.state.players.get(client.sessionId);
@@ -21,7 +30,6 @@ export class GameRoom extends Room<GameState> {
       }
     });
 
-    this.setPrivate();
   }
 
   onJoin(client: Client, options: any) {
