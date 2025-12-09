@@ -1,13 +1,15 @@
 import { Schema, type } from "@colyseus/schema";
 
 export class UpgradeState extends Schema {
-  @type("string") id: string;
+  @type("string") id: string; // income_upgrade
 
-  @type("number") name: number;
+  // @type("number") name: number;
   @type("number") level: number;
-  @type("number") value: number;
-
+  
   @type("number") cost: number;
-  @type("number") upgradeCost: number;
+  @type("number") value: number;
+  @type("number") nextCost: number;
+  @type("number") nextValue: number;
 
+  // @type("number") upgradeCost: number;
 }

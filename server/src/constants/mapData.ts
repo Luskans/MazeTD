@@ -1,9 +1,10 @@
-const MAPCONFIG = {
-  worldMaxWidth: 0,
-  worldMaxHeight: 0,
-  worldSpace: 0,
+const MAP_DATA = {
+  // worldMaxWidth: 0,
+  // worldMaxHeight: 0,
+  spaceSize: 256,
+  outsideSize: 256,
 
-  gridBorder: 0,
+  // gridBorder: 0,
   cellSize: 32,
   minCol: 20,
   maxCol: 60,
@@ -12,6 +13,7 @@ const MAPCONFIG = {
 
   basePopulation:20,
   upgradePopulation: 5,
+  waveCount: 6,
   minRocks: 0.15,
   maxRocks: 0.70,
   minAreaRadius: 64,
@@ -22,11 +24,12 @@ const MAPCONFIG = {
   baseHp: 100,
   baseGold: 200,
   baseIncome: 10,
-  baseSmallWall: 20,
-  baseBigWall: 20,
+  // baseSmallWall: 20,
+  // baseBigWall: 20,
+  wallPrice: 20,
   baseTowerUpgrade: 2,
-  baseIncomeUpgrade: 20,
-  baseDestroyUpgrade: 20,
+  // baseIncomeUpgrade: 20,
+  // baseDestroyUpgrade: 20,
 
   minPriceMultiplier: 1,
   maxPriceMultiplier: 10,

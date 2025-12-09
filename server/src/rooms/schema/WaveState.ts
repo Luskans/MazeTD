@@ -3,5 +3,6 @@ import { EnemyState } from "./EnemyState";
 
 export class WaveState extends Schema {
   @type("number") index: number; // ordre dans la boucle
-  @type(EnemyState) enemy = new EnemyState(); 
+  // @type(EnemyState) enemy = new EnemyState();
+  @type("string") enemyId: string; // Ex: "goblin"
 }

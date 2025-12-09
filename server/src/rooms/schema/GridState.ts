@@ -4,7 +4,7 @@ import { AreaState } from "./AreaState";
 import { CheckpointState } from "./CheckpointState";
 
 export class GridState extends Schema {
-  @type("string") seed: string;
+  // @type("string") seed: string;
   @type("number") col: number;
   @type("number") row: number;
   @type([RockState]) rocks = new ArraySchema<RockState>();

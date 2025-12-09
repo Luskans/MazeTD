@@ -11,13 +11,13 @@ export class GameRoom extends Room<GameState> {
     this.state = new GameState();
     this.setPrivate();
 
-    generateMapSize(state);
-    generateRocks(state);
-    generateZones(state);
-    generatePortals(state);
-    generateEnemyTypes(state);
-    generateWaves(state);
-    generatePrices(state);
+    // generateMapSize(state);
+    // generateRocks(state);
+    // generateZones(state);
+    // generatePortals(state);
+    // generateEnemyTypes(state);
+    // generateWaves(state);
+    // generatePrices(state);
 
     this.onMessage("loaded", (client: Client) => {
       const player = this.state.players.get(client.sessionId);

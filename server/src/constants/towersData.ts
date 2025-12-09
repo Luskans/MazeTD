@@ -1,4 +1,4 @@
-const TOWERS = [
+const TOWERS_DATA = [
   {
     name: "basic",
     damage: 10,

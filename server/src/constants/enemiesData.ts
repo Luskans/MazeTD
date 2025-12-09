@@ -1,4 +1,4 @@
-const ENEMIES = [
+const ENEMIES_DATA = [
   {
     name: "slime",
     type: "normal",

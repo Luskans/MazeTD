@@ -2,7 +2,12 @@ import { AreaState } from "../rooms/schema/AreaState";
 import { CheckpointState } from "../rooms/schema/CheckpointState";
 import { EnemyState } from "../rooms/schema/EnemyState";
 import { GameState } from "../rooms/schema/GameState";
+import { PlayerState } from "../rooms/schema/PlayerState";
 import { RockState } from "../rooms/schema/RockState";
+import { ShopState } from "../rooms/schema/ShopState";
+import { TowerConfig } from "../rooms/schema/TowerConfig";
+import { UpgradeConfig } from "../rooms/schema/UpgradeConfig";
+import { UpgradeState } from "../rooms/schema/UpgradeState";
 import { WaveState } from "../rooms/schema/WaveState";
 import { getRandom } from "./utils";
 
@@ -13,14 +18,14 @@ export class SetupService {
   }
 
   private generateGrid(state: GameState): void {
-    state.grid.col = getRandom(MAPCONFIG.minCol, MAPCONFIG.maxCol);
-    state.grid.row = getRandom(MAPCONFIG.minRow, MAPCONFIG.maxRow);
+    state.grid.col = getRandom(MAP_DATA.minCol, MAP_DATA.maxCol);
+    state.grid.row = getRandom(MAP_DATA.minRow, MAP_DATA.maxRow);
   }
 
   private generateRocks(state: GameState): void {
     const totalCells = (state.grid.col * state.grid.row) / 4;
-    const minRocks = Math.floor(totalCells * MAPCONFIG.minRocks);
-    const maxRocks = Math.floor(totalCells * MAPCONFIG.maxRocks);
+    const minRocks = Math.floor(totalCells * MAP_DATA.minRocks);
+    const maxRocks = Math.floor(totalCells * MAP_DATA.maxRocks);
     const rockCount = getRandom(minRocks, maxRocks);
     const rocks: {x: number, y: number}[] = [];
 
@@ -38,8 +43,8 @@ export class SetupService {
         if (!overlap) {
           rocks.push({ x, y });
           let rock = new RockState();
-          rock.x = x;
-          rock.y = y;
+          rock.gridX = x;
+          rock.gridY = y;
           state.grid.rocks.push(rock);
           placed = true;
         }
@@ -62,7 +67,7 @@ export class SetupService {
         const y = getRandom(0, state.grid.row - 1);
 
         let blocked = state.grid.rocks.some(r => {
-          return x >= r.x && x < r.x+2 && y >= r.y && y < r.y+2;
+          return x >= r.gridX && x < r.gridX+2 && y >= r.gridY && y < r.gridY+2;
         });
 
         let overlap = checkpoints.some(r => {
@@ -72,8 +77,8 @@ export class SetupService {
         if (!blocked || overlap) {
           checkpoints.push({ x, y });
           let checkpoint = new CheckpointState();
-          checkpoint.x = x;
-          checkpoint.y = y;
+          checkpoint.gridX = x;
+          checkpoint.gridY = y;
           checkpoint.order = i;
           state.grid.checkpoints.push(checkpoint);
           placed = true;
@@ -90,33 +95,33 @@ export class SetupService {
 
     for (let i = 0; i < areaCount; i++) {
       const area = new AreaState();
-      area.x = getRandom(0, state.grid.col);
-      area.y = getRandom(0, state.grid.row);
-      area.radius = getRandom(MAPCONFIG.minAreaRadius, MAPCONFIG.maxAreaRadius);
+      area.gridX = getRandom(0, state.grid.col);
+      area.gridY = getRandom(0, state.grid.row);
+      area.radius = getRandom(MAP_DATA.minAreaRadius, MAP_DATA.maxAreaRadius);
 
-      area.damageMultiplier = getRandom(MAPCONFIG.minAreaMultiplier, MAPCONFIG.maxAreaMultiplier);
-      area.attackSpeedMultiplier = getRandom(MAPCONFIG.minAreaMultiplier, MAPCONFIG.maxAreaMultiplier);
-      area.rangeMultiplier = getRandom(MAPCONFIG.minAreaMultiplier, MAPCONFIG.maxAreaMultiplier);
-      area.speedMultiplier = getRandom((1/MAPCONFIG.maxAreaMultiplier), MAPCONFIG.maxAreaMultiplier);
+      area.damageMultiplier = getRandom(MAP_DATA.minAreaMultiplier, MAP_DATA.maxAreaMultiplier);
+      area.attackSpeedMultiplier = getRandom(MAP_DATA.minAreaMultiplier, MAP_DATA.maxAreaMultiplier);
+      area.rangeMultiplier = getRandom(MAP_DATA.minAreaMultiplier, MAP_DATA.maxAreaMultiplier);
+      area.speedMultiplier = getRandom((1/MAP_DATA.maxAreaMultiplier), MAP_DATA.maxAreaMultiplier);
 
       state.grid.areas.push(area);
     }
   }
 
   private generateWaves(state: GameState) {
-    for (let i = 0; i < 6; i++) {
-      const randomEnemy = this.getRandomEnemy(ENEMIES);
-      const enemy = new EnemyState();
-      enemy.name = randomEnemy.name;
-      enemy.maxHp = randomEnemy.hp;
-      enemy.currentHp = randomEnemy.hp;
-      enemy.speed = randomEnemy.speed;
-      enemy.armor = randomEnemy.armor;
-      enemy.count = randomEnemy.count;
+    for (let i = 0; i < MAP_DATA.waveCount; i++) {
+      const randomEnemy = this.getRandomEnemy(ENEMIES_DATA);
+      // const enemy = new EnemyState();
+      // enemy.name = randomEnemy.name;
+      // enemy.maxHp = randomEnemy.hp;
+      // enemy.currentHp = randomEnemy.hp;
+      // enemy.speed = randomEnemy.speed;
+      // enemy.armor = randomEnemy.armor;
+      // enemy.count = randomEnemy.count;
 
       const wave = new WaveState();
       wave.index = i;
-      wave.enemy = enemy;
+      wave.enemyId = randomEnemy.name;
 
       state.waves.push(wave);
     }
@@ -128,12 +133,72 @@ export class SetupService {
   }
 
   private generateShop(state: GameState) {
-    state.prices.wall32 = R(5, 20);
-    state.prices.wall64 = R(10, 35);
-    state.prices.tower = R(30, 80);
-    state.prices.destroyRock = R(50, 120);
-    state.prices.incomeUpgrade = R(40, 100);
-    state.prices.towerUpgrade = R(20, 60);
-    state.prices.towerSellPenalty = R(10, 20);
+    const shop = new ShopState();
+    
+    for (let towerData of TOWERS_DATA) {
+      let towerConfig = new TowerConfig();
+      let randomPrice = Math.floor(towerData.price * getRandom(MAP_DATA.minPriceMultiplier, MAP_DATA.maxPriceMultiplier));
+      
+      towerConfig.id = towerData.name;
+      towerConfig.price = towerData.name === "basic" ? towerData.price : randomPrice;
+      
+      shop.towersConfig.set(towerConfig.id, towerConfig);
+    }
+
+    for (let upgradeData of UPGRADES_DATA) {
+      let upgradeConfig = new UpgradeConfig();
+      let randomPrice = Math.floor(upgradeData.price * getRandom(MAP_DATA.minPriceMultiplier, MAP_DATA.maxPriceMultiplier));
+      let randomUpgradeMultiplier = getRandom(MAP_DATA.minUpgradeMultiplier, MAP_DATA.maxUpgradeMultiplier);
+
+      upgradeConfig.id = upgradeData.name;
+      upgradeConfig.price = randomPrice;
+      upgradeConfig.upgradeMultiplier = randomUpgradeMultiplier;
+      
+      shop.upgradesConfig.set(upgradeConfig.id, upgradeConfig);
+    }
+  }
+
+  private setupPlayerUpgrades(state: GameState, player: PlayerState) {
+    player.hp = MAP_DATA.baseHp;
+    player.gold = MAP_DATA.baseGold;
+    player.income = MAP_DATA.baseIncome;
+    player.population = MAP_DATA.basePopulation;
+    for (let upgradeData of UPGRADES_DATA) {
+      let upgradeConfig = state.shop.upgradesConfig.get(upgradeData.name);
+      let upgrade = new UpgradeState();
+      upgrade.id = upgradeData.name;
+      upgrade.level = 1;
+      upgrade.cost = upgradeConfig.price;
+      upgrade.value = upgradeData.value;
+      upgrade.nextCost = upgradeConfig.price + upgradeConfig.upgradeMultiplier;
+      upgrade.nextCost = (upgrade.level + 1) * upgrade.value;
+      player.upgrades.set(upgradeData.name, upgrade);
+      // upgrade.value = UPGRADES_DATA.find(u => u.name === upgradeData.name).value;
+      // upgrade.nextCost = UPGRADES_DATA.find(u => u.name === upgradeData.name).value;
+    }
+  }
+
+  private setupPlayerGrid(state: GameState, player: PlayerState) {
+    for (const rock of state.grid.rocks) {
+        player.rocks.push(new RockState({ x: rock.gridX, y: rock.gridY })); 
+    }
+    for (const checkpoint of state.grid.checkpoints) {
+        player.checkpoints.push(new CheckpointState({ 
+          x: checkpoint.gridX,
+          y: checkpoint.gridY,
+          order: checkpoint.order
+        })); 
+    }
+    for (const area of state.grid.areas) {
+      player.areas.push(new AreaState({ 
+        x: area.gridX,
+        y: area.gridY,
+        radius: area.radius,
+        damageMultiplier: area.damageMultiplier,
+        attackMultiplier: area.attackSpeedMultiplier,
+        rangeMultiplier: area.rangeMultiplier,
+        speedMultiplier: area.speedMultiplier
+      })); 
+    }
   }
 }

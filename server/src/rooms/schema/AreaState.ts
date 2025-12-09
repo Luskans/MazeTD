@@ -1,8 +1,8 @@
 import { Schema, type } from "@colyseus/schema";
 
 export class AreaState extends Schema {
-  @type('number') x: number;
-  @type('number') y: number;
+  @type('number') gridX: number;
+  @type('number') gridY: number;
   @type('number') radius: number;
   
   @type('number') damageMultiplier: number = 1.0;

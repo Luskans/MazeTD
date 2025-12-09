@@ -6,12 +6,13 @@ import { AreaState } from "./AreaState";
 import { CheckpointState } from "./CheckpointState";
 import { WaveState } from "./WaveState";
 import { GridState } from "./GridState";
-import { PriceState } from "./PriceState";
+import { ShopState } from "./ShopState";
 
 export class GameState extends Schema {
   @type({ map: PlayerState }) players = new MapSchema<PlayerState>();
   @type(GridState) grid = new GridState();
-  @type(PriceState) price = new PriceState();
+  @type(ShopState) shop = new ShopState();
+  // @type(PriceState) price = new PriceState();
 
   // @type("string") seed: string;
   // @type("number") col: number;
