@@ -1,4 +1,4 @@
-const ENEMIES_DATA = [
+export const ENEMIES_DATA = [
   {
     name: "slime",
     type: "normal",

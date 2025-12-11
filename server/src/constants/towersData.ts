@@ -1,4 +1,4 @@
-const TOWERS_DATA = [
+export const TOWERS_DATA = [
   {
     name: "basic",
     damage: 10,

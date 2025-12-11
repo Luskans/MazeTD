@@ -1,3 +1,7 @@
+import { ENEMIES_DATA } from "../constants/enemiesData";
+import { MAP_DATA } from "../constants/mapData";
+import { TOWERS_DATA } from "../constants/towersData";
+import { UPGRADES_DATA } from "../constants/upgradesData";
 import { AreaState } from "../rooms/schema/AreaState";
 import { CheckpointState } from "../rooms/schema/CheckpointState";
 import { EnemyState } from "../rooms/schema/EnemyState";
@@ -9,12 +13,22 @@ import { TowerConfig } from "../rooms/schema/TowerConfig";
 import { UpgradeConfig } from "../rooms/schema/UpgradeConfig";
 import { UpgradeState } from "../rooms/schema/UpgradeState";
 import { WaveState } from "../rooms/schema/WaveState";
-import { getRandom } from "./utils";
+import { getRandom, getRandomDecimal } from "./utils";
 
 export class SetupService {
 
-  static generateSetup(state: GameState): void {
+  public setupGame(state: GameState): void {
+    this.generateGrid(state);
+    this.generateRocks(state);
+    this.generateCheckpoints(state);
+    this.generateAreas(state);
+    this.generateWaves(state);
+    this.generateShop(state);
+  }
 
+  public setupPlayer(state: GameState, player: PlayerState): void {
+    this.setupPlayerUpgrades(state, player);
+    this.setupPlayerGrid(state, player);
   }
 
   private generateGrid(state: GameState): void {
@@ -32,7 +46,7 @@ export class SetupService {
     for (let i = 0; i < rockCount; i++) {
       let placed = false;
 
-      for (let tryCount = 0; tryCount < 50 && !placed; tryCount++) {
+      for (let attempt = 0; attempt < 50 && !placed; attempt++) {
         const x = getRandom(0, state.grid.col - 2);
         const y = getRandom(0, state.grid.row - 2);
 
@@ -43,6 +57,7 @@ export class SetupService {
         if (!overlap) {
           rocks.push({ x, y });
           let rock = new RockState();
+          rock.id = crypto.randomUUID();
           rock.gridX = x;
           rock.gridY = y;
           state.grid.rocks.push(rock);
@@ -54,8 +69,11 @@ export class SetupService {
 
   private generateCheckpoints(state: GameState) {
     const totalCells = (state.grid.col * state.grid.row) / 4;
-    const minChecks = Math.floor(totalCells / 50);
-    const maxChecks = Math.floor(totalCells / 400);
+    // const minChecks = Math.floor(totalCells / 50);
+    // const maxChecks = Math.floor(totalCells / 400);
+    const minChecks = 2;
+    let maxChecks = Math.round(0.005 * totalCells + 3.5);
+    maxChecks = Math.max(minChecks, maxChecks);
     const checkCount = getRandom(minChecks, maxChecks);
     const checkpoints: {x: number, y: number}[] = [];
 
@@ -63,20 +81,22 @@ export class SetupService {
       let placed = false;
 
       for (let attempt = 0; attempt < 50 && !placed; attempt++) {
-        const x = getRandom(0, state.grid.col - 1);
-        const y = getRandom(0, state.grid.row - 1);
+        const x = getRandom(0, state.grid.col - 2);
+        const y = getRandom(0, state.grid.row - 2);
 
         let blocked = state.grid.rocks.some(r => {
-          return x >= r.gridX && x < r.gridX+2 && y >= r.gridY && y < r.gridY+2;
+          // return x >= r.gridX && x < r.gridX+2 && y >= r.gridY && y < r.gridY+2;
+          return !(x+2 <= r.gridX || r.gridX+2 <= x || y+2 <= r.gridY || r.gridY+2 <= y);
         });
 
-        let overlap = checkpoints.some(r => {
-          return !(x+2 <= r.x || r.x+2 <= x || y+2 <= r.y || r.y+2 <= y);
+        let overlap = checkpoints.some(c => {
+          return !(x+2 <= c.x || c.x+2 <= x || y+2 <= c.y || c.y+2 <= y);
         });
 
-        if (!blocked || overlap) {
+        if (!blocked && !overlap) {
           checkpoints.push({ x, y });
           let checkpoint = new CheckpointState();
+          checkpoint.id = crypto.randomUUID();
           checkpoint.gridX = x;
           checkpoint.gridY = y;
           checkpoint.order = i;
@@ -94,7 +114,8 @@ export class SetupService {
     const areaCount = getRandom(minAreas, maxAreas);
 
     for (let i = 0; i < areaCount; i++) {
-      const area = new AreaState();
+      let area = new AreaState();
+      area.id = crypto.randomUUID();
       area.gridX = getRandom(0, state.grid.col);
       area.gridY = getRandom(0, state.grid.row);
       area.radius = getRandom(MAP_DATA.minAreaRadius, MAP_DATA.maxAreaRadius);
@@ -143,12 +164,13 @@ export class SetupService {
       towerConfig.price = towerData.name === "basic" ? towerData.price : randomPrice;
       
       shop.towersConfig.set(towerConfig.id, towerConfig);
+      state.shop = shop;
     }
 
     for (let upgradeData of UPGRADES_DATA) {
       let upgradeConfig = new UpgradeConfig();
       let randomPrice = Math.floor(upgradeData.price * getRandom(MAP_DATA.minPriceMultiplier, MAP_DATA.maxPriceMultiplier));
-      let randomUpgradeMultiplier = getRandom(MAP_DATA.minUpgradeMultiplier, MAP_DATA.maxUpgradeMultiplier);
+      let randomUpgradeMultiplier = getRandomDecimal(MAP_DATA.minUpgradeMultiplier, MAP_DATA.maxUpgradeMultiplier);
 
       upgradeConfig.id = upgradeData.name;
       upgradeConfig.price = randomPrice;
@@ -180,19 +202,21 @@ export class SetupService {
 
   private setupPlayerGrid(state: GameState, player: PlayerState) {
     for (const rock of state.grid.rocks) {
-        player.rocks.push(new RockState({ x: rock.gridX, y: rock.gridY })); 
+        player.rocks.set(rock.id, new RockState({
+          gridX: rock.gridX,
+          gridY: rock.gridY })); 
     }
     for (const checkpoint of state.grid.checkpoints) {
-        player.checkpoints.push(new CheckpointState({ 
-          x: checkpoint.gridX,
-          y: checkpoint.gridY,
+        player.checkpoints.set(checkpoint.id, new CheckpointState({ 
+          gridX: checkpoint.gridX,
+          gridY: checkpoint.gridY,
           order: checkpoint.order
         })); 
     }
     for (const area of state.grid.areas) {
-      player.areas.push(new AreaState({ 
-        x: area.gridX,
-        y: area.gridY,
+      player.areas.set(area.id, new AreaState({ 
+        gridX: area.gridX,
+        gridY: area.gridY,
         radius: area.radius,
         damageMultiplier: area.damageMultiplier,
         attackMultiplier: area.attackSpeedMultiplier,

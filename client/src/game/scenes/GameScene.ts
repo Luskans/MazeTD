@@ -104,8 +104,7 @@ import { GameState } from "../../../../server/src/rooms/schema/GameState";
 import { getStateCallbacks, Room } from "colyseus.js";
 import type { PlayerState } from "../../../../server/src/rooms/schema/PlayerState";
 import { SetupService } from "../services/SetupService";
-import { CameraService } from '../services/CameraService'; // Import du nouveau service
-
+import { CameraService } from '../services/CameraService';
 
 export class GameScene extends Phaser.Scene {
   room!: Room<GameState>;
@@ -118,27 +117,24 @@ export class GameScene extends Phaser.Scene {
 
   init(data: any) {
     this.room = data.room;
+    this.setupService = new SetupService(this);
+    this.cameraService = new CameraService(this);
+    console.log("Dans game scene, le state de la game : ", this.room.state.toJSON())
   }
 
   create() {
-    console.log("Dans la GameScene, la room : ", this.room.state.players);
-    this.setupService = new SetupService(this);
-    this.cameraService = new CameraService(this);
     const $ = getStateCallbacks(this.room);
 
-    // this.createPlayersTowers();
-    this.setupService.createPlayersZone(this.room.state.players);
+    // this.setupService.createPlayersZone(this.room.state.players);
+    this.setupService.createPlayersGrid(this.room.state);
 
     const player = this.room.state.players.get(this.room.sessionId)
     console.log("le player co : ", player)
-    console.log("l'id du player co : ", player.id)
-    console.log("position x de la tower du player co : ", player.tower.position.x)
-    this.cameras.main.centerOn(player.tower.position.x, player.tower.position.y);
+    // this.cameras.main.centerOn(player.tower.position.x, player.tower.position.y);
 
     $(this.room.state).players.onRemove((p: PlayerState, id: string) => {
       // updatePlayersUI(); // modifier affichage liste des joueurs
       // waveService(); // enlever la vague sur ce joueur
-
     });
   }
 
@@ -147,21 +143,4 @@ export class GameScene extends Phaser.Scene {
       this.cameraService.update(time, delta);
     }
   }
-
-  // createPlayersTowers() {
-  //   const players = this.room.state.players;
-  //   let index = 0;
-
-  //   players.forEach((player: any, id: string) => {
-  //     const pos = ZoneService.getPositionForIndex(index, players.size);
-  //     index++;
-
-  //     const tower = new Tower(this, pos.x, pos.y, player.username, id);
-  //     this.towers.set(id, tower);
-
-  //     if (id === this.room.sessionId) {
-  //       this.cameras.main.startFollow(tower);
-  //     }
-  //   });
-  // }
 }

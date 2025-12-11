@@ -1,4 +1,4 @@
-const MAP_DATA = {
+export const MAP_DATA = {
   // worldMaxWidth: 0,
   // worldMaxHeight: 0,
   spaceSize: 256,
@@ -15,7 +15,7 @@ const MAP_DATA = {
   upgradePopulation: 5,
   waveCount: 6,
   minRocks: 0.15,
-  maxRocks: 0.70,
+  maxRocks: 0.40,
   minAreaRadius: 64,
   maxAreaRadius: 192,
   minAreaMultiplier: 1.1,

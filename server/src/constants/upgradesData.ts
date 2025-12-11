@@ -1,4 +1,4 @@
-const UPGRADES_DATA = [
+export const UPGRADES_DATA = [
   {
     name: "population",
     price: 20,
