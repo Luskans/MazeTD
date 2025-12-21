@@ -13,6 +13,7 @@ import { TowerConfig } from "../rooms/schema/TowerConfig";
 import { UpgradeConfig } from "../rooms/schema/UpgradeConfig";
 import { UpgradeState } from "../rooms/schema/UpgradeState";
 import { WaveState } from "../rooms/schema/WaveState";
+import { PathfindingService } from "./PathfindingService";
 import { getRandom, getRandomDecimal } from "./utils";
 
 export class SetupService {
@@ -67,44 +68,107 @@ export class SetupService {
     }
   }
 
+  // private generateCheckpoints(state: GameState) {
+  //   const totalCells = (state.grid.col * state.grid.row) / 4;
+  //   // const minChecks = Math.floor(totalCells / 50);
+  //   // const maxChecks = Math.floor(totalCells / 400);
+  //   const minChecks = 2;
+  //   let maxChecks = Math.round(0.005 * totalCells + 3.5);
+  //   maxChecks = Math.max(minChecks, maxChecks);
+  //   const checkCount = getRandom(minChecks, maxChecks);
+  //   const checkpoints: {x: number, y: number}[] = [];
+
+  //   for (let i = 0; i < checkCount; i++) {
+  //     let placed = false;
+
+  //     for (let attempt = 0; attempt < 50 && !placed; attempt++) {
+  //       const x = getRandom(0, state.grid.col - 2);
+  //       const y = getRandom(0, state.grid.row - 2);
+
+  //       let blocked = state.grid.rocks.some(r => {
+  //         // return x >= r.gridX && x < r.gridX+2 && y >= r.gridY && y < r.gridY+2;
+  //         return !(x+2 <= r.gridX || r.gridX+2 <= x || y+2 <= r.gridY || r.gridY+2 <= y);
+  //       });
+
+  //       let overlap = checkpoints.some(c => {
+  //         return !(x+2 <= c.x || c.x+2 <= x || y+2 <= c.y || c.y+2 <= y);
+  //       });
+
+  //       if (!blocked && !overlap) {
+  //         checkpoints.push({ x, y });
+  //         let checkpoint = new CheckpointState();
+  //         checkpoint.id = crypto.randomUUID();
+  //         checkpoint.gridX = x;
+  //         checkpoint.gridY = y;
+  //         checkpoint.order = i;
+  //         state.grid.checkpoints.push(checkpoint);
+  //         placed = true;
+  //       }
+  //     }
+  //   }
+  // }
+
   private generateCheckpoints(state: GameState) {
+    const pathfinding = new PathfindingService();
+    const gridMap = pathfinding.buildStaticGrid(state);
+
     const totalCells = (state.grid.col * state.grid.row) / 4;
-    // const minChecks = Math.floor(totalCells / 50);
-    // const maxChecks = Math.floor(totalCells / 400);
-    const minChecks = 2;
+    const minChecks = 4;
     let maxChecks = Math.round(0.005 * totalCells + 3.5);
     maxChecks = Math.max(minChecks, maxChecks);
-    const checkCount = getRandom(minChecks, maxChecks);
-    const checkpoints: {x: number, y: number}[] = [];
 
-    for (let i = 0; i < checkCount; i++) {
-      let placed = false;
+    const MAX_ATTEMPTS = 50;
 
-      for (let attempt = 0; attempt < 50 && !placed; attempt++) {
-        const x = getRandom(0, state.grid.col - 2);
-        const y = getRandom(0, state.grid.row - 2);
+    for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+      state.grid.checkpoints.clear();
+      const checkpoints: { x: number; y: number }[] = [];
+      const checkCount = getRandom(minChecks, maxChecks);
 
-        let blocked = state.grid.rocks.some(r => {
-          // return x >= r.gridX && x < r.gridX+2 && y >= r.gridY && y < r.gridY+2;
-          return !(x+2 <= r.gridX || r.gridX+2 <= x || y+2 <= r.gridY || r.gridY+2 <= y);
-        });
+      for (let i = 0; i < checkCount; i++) {
+        let placed = false;
 
-        let overlap = checkpoints.some(c => {
-          return !(x+2 <= c.x || c.x+2 <= x || y+2 <= c.y || c.y+2 <= y);
-        });
+        for (let tryPos = 0; tryPos < 50 && !placed; tryPos++) {
+          const x = getRandom(0, state.grid.col - 2);
+          const y = getRandom(0, state.grid.row - 2);
 
-        if (!blocked && !overlap) {
-          checkpoints.push({ x, y });
-          let checkpoint = new CheckpointState();
-          checkpoint.id = crypto.randomUUID();
-          checkpoint.gridX = x;
-          checkpoint.gridY = y;
-          checkpoint.order = i;
-          state.grid.checkpoints.push(checkpoint);
-          placed = true;
+          const blocked = state.grid.rocks.some(r =>
+            !(x + 2 <= r.gridX || r.gridX + 2 <= x || y + 2 <= r.gridY || r.gridY + 2 <= y)
+          );
+
+          const overlap = checkpoints.some(c =>
+            !(x + 2 <= c.x || c.x + 2 <= x || y + 2 <= c.y || c.y + 2 <= y)
+          );
+
+          if (!blocked && !overlap) {
+            checkpoints.push({ x, y });
+            placed = true;
+          }
         }
       }
+
+      // ⚠️ Validation du path
+      const orderedCheckpoints = checkpoints.map((c, i) => ({
+        gridX: c.x,
+        gridY: c.y,
+        order: i
+      }));
+
+      if (pathfinding.validateCheckpointPath(gridMap, orderedCheckpoints)) {
+        // ✅ Chemin valide → on commit
+        orderedCheckpoints.forEach(cp => {
+          const checkpoint = new CheckpointState();
+          checkpoint.id = crypto.randomUUID();
+          checkpoint.gridX = cp.gridX;
+          checkpoint.gridY = cp.gridY;
+          checkpoint.order = cp.order;
+          state.grid.checkpoints.push(checkpoint);
+        });
+
+        return;
+      }
     }
+
+    throw new Error("Impossible de générer des checkpoints avec un chemin valide");
   }
 
   private generateAreas(state: GameState) {

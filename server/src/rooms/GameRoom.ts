@@ -55,6 +55,36 @@ export class GameRoom extends Room<GameState> {
         client.send("path_blocked", "You can't build here : path blocked.");
       }
     });
+  //   this.onMessage("place-building", (client, data) => {
+  //     const player = this.state.players.get(client.sessionId);
+  //     if (!player) return;
+
+  //     const { buildingId, x, y } = data;
+  //     const gridSize = 2; // Taille fixe pour l'instant
+
+  //     // 1. Validation finale sur le serveur
+  //     const isValid = this.pathfindingService.validatePlacement(this.state, player, x, y, gridSize);
+
+  //     if (isValid) {
+  //         // 2. Ajouter la tour au schéma Colyseus
+  //         const newTower = new TowerState({
+  //             id: generateId(), // Utilisez une fonction simple d'ID unique
+  //             typeId: buildingId,
+  //             gridX: x,
+  //             gridY: y
+  //         });
+
+  //         player.towers.push(newTower);
+
+  //         // 3. Recalculer le chemin officiel pour les ennemis
+  //         this.pathfindingService.calculateAndSetPath(this.state, player);
+
+  //         console.log(`Tour placée par ${client.sessionId} en ${x},${y}`);
+  //     } else {
+  //         // Optionnel : Envoyer une erreur au client
+  //         client.send("error", "Placement impossible : chemin bloqué !");
+  //     }
+  // });
 
     this.onMessage("destroy_rock", (client: Client, data: { rockId: string }) => {
       const player = this.state.players.get(client.sessionId);
@@ -80,6 +110,7 @@ export class GameRoom extends Room<GameState> {
     this.state.players.set(client.sessionId, player);
 
     this.setupService.setupPlayer(this.state, player);
+    this.pathfindingService.calculateAndSetPath(this.state, player); 
   }
 
   onLeave(client: Client, consented: boolean) {

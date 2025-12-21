@@ -1,7 +1,7 @@
 import type { Scene } from "phaser";
-import type { PlayerState } from "../../../../server/src/rooms/schema/PlayerState";
-import type { GameState } from "../../../../server/src/rooms/schema/GameState";
-import { MAP_DATA } from "../../../../server/src/constants/mapData";
+import type { PlayerState } from "../../../server/src/rooms/schema/PlayerState";
+import type { GameState } from "../../../server/src/rooms/schema/GameState";
+import { MAP_DATA } from "../../../server/src/constants/mapData";
 
 // const ZONE_SIZE = 2048;
 // const SPACING = 256;
@@ -102,9 +102,9 @@ export class SetupService {
   public getPlayerOffsets(game: GameState, index: number) {
     const { width: gridW, height: gridH } = this.getGridPixelSize(game);
     const pos = this.computeGridPosition2x4(index, gridW, gridH);
-    const offsetX = pos.x + MAP_DATA.outsideSize;
-    const offsetY = pos.y + MAP_DATA.outsideSize;
-    return { offsetX, offsetY };
+    const x = pos.x + MAP_DATA.outsideSize;
+    const y = pos.y + MAP_DATA.outsideSize;
+    return { x, y };
   }
 
   public createPlayersGrid(game: GameState) {

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { getGame } from '../../game/phaser';
+  import { getGame } from '../../services/PhaserService';
   import Button from './Button.svelte';
   import Panel from './Panel.svelte';
   import WaveHUD from './WaveHUD.svelte';
@@ -15,10 +15,16 @@
     (activePanel == panel) ? activePanel = null : activePanel = panel;
   }
 
-  function handleTestClick() {
-    if (gameInstance) {
-      gameInstance.events.emit('choose-building', { buildingId: 'basic' });
-    }
+  function handleTowerClick() {
+    // if (gameInstance) {
+    //   gameInstance.events.emit('choose-building', { buildingId: 'basic' });
+    // }
+    //@ts-ignore
+    window.phaserGame.events.emit('choose-tower', { buildingId: 'basic' })
+  }
+  function handleWallClick() {
+    //@ts-ignore
+    window.phaserGame.events.emit('choose-wall', { buildingId: 'small_wall' })
   }
 
 </script>
@@ -53,8 +59,11 @@
       icon="⚙️"
       on:click={() => handleClick('SETTINGS')} 
     />
-    <button on:click={handleTestClick}>
-      <img src="assets/tower.png" alt="Acheter Tour" />
+    <button on:click={handleTowerClick}>
+      <img src="assets/basic.png" alt="Acheter Tour" />
+    </button>
+    <button on:click={handleWallClick}>
+      <img src="assets/small_wall.png" alt="Acheter Mur" />
     </button>
   </div>
 </div>
