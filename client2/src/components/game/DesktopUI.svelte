@@ -1,32 +1,44 @@
 <script lang="ts">
-  import { getGame } from '../../services/PhaserService';
+  import { onMount } from 'svelte';
+  import { gameRoom } from '../../stores/GlobalVariables';
   import Button from './Button.svelte';
   import Panel from './Panel.svelte';
   import WaveHUD from './WaveHUD.svelte';
+  import type { PlayerState } from '../../../../server/src/rooms/schema/PlayerState';
+  import PlayersPanel from './PlayersPanel.svelte';
+  import ShopPanel from './ShopPanel.svelte';
+  import WavesPanel from './WavesPanel.svelte';
+  import SettingsPanel from './SettingsPanel.svelte';
   
-  let activePanel: string | null = null;
-  let gameInstance = getGame();
+  let activePanel = $state<"players" | "shop" | "waves" | "settings" | null>(null);
+
+  // onMount(() => {
+  //   if ($gameRoom) {
+  //     $gameRoom.onStateChange((state) => {
+  //       player = state.players.get($gameRoom.sessionId);
+  //     });
+  //   }
+  // });
+
+  const player = $derived(
+    $gameRoom?.state.players.get($gameRoom.sessionId)
+  );
 
   const closePanel = () => {
       activePanel = null;
   };
 
-  const handleClick = (panel: string) => {
+  const handleClick = (panel: "players" | "shop" | "waves" | "settings") => {
     (activePanel == panel) ? activePanel = null : activePanel = panel;
   }
 
-  function handleTowerClick() {
-    // if (gameInstance) {
-    //   gameInstance.events.emit('choose-building', { buildingId: 'basic' });
-    // }
-    //@ts-ignore
-    window.phaserGame.events.emit('choose_tower', { buildingId: 'basic', buildingType: "tower", buildingSize: 2 })
-  }
-  function handleWallClick() {
-    //@ts-ignore
-    window.phaserGame.events.emit('choose_wall', { buildingId: 'small_wall', buildingType: "wall", buildingSize: 1 })
-  }
+  // function handleTowerClick() {
+  //   (window as any).phaserGame.events.emit('choose_tower', { buildingId: 'basic', buildingType: "tower", buildingSize: 2 })
+  // }
 
+  // function handleWallClick() {
+  //   (window as any).phaserGame.events.emit('choose_wall', { buildingId: 'small_wall', buildingType: "wall", buildingSize: 1 })
+  // }
 </script>
 
 <div class="wave-hud">
@@ -34,48 +46,73 @@
 </div>
 
 <div class="action-bar">
+  {#if player}
   <div class="hud-resources">
-    <p>💰 : 100</p>
-    <p>🗼 : 7/10</p>
+    <div class="hud-item">
+      <img src="/icons/gold.png" alt="Gold" class="hud-icon" />
+      <p class="hud-text">{player.gold}</p>
+    </div>
+    <div class="hud-item">
+      <img src="/icons/income.png" alt="Income" class="hud-icon" />
+      <p class="hud-text">{player.income}</p>
+    </div>
+    <div class="hud-item">
+      <img src="/icons/tower.png" alt="Population" class="hud-icon" />
+      <p class="hud-text">{player.population}/{player.maxPopulation}</p>
+    </div>
   </div>
+  {/if}
   <div class="buttons">
     <Button 
-      text="Players" 
-      icon="👨" 
-      on:click={() => handleClick('PLAYERS')} 
+      image="players"
+      shortcut="Q"
+      active={activePanel === 'players'}
+      onclick={() => handleClick('players')} 
     />
     <Button 
-      text="Shop"
-      icon="🛒"
-      on:click={() => handleClick('SHOP')}
+      image="shop"
+      shortcut="W"
+      active={activePanel === 'shop'}
+      onclick={() => handleClick('shop')}
     />
     <Button 
-      text="Waves"
-      icon="📈"
-      on:click={() => handleClick('WAVES')} 
+      image="waves"
+      shortcut="E"
+      active={activePanel === 'waves'}
+      onclick={() => handleClick('waves')} 
     />
     <Button 
-      text="Settings"
-      icon="⚙️"
-      on:click={() => handleClick('SETTINGS')} 
+      image="settings"
+      shortcut=""
+      active={activePanel === 'settings'}
+      onclick={() => handleClick('settings')} 
     />
-    <button on:click={handleTowerClick}>
-      <img src="assets/basic.png" alt="Acheter Tour" />
-    </button>
-    <button on:click={handleWallClick}>
-      <img src="assets/small_wall.png" alt="Acheter Mur" />
-    </button>
   </div>
 </div>
 
-{#if activePanel}
+<!-- {#if activePanel === "players" && $gameRoom}
   <Panel title={activePanel} onClose={closePanel}>
-    <p>Contenu du Panneau : **{activePanel}**</p>
-    <p>Ici, vous mettriez votre système de Drag and Drop Svelte.</p>
+    <PlayersPanel players={$gameRoom.state.players} />
+  </Panel>
+{/if} -->
+
+{#if activePanel === "shop"}
+  <Panel title={activePanel} onClose={closePanel}>
+    <ShopPanel />
   </Panel>
 {/if}
 
+<!-- {#if activePanel === "waves" && $gameRoom}
+  <Panel title={activePanel} onClose={closePanel}>
+    <WavesPanel game={$gameRoom.state} />
+  </Panel>
+{/if} -->
 
+{#if activePanel === "settings" && $gameRoom}
+  <Panel title={activePanel} onClose={closePanel}>
+    <SettingsPanel />
+  </Panel>
+{/if}
 
 <style>
   .wave-hud {
@@ -96,7 +133,7 @@
     padding: 10px;
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 16px;
     z-index: 1;
   }
   .buttons {
@@ -104,5 +141,33 @@
     flex-direction: column;
     align-items: center;
     gap: 12px;
+  }
+  .hud-resources {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .hud-item {
+    display: flex;
+    align-items: center;
+  }
+  .hud-icon {
+    background-color: var(--secondary-light);
+    padding: 4px;
+    border: 2px solid var(--primary-dark);
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+    z-index: 2;
+  }
+  .hud-text {
+    width: 100%;
+    font-weight: bold;
+    background-color: var(--primary-dark);
+    padding: 2px 16px;
+    border-radius: 0 16px 16px 0;
+    margin-left: -4px;
+    text-align: right;
   }
 </style>

@@ -1,67 +1,54 @@
 <script lang="ts">
-  import { createEventDispatcher } from "svelte";
-
-  export let text = "";
-  export let icon = "⭐";
-  export let isDisabled = false;
-
-  const dispatch = createEventDispatcher();
-
-  function handleClick() {
-    if (!isDisabled) {
-      dispatch("click");
-    }
-  }
+  let { image, shortcut, active, onclick } = $props<{
+    image: string,
+    shortcut: string,
+    active: boolean,
+    onclick: () => void
+  }>();
 </script>
 
-<button on:click={handleClick} disabled={isDisabled}>
-  <span class="icon">{icon}</span>
-  <span class="text">{text}</span>
+<button {onclick} class:is-active={active}>
+  <p class="shortcut">{shortcut}</p>
+  <img src="/icons/{image}.png" alt="{image}" />
 </button>
 
 <style>
   button {
+    position: relative;
     background: var(--primary-dark);
-    color: var(--white);
-    border: 3px solid var(--secondary);
-    border-radius: 8px;
-    padding: 10px;
+    border: 2px solid var(--primary-dark);
+    border-radius: 0 8px 8px 8px;
+    padding: 12px;
     cursor: pointer;
     display: flex;
-    flex-direction: column;
     align-items: center;
     text-align: center;
     /* box-shadow: 0 4px #3d2516; */
     /* transition: transform 0.1s, box-shadow 0.1s; */
-    width: 60px;
+    /* width: 60px; */
   }
-
-  button:hover:not([disabled]) {
+  button:hover {
+    border: 2px solid var(--secondary);
+  }
+  button:active {
     background: var(--primary-light);
   }
-
-  button:active:not([disabled]) {
-    /* transform: translateY(2px);
-    box-shadow: 0 2px #3d2516; */
+  button.is-active {
     background: var(--primary-light);
+    border: 2px solid var(--primary-light);
   }
-
-  button[disabled] {
-    opacity: 0.6;
-    cursor: not-allowed;
-    /* transform: none;
-    box-shadow: none; */
+  button.is-active:hover {
+    border: 2px solid var(--secondary);
   }
-
-  .icon {
-    font-size: 24px;
-    line-height: 1;
-    margin-bottom: 4px;
-  }
-
-  .text {
+  .shortcut {
+    position: absolute;
+    top: 1px;
+    left: 4px;
+    color: var(--grey);
     font-size: 8px;
-    font-weight: bold;
-    text-transform: uppercase;
+  }
+  img {
+    max-width: 40px;
+    max-height: 40px;
   }
 </style>

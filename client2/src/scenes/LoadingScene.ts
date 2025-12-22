@@ -3,7 +3,7 @@ import { network } from "../services/NetworkService";
 import { GameState } from "../../../server/src/rooms/schema/GameState";
 import { Room } from "colyseus.js";
 import { toast } from "@zerodevx/svelte-toast";
-import { currentScene, screen } from "../stores/GlobalVariables";
+import { currentScene, gameRoom, screen } from "../stores/GlobalVariables";
 
 export class LoadingScene extends Phaser.Scene {
   room: Room<GameState> | null = null;
@@ -53,7 +53,9 @@ export class LoadingScene extends Phaser.Scene {
 
   async create() {
     try {
-      this.room = await network.joinGame(this.roomId, this.options);
+      const room = await network.joinGame(this.roomId, this.options);
+      this.room = room;
+      gameRoom.set(room);
 
       console.log("Rejoint GameRoom :", this.room.roomId);
       // simulation chargement long

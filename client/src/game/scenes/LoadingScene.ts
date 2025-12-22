@@ -50,23 +50,24 @@ export class LoadingScene extends Phaser.Scene {
 
   async create() {
     try {
-        this.room = await network.joinGame(this.roomId, this.options);
+      this.room = await network.joinGame(this.roomId, this.options);
 
-        console.log("Rejoint GameRoom :", this.room.roomId);
-        // simulation chargement long
-        await new Promise(resolve => setTimeout(resolve, 3000));
-        this.room.send("loaded"); 
 
-        this.room.onMessage("begin", () => {
-            console.log("Tous les joueurs ont chargé! Démarrage de GameScene...");
-            this.scene.start("GameScene", { room: this.room });
-        });
+      console.log("Rejoint GameRoom :", this.room.roomId);
+      // simulation chargement long
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      this.room.send("loaded"); 
+
+      this.room.onMessage("begin", () => {
+        console.log("Tous les joueurs ont chargé! Démarrage de GameScene...");
+        this.scene.start("GameScene", { room: this.room });
+      });
 
     } catch (e) {
-        console.error("Erreur lors de la jointure à la GameRoom:", e);
-        network.leaveRoom();
-        screen.set("home");
-        toast.push("Error to join the game.", { classes: ['custom'] })
+      console.error("Erreur lors de la jointure à la GameRoom:", e);
+      network.leaveRoom();
+      screen.set("home");
+      toast.push("Error to join the game.", { classes: ['custom'] })
     }
   }
 }

@@ -1,67 +1,75 @@
 <script lang="ts">
+  import { cubicIn } from "svelte/easing";
   import { slide } from "svelte/transition";
 
-  export let title = 'Panel';
-  export let onClose = () => {};
+  let { title = 'Panel', onClose, children } = $props<{
+    title?: string,
+    onClose: () => void,
+    children: any
+  }>();
 </script>
 
 <div 
   class="panel" 
-  on:click|stopPropagation
-  transition:slide={{ axis: "x" }}
+  onclick={(e) => e.stopPropagation()}
+  transition:slide={{ axis: "x", duration: 300, easing: cubicIn }}
   tabindex="0"
   role="dialog"
-  on:keydown={(e) => {
+  onkeydown={(e) => {
     if (e.key === 'Enter' || e.key === ' ') onClose();
   }}
 >
   <header>
-    <h2>{title}</h2>
+    <h2>{title.toUpperCase()}</h2>
   </header>
   
   <div class="content">
-    <slot></slot>
+    <!-- <slot></slot> -->
+    {@render children()}
   </div>
 </div>
 
 <style>
   .panel {
     position: absolute;
-    top: 80px;
-    left: 100px;
+    top: 44px;
+    left: 133px;
     background: transparent;
-    max-width: 600px;
-    max-height: 90%;
+    max-height: 90vh;
     display: flex;
     flex-direction: column;
     z-index: 1;
+    min-width: 300px; 
+    max-width: 600px;
+    contain: layout;
   }
-
   header {
-    display: flex;
+    /* display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: center; */
     background: var(--grey);
     border: 3px solid var(--secondary);
+    border-bottom: none;
     border-radius: 8px 8px 0 0;
-    padding: 8px 64px;
+    padding: 6px 64px;
     width: fit-content;
     align-self: center;
+    white-space: nowrap;
   }
-
   h2 {
     color: var(--text);
     margin: 0;
-    font-size: 12px;
+    font-size: 16px;
     font-weight: bold;
   }
-
   .content {
-    /* flex-grow: 1; */
     background: var(--primary-light);
     border: 3px solid var(--secondary);
     border-radius: 8px;
     color: #3d2516;
     padding: 12px;
+    max-height: 88vh;
+    overflow-y: auto;
+    overflow-x: hidden;
   }
 </style>
