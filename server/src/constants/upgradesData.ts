@@ -1,16 +1,22 @@
 export const UPGRADES_DATA = [
   {
-    name: "population",
+    id: "population",
+    name: "Increase population",
+    type: "upgrade",
     price: 20,
     value: 5
   },
   {
-    name: "income",
+    id: "income",
+    name: "Increase income",
+    type: "upgrade",
     price: 40,
     value: 5
   },
   {
-    name: "destroy",
+    id: "destroy",
+    name: "Destroy rock",
+    type: "upgrade",
     price: 40,
     value: null
   },

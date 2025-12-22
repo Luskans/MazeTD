@@ -5,10 +5,12 @@ import { EnemyState } from "./schema/EnemyState";
 import { PlayerState } from "./schema/PlayerState";
 import { SetupService } from "../services/SetupService";
 import { PathfindingService } from "../services/PathfindingService";
+import { BuildService } from "../services/BuildService";
 
 export class GameRoom extends Room<GameState> {
   private setupService: SetupService;
   private pathfindingService: PathfindingService;
+  private buildService: BuildService;
 
   onCreate(options: any) {
     console.log(`🚀 Creation la game room ${this.roomId} !`);
@@ -19,6 +21,7 @@ export class GameRoom extends Room<GameState> {
     this.setupService.setupGame(this.state);
 
     this.pathfindingService = new PathfindingService();
+    this.buildService = new BuildService();
 
     this.onMessage("loaded", (client: Client) => {
       const player = this.state.players.get(client.sessionId);
@@ -30,61 +33,44 @@ export class GameRoom extends Room<GameState> {
       }
     });
 
-    this.onMessage("place_building", (client: Client, data: { x: number, y: number, type: string }) => {
+    this.onMessage("place_building", (client: Client, data: { buildingId: string, x: number, y: number, buildingSize: number, buildingType: string }) => {
       const player = this.state.players.get(client.sessionId);
       if (!player) return;
 
-      // 1. Vérification des ressources, de la validité de la position, etc.
+      // 0. Vérification de la population
+      const isPopulationValid = this.buildService.validatePopulation(player);
+      if (!isPopulationValid) {
+        client.send("not_enough_population", "You have reach your max population.");
+        return;
+      }
+
+      // 1. Vérification des ressources
+      const paymentCost = this.buildService.validatePayment(this.state, player, data.buildingId, data.buildingType);
+      if (paymentCost === null) {
+        client.send("not_enough_gold", "You don't have enough gold.");
+        return;
+      }
 
       // 2. Validation du Pathfinding
-      const towerSize = 1; // Supposons une taille 1x1 pour la tour
-      const isValid = this.pathfindingService.validatePlacement(this.state, player, data.x, data.y, towerSize);
-
-      if (isValid) {
-        // 3. Placement et mise à jour du chemin
-        
-        // AJOUTEZ la TowerState au player.towers
-        // ... (création et ajout de la tour) ...
-        
-        // Recalculer et STOCKER le nouveau chemin dans l'état Colyseus
-        this.pathfindingService.calculateAndSetPath(this.state, player); 
-        
-        // (Le joueur reçoit automatiquement l'état mis à jour via Colyseus)
-        
-      } else {
+      const isPathValid = this.pathfindingService.validatePlacement(this.state, player, data.x, data.y, data.buildingSize);
+      if (!isPathValid) {
         client.send("path_blocked", "You can't build here : path blocked.");
+        return;
       }
+
+      // 3. Placement et mise à jour du chemin
+      if (data.buildingType == "tower") {
+        this.buildService.createTower(player, data.x, data.y, data.buildingId, paymentCost)
+
+      } else if (data.buildingType == "wall") {
+        this.buildService.createWall(player, data.x, data.y, data.buildingId)
+      }
+      
+      // 4. Recalculer et STOCKER le nouveau chemin dans l'état Colyseus
+      this.pathfindingService.calculateAndSetPath(this.state, player); 
+      
+      console.log(`Building placé par ${client.sessionId} nommé ${player.username} en ${data.x},${data.y}`);
     });
-  //   this.onMessage("place-building", (client, data) => {
-  //     const player = this.state.players.get(client.sessionId);
-  //     if (!player) return;
-
-  //     const { buildingId, x, y } = data;
-  //     const gridSize = 2; // Taille fixe pour l'instant
-
-  //     // 1. Validation finale sur le serveur
-  //     const isValid = this.pathfindingService.validatePlacement(this.state, player, x, y, gridSize);
-
-  //     if (isValid) {
-  //         // 2. Ajouter la tour au schéma Colyseus
-  //         const newTower = new TowerState({
-  //             id: generateId(), // Utilisez une fonction simple d'ID unique
-  //             typeId: buildingId,
-  //             gridX: x,
-  //             gridY: y
-  //         });
-
-  //         player.towers.push(newTower);
-
-  //         // 3. Recalculer le chemin officiel pour les ennemis
-  //         this.pathfindingService.calculateAndSetPath(this.state, player);
-
-  //         console.log(`Tour placée par ${client.sessionId} en ${x},${y}`);
-  //     } else {
-  //         // Optionnel : Envoyer une erreur au client
-  //         client.send("error", "Placement impossible : chemin bloqué !");
-  //     }
-  // });
 
     this.onMessage("destroy_rock", (client: Client, data: { rockId: string }) => {
       const player = this.state.players.get(client.sessionId);

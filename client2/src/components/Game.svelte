@@ -54,6 +54,7 @@
   });
 </script>
 
+<svelte:window on:contextmenu|preventDefault />
 <div bind:this={container} class="game-screen">
   <!-- <GameUI /> -->
   {#if $currentScene === 'GameScene'}

@@ -1,7 +1,9 @@
+import { generateId } from "colyseus";
 import { ENEMIES_DATA } from "../constants/enemiesData";
 import { MAP_DATA } from "../constants/mapData";
 import { TOWERS_DATA } from "../constants/towersData";
 import { UPGRADES_DATA } from "../constants/upgradesData";
+import { WALLS_DATA } from "../constants/wallsData";
 import { AreaState } from "../rooms/schema/AreaState";
 import { CheckpointState } from "../rooms/schema/CheckpointState";
 import { EnemyState } from "../rooms/schema/EnemyState";
@@ -12,6 +14,7 @@ import { ShopState } from "../rooms/schema/ShopState";
 import { TowerConfig } from "../rooms/schema/TowerConfig";
 import { UpgradeConfig } from "../rooms/schema/UpgradeConfig";
 import { UpgradeState } from "../rooms/schema/UpgradeState";
+import { WallConfig } from "../rooms/schema/WallConfig";
 import { WaveState } from "../rooms/schema/WaveState";
 import { PathfindingService } from "./PathfindingService";
 import { getRandom, getRandomDecimal } from "./utils";
@@ -221,46 +224,54 @@ export class SetupService {
     const shop = new ShopState();
     
     for (let towerData of TOWERS_DATA) {
-      let towerConfig = new TowerConfig();
-      let randomPrice = Math.floor(towerData.price * getRandom(MAP_DATA.minPriceMultiplier, MAP_DATA.maxPriceMultiplier));
+      const towerConfig = new TowerConfig();
+      const randomPrice = Math.floor(towerData.price * getRandom(MAP_DATA.minPriceMultiplier, MAP_DATA.maxPriceMultiplier));
       
-      towerConfig.id = towerData.name;
-      towerConfig.price = towerData.name === "basic" ? towerData.price : randomPrice;
+      towerConfig.id = towerData.id;
+      towerConfig.price = towerData.id === "basic" ? towerData.price : randomPrice;
       
       shop.towersConfig.set(towerConfig.id, towerConfig);
-      state.shop = shop;
     }
 
     for (let upgradeData of UPGRADES_DATA) {
-      let upgradeConfig = new UpgradeConfig();
-      let randomPrice = Math.floor(upgradeData.price * getRandom(MAP_DATA.minPriceMultiplier, MAP_DATA.maxPriceMultiplier));
-      let randomUpgradeMultiplier = getRandomDecimal(MAP_DATA.minUpgradeMultiplier, MAP_DATA.maxUpgradeMultiplier);
+      const upgradeConfig = new UpgradeConfig();
+      const randomPrice = Math.floor(upgradeData.price * getRandom(MAP_DATA.minPriceMultiplier, MAP_DATA.maxPriceMultiplier));
+      const randomUpgradeMultiplier = getRandomDecimal(MAP_DATA.minUpgradeMultiplier, MAP_DATA.maxUpgradeMultiplier);
 
-      upgradeConfig.id = upgradeData.name;
+      upgradeConfig.id = upgradeData.id;
       upgradeConfig.price = randomPrice;
       upgradeConfig.upgradeMultiplier = randomUpgradeMultiplier;
       
       shop.upgradesConfig.set(upgradeConfig.id, upgradeConfig);
     }
+
+    for (let wallData of WALLS_DATA) {
+      const wallConfig = new WallConfig();
+
+      wallConfig.id = wallData.id;
+      wallConfig.price = wallData.price;
+      
+      shop.wallsConfig.set(wallConfig.id, wallConfig);
+    }
+    state.shop = shop;
   }
 
   private setupPlayerUpgrades(state: GameState, player: PlayerState) {
     player.hp = MAP_DATA.baseHp;
     player.gold = MAP_DATA.baseGold;
     player.income = MAP_DATA.baseIncome;
-    player.population = MAP_DATA.basePopulation;
+    player.maxPopulation = MAP_DATA.basePopulation;
     for (let upgradeData of UPGRADES_DATA) {
-      let upgradeConfig = state.shop.upgradesConfig.get(upgradeData.name);
-      let upgrade = new UpgradeState();
-      upgrade.id = upgradeData.name;
+      const upgradeConfig = state.shop.upgradesConfig.get(upgradeData.id);
+      const upgrade = new UpgradeState();
+      upgrade.id = generateId();
+      upgrade.dataId = upgradeData.id
       upgrade.level = 1;
       upgrade.cost = upgradeConfig.price;
       upgrade.value = upgradeData.value;
       upgrade.nextCost = upgradeConfig.price + upgradeConfig.upgradeMultiplier;
       upgrade.nextCost = (upgrade.level + 1) * upgrade.value;
-      player.upgrades.set(upgradeData.name, upgrade);
-      // upgrade.value = UPGRADES_DATA.find(u => u.name === upgradeData.name).value;
-      // upgrade.nextCost = UPGRADES_DATA.find(u => u.name === upgradeData.name).value;
+      player.upgrades.set(upgrade.id, upgrade);
     }
   }
 

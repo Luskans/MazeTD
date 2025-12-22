@@ -55,12 +55,35 @@ export class GameScene extends Phaser.Scene {
       // updatePlayersUI(); // modifier affichage liste des joueurs
       // waveService(); // enlever la vague sur ce joueur
     });
-    $(player).currentPath.onChange(() => {
+    $(player).listen("pathVersion", () => {
       this.pathRenderer.drawPath(
         Array.from(player.currentPath.values()),
         playerOffset.x,
         playerOffset.y
       );
+      //@ts-ignore
+      console.log("Chemin changé, nouvelle state de la game : ", this.room.state.toJSON())
+    });
+    $(player).towers.onAdd((towerState: any, key: string) => {
+      this.buildService.addBuildingSprite(towerState, "tower");
+    });
+    $(player).walls.onAdd((wallState: any, key: string) => {
+      this.buildService.addBuildingSprite(wallState, "wall");
+    });
+    $(player).towers.onRemove((towerState: any, key: string) => {
+      this.buildService.removeBuildingSprite(key);
+    });
+    $(player).walls.onRemove((wallState: any, key: string) => {
+      this.buildService.removeBuildingSprite(key);
+    });
+    this.room.onMessage("not_enough_population", () => {
+      console.log("popolutation max atteinte")
+    });
+    this.room.onMessage("not_enough_gold", () => {
+      console.log("pas assez de thune")
+    });
+    this.room.onMessage("path_blocked", () => {
+      console.log("chemin bloquette")
     });
     this.game.events.on('choose-building', (data: any) => {
       console.log("Création de :", data.buildingId);

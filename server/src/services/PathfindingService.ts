@@ -571,6 +571,7 @@ export class PathfindingService {
     if (!newObstacle) { 
       player.currentPath.clear();
       player.currentPath.push(...fullPath);
+      player.pathVersion++;
       // player.currentPath.push(...optimizedPath);
     }
 

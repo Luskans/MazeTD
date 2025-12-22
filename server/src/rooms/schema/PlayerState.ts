@@ -16,12 +16,15 @@ export class PlayerState extends Schema {
   @type("boolean") hasLoaded: boolean = false;
   @type("boolean") isDefeated: boolean = false;
   @type("boolean") isDisconnected: boolean = false;
+  @type("number") rank: number | null = null;
 
-  @type("number") rank: number | null;
+  @type("number") position: number | null = null;
   @type('number') hp: number;
   @type('number') gold: number;
   @type('number') income: number;
-  @type('number') population: number;
+  @type('number') incomeBonus: number = 0;
+  @type('number') population: number = 0;
+  @type('number') maxPopulation: number;
 
   @type({ map: UpgradeState }) upgrades = new MapSchema<UpgradeState>();
   @type({ map: TowerState }) towers = new MapSchema<TowerState>();
@@ -31,5 +34,6 @@ export class PlayerState extends Schema {
   @type({ map: AreaState }) areas = new MapSchema<AreaState>();
   
   @type([PathNodeState]) currentPath = new ArraySchema<PathNodeState>();
+  @type('number') pathVersion: number = 0; // Evite l'écoute sur chaque changements de currentPath
   @type({ map: EnemyState }) enemies = new MapSchema<EnemyState>();
 }

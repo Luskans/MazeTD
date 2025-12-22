@@ -1,6 +1,7 @@
 export const TOWERS_DATA = [
   {
     id: "basic",
+    type: "tower",
     name: "Basic Tower",
     description: "Une tour qui pue.",
     damage: 10,
@@ -18,6 +19,7 @@ export const TOWERS_DATA = [
   },
   {
     id: "flame_thrower",
+    type: "tower",
     name: "Flame Thrower",
     description: "Une tour qui jète du feu follet.",
     damage: 5,
@@ -35,7 +37,8 @@ export const TOWERS_DATA = [
   },
   {
     id: "electric_tower",
-    name: "electric_tower",
+    type: "tower",
+    name: "Electric Tower",
     description: "Une tour qui zappy zap.",
     damage: 8,
     attackSpeed: 25,

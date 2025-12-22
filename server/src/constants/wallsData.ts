@@ -1,11 +1,15 @@
 export const WALLS_DATA = [
   {
-    name: "small wall",
+    id: "small_wall",
+    name: "Small wall",
+    type: "wall",
     size: 1,
     price: 20,
   },
   {
-    name: "big wall",
+    id: "big_wall",
+    name: "Big wall",
+    type: "wall",
     size: 2,
     price: 20,
   },

@@ -20,11 +20,11 @@
     //   gameInstance.events.emit('choose-building', { buildingId: 'basic' });
     // }
     //@ts-ignore
-    window.phaserGame.events.emit('choose-tower', { buildingId: 'basic' })
+    window.phaserGame.events.emit('choose_tower', { buildingId: 'basic', buildingType: "tower", buildingSize: 2 })
   }
   function handleWallClick() {
     //@ts-ignore
-    window.phaserGame.events.emit('choose-wall', { buildingId: 'small_wall' })
+    window.phaserGame.events.emit('choose_wall', { buildingId: 'small_wall', buildingType: "wall", buildingSize: 1 })
   }
 
 </script>

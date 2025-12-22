@@ -1,3 +1,5 @@
+import type { TowerState } from "../../../server/src/rooms/schema/TowerState";
+import type { WallState } from "../../../server/src/rooms/schema/WallState";
 import { PathfindingService } from "../../../server/src/services/PathfindingService";
 
 export class BuildService {
@@ -9,8 +11,11 @@ export class BuildService {
   private pathfindingService;
   private isPreparing = false;
   private currentBuildingId: string | null = null;
+  private currentBuildingType: string | null = null;
+  private currentBuildingSize: number | null = null;
   private offsetX: number;
   private offsetY: number;
+  private buildingsSprites: Map<string, Phaser.GameObjects.Sprite> = new Map();
 
   constructor(scene: Phaser.Scene, room: any, offsetX: number, offsetY: number) {
     this.scene = scene;
@@ -18,52 +23,46 @@ export class BuildService {
     this.offsetX = offsetX;
     this.offsetY = offsetY;
     this.pathfindingService = new PathfindingService();
-
-    // Conteneur pour déplacer le fantôme et le carré d'un coup
     this.previewContainer = scene.add.container(0, 0).setVisible(false).setDepth(100);
-    
-    // Le carré de couleur (64x64 car une tour = 2x2 cases de 32px)
     this.gridRect = scene.add.rectangle(0, 0, 64, 64, 0x00ff00, 0.4);
     this.gridRect.setOrigin(0, 0);
-
-    // Le sprite de la tour
     this.ghostSprite = scene.add.sprite(32, 32, "").setAlpha(0.6); // Centré dans le 64x64
-    
     this.previewContainer.add([this.gridRect, this.ghostSprite]);
 
     // Écouteurs
-    this.scene.game.events.on('choose-tower', this.startPreparation, this);
-    this.scene.game.events.on('choose-wall', this.startPreparation, this);
+    this.scene.game.events.on('choose_tower', this.startPreparation, this);
+    this.scene.game.events.on('choose_wall', this.startPreparation, this);
     this.scene.input.on('pointermove', this.updatePreview, this);
     this.scene.input.on('pointerdown', this.placeBuilding, this);
-    
-    // Annuler avec clic droit ou Echap
     this.scene.input.keyboard!.on('keydown-ESC', this.cancelPreparation, this);
     this.scene.input.on('pointerdown', (p: any) => { if (p.rightButtonDown()) this.cancelPreparation(); });
   }
 
   private startPreparation(event: any) {
-    let buildingId =  event.buildingId;
+    // let buildingId =  event.buildingId;
+    // let buildingType = event.buildingType;
+    // let buildingSize = event.buildingSize;
     this.isPreparing = true;
-    this.currentBuildingId = buildingId;
+    this.currentBuildingId = event.buildingId;
+    this.currentBuildingType = event.buildingType;
+    this.currentBuildingSize = event.buildingSize;
     
-    const size = this.getGridSize(buildingId);
-    const pixelSize = size * 32;
+    // const size = this.getGridSize(buildingId);
+    // const pixelSize = size * 32;
+    const pixelSize = event.buildingSize * 32;
 
     this.gridRect.setSize(pixelSize, pixelSize);
-    this.ghostSprite.setTexture(buildingId);
+    this.ghostSprite.setTexture(event.buildingId);
     this.ghostSprite.setSize(pixelSize, pixelSize);
     this.ghostSprite.setPosition(pixelSize / 2, pixelSize / 2);
 
     this.previewContainer.setVisible(true);
-    console.log(this.scene.textures.exists(buildingId))
   }
 
   private updatePreview(pointer: Phaser.Input.Pointer) {
     if (!this.isPreparing) return;
 
     // 1. Aligner sur la grille (Snap to grid 32px)
-    // On soustrait l'offset pour calculer la position relative à la grille du joueur
     const relativeX = pointer.worldX - this.offsetX;
     const relativeY = pointer.worldY - this.offsetY;
 
@@ -121,7 +120,6 @@ export class BuildService {
     }
 
     // 2. Collision avec Rocks / Towers / Walls
-    // Astuce : On utilise une fonction de collision AABB (Axis-Aligned Bounding Box)
     const hasCollision = (otherX: number, otherY: number, otherSize: number) => {
       return !(gridX + gridSize <= otherX || 
               otherX + otherSize <= gridX || 
@@ -150,13 +148,13 @@ export class BuildService {
     if (!this.isPreparing || pointer.rightButtonDown()) return;
 
     const player = this.room.state.players.get(this.room.sessionId);
-    const gridSize = this.getGridSize(this.currentBuildingId);
+    // const gridSize = this.getGridSize(this.currentBuildingId);
     const gridX = Math.floor((pointer.worldX - this.offsetX) / 32);
     const gridY = Math.floor((pointer.worldY - this.offsetY) / 32);
 
     if (!this.checkLocalValidity(gridX, gridY)) return;
 
-    const isPathPossible = this.pathfindingService.validatePlacement(this.room.state, player, gridX, gridY, gridSize);
+    const isPathPossible = this.pathfindingService.validatePlacement(this.room.state, player, gridX, gridY, this.currentBuildingSize as number);
 
     if (!isPathPossible) {
       console.log('Construction impossible : chemin bloqué.')
@@ -164,11 +162,12 @@ export class BuildService {
     }
 
     // Envoyer l'ordre au serveur
-    this.room.send("place-building", {
+    this.room.send("place_building", {
       buildingId: this.currentBuildingId,
       x: gridX,
       y: gridY,
-      size: gridSize
+      buildingSize: this.currentBuildingSize,
+      buildingType: this.currentBuildingType
     });
   }
 
@@ -179,6 +178,30 @@ export class BuildService {
   private cancelPreparation() {
     this.isPreparing = false;
     this.previewContainer.setVisible(false);
+  }
+
+  public addBuildingSprite(buildingState: TowerState | WallState, type: "tower" | "wall") {
+    // 1. Calculer la position en pixels
+    const x = (buildingState.gridX * 32) + this.offsetX;
+    const y = (buildingState.gridY * 32) + this.offsetY;
+
+    // 2. Déterminer la texture
+    // const texture = type === "tower" ? buildingState.typeId : buildingState.id;
+
+    // 3. Créer le sprite
+    const sprite = this.scene.add.sprite(x, y, buildingState.dataId).setOrigin(0, 0);
+    sprite.setDepth(10);
+
+    // 4. Stocker la référence pour plus tard (en utilisant l'ID unique de Colyseus)
+    this.buildingsSprites.set(buildingState.id, sprite);
+  }
+
+  public removeBuildingSprite(id: string) {
+    const sprite = this.buildingsSprites.get(id);
+    if (sprite) {
+      sprite.destroy();
+      this.buildingsSprites.delete(id);
+    }
   }
 
   public destroy() {

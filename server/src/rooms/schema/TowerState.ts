@@ -2,6 +2,7 @@ import { Schema, MapSchema, type } from "@colyseus/schema";
 
 export class TowerState extends Schema {
   @type("string") id: string;
+  @type("string") dataId: string;
   @type("number") gridX: number;
   @type("number") gridY: number;
 
