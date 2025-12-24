@@ -1,14 +1,19 @@
+import type { Room } from "colyseus.js";
 import type { TowerState } from "../../../server/src/rooms/schema/TowerState";
 import type { WallState } from "../../../server/src/rooms/schema/WallState";
 import { PathfindingService } from "../../../server/src/services/PathfindingService";
+import type { GameState } from "../../../server/src/rooms/schema/GameState";
+import type { SetupService } from "./SetupService";
 
 export class BuildService {
   private scene: Phaser.Scene;
-  private room: any;
+  private room: Room<GameState>;
+  private pathfindingService: PathfindingService;
+  private setupService: SetupService;
+
   private previewContainer: Phaser.GameObjects.Container;
   private ghostSprite: Phaser.GameObjects.Sprite;
   private gridRect: Phaser.GameObjects.Rectangle;
-  private pathfindingService;
   private isPreparing = false;
   private currentBuildingId: string | null = null;
   private currentBuildingType: string | null = null;
@@ -17,12 +22,19 @@ export class BuildService {
   private offsetY: number;
   private buildingsSprites: Map<string, Phaser.GameObjects.Sprite> = new Map();
 
-  constructor(scene: Phaser.Scene, room: any, offsetX: number, offsetY: number) {
+  constructor(scene: Phaser.Scene, room: Room<GameState>, setupService: SetupService, pathfindingService: PathfindingService) {
     this.scene = scene;
     this.room = room;
-    this.offsetX = offsetX;
-    this.offsetY = offsetY;
-    this.pathfindingService = new PathfindingService();
+    // this.offsetX = offsetX;
+    // this.offsetY = offsetY;
+    this.setupService = setupService;
+    this.pathfindingService = pathfindingService;
+
+    const playerIndex = Array.from(this.room.state.players.keys()).indexOf(this.room.sessionId);
+    const playerOffset = this.setupService.getPlayerOffsets(playerIndex);
+    this.offsetX = playerOffset.x;
+    this.offsetY = playerOffset.y;
+
     this.previewContainer = scene.add.container(0, 0).setVisible(false).setDepth(100);
     this.gridRect = scene.add.rectangle(0, 0, 64, 64, 0x00ff00, 0.4);
     this.gridRect.setOrigin(0, 0);
@@ -39,23 +51,16 @@ export class BuildService {
   }
 
   private startPreparation(event: any) {
-    // let buildingId =  event.buildingId;
-    // let buildingType = event.buildingType;
-    // let buildingSize = event.buildingSize;
     this.isPreparing = true;
     this.currentBuildingId = event.buildingId;
     this.currentBuildingType = event.buildingType;
     this.currentBuildingSize = event.buildingSize;
-    
-    // const size = this.getGridSize(buildingId);
-    // const pixelSize = size * 32;
     const pixelSize = event.buildingSize * 32;
 
     this.gridRect.setSize(pixelSize, pixelSize);
     this.ghostSprite.setTexture(event.buildingId);
     this.ghostSprite.setSize(pixelSize, pixelSize);
     this.ghostSprite.setPosition(pixelSize / 2, pixelSize / 2);
-
     this.previewContainer.setVisible(true);
   }
 
@@ -110,7 +115,8 @@ export class BuildService {
   // }
   private checkLocalValidity(gridX: number, gridY: number): boolean {
     const player = this.room.state.players.get(this.room.sessionId);
-    const gridSize = this.getGridSize(this.currentBuildingId);
+    // const gridSize = this.getGridSize(this.currentBuildingId);
+    const gridSize = this.currentBuildingSize!;
 
     // 1. Limites
     if (gridX < 0 || gridY < 0 || 
@@ -171,9 +177,9 @@ export class BuildService {
     });
   }
 
-  private getGridSize(buildingId: string | null): number {
-    return buildingId === 'small_wall' ? 1 : 2;
-  }
+  // private getGridSize(buildingId: string | null): number {
+  //   return buildingId === 'small_wall' ? 1 : 2;
+  // }
 
   private cancelPreparation() {
     this.isPreparing = false;

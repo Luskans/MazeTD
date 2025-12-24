@@ -21,7 +21,7 @@ export const MAP_DATA = {
   minAreaMultiplier: 1.1,
   maxAreaMultiplier: 2,
 
-  baseHp: 100,
+  baseLife: 100,
   baseGold: 20000,
   baseIncome: 10,
   // baseSmallWall: 20,

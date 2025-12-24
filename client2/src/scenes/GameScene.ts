@@ -4,45 +4,59 @@ import type { PlayerState } from "../../../server/src/rooms/schema/PlayerState";
 import { SetupService } from "../services/SetupService";
 import { CameraService } from '../services/CameraService';
 import { PathRenderer } from "../services/PathRenderer";
-import { currentScene } from "../stores/GlobalVariables";
 import { BuildService } from "../services/BuildService";
 import { WaveService } from "../services/WaveService";
+import { PathfindingService } from "../../../server/src/services/PathfindingService";
+import { get } from "svelte/store";
+import { gameRoom } from "../stores/gameStore";
 
 export class GameScene extends Phaser.Scene {
-  room!: Room<GameState>;
+  private room!: Room<GameState>;
   private setupService!: SetupService;
   private cameraService!: CameraService;
   private pathRenderer!: PathRenderer;
   private buildService!: BuildService;
   private waveService!: WaveService;
+  private pathfindingService!: PathfindingService;
 
   constructor() {
     super("GameScene");
   }
 
-  init(data: any) {
-    this.room = data.room;
-    currentScene.set('GameScene');
-    //@ts-ignore
-    console.log("Dans game scene, le state de la game : ", this.room.state.toJSON())
-  }
+  // init(data: any) {
+  //   this.room = data.room;
+  //   //@ts-ignore
+  //   console.log("Dans game scene, le state de la game : ", this.room.state.toJSON())
+  // }
+
+  // init() {
+  //   this.room = get(gameRoom);
+  //   //@ts-ignore
+  //   console.log("Dans game scene, le state de la game : ", this.room.state.toJSON());
+  // }
 
   create() {
+    this.room = get(gameRoom) as Room<GameState>;
+    //@ts-ignore
+    console.log("Dans game scene, le state de la game : ", this.room?.state.toJSON());
     const $ = getStateCallbacks(this.room);
-    const player = this.room.state.players.get(this.room.sessionId)
-    const playerIndex = Array.from(this.room.state.players.keys()).indexOf(this.room.sessionId);
-    this.setupService = new SetupService(this);
-    const playerOffset = this.setupService.getPlayerOffsets(this.room.state, playerIndex);
-    console.log(`Player number ${playerIndex} named ${player.username} with ID ${player.sessionId} connected.`)
 
     // INIT SERVICES
-    this.cameraService = new CameraService(this);
+    this.setupService = new SetupService(this, this.room);
+    this.cameraService = new CameraService(this, this.room, this.setupService);
     this.pathRenderer = new PathRenderer(this);
-    this.buildService = new BuildService(this, this.room,playerOffset.x, playerOffset.y);
+    this.pathfindingService = new PathfindingService();
+    this.buildService = new BuildService(this, this.room, this.setupService, this.pathfindingService);
     this.waveService = new WaveService(this);
+    
+    // VARIABLES THAT BE SOMEWHERE ELSE
+    const player = this.room.state.players.get(this.room.sessionId)
+    const playerIndex = Array.from(this.room.state.players.keys()).indexOf(this.room.sessionId);
+    const playerOffset = this.setupService.getPlayerOffsets(playerIndex);
+    console.log(`Player number ${playerIndex} named ${player.username} with ID ${player.sessionId} connected.`)
 
-    // FIRST DRAWS
-    this.setupService.createPlayersGrid(this.room.state);
+    // FIRST DRAWS (not here ?)
+    this.setupService.createPlayersGrid(this.room);
     this.pathRenderer.drawPath(
       Array.from(player.currentPath.values()),
       playerOffset.x,
@@ -100,6 +114,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private destroy() {
+    this.room.removeAllListeners()
     // this.setupService.destroy();
     // this.cameraService.destroy();
     // this.pathRenderer.destroy();

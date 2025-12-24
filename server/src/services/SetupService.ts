@@ -257,7 +257,7 @@ export class SetupService {
   }
 
   private setupPlayerUpgrades(state: GameState, player: PlayerState) {
-    player.hp = MAP_DATA.baseHp;
+    player.life = MAP_DATA.baseLife;
     player.gold = MAP_DATA.baseGold;
     player.income = MAP_DATA.baseIncome;
     player.maxPopulation = MAP_DATA.basePopulation;

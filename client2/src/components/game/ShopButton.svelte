@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { gameRoom } from '../../stores/GlobalVariables';
+    import { gameRoom } from '../../stores/gameStore';
   import Tooltip from './Tooltip.svelte';
 
   let { type, data, onclick } = $props<{
@@ -53,9 +53,11 @@
     cursor: pointer;
     /* background: transparent; */
     background: var(--primary);
+    transition: transform 0.2s, box-shadow 0.2s;
   }
   button:hover {
-    border: 2px solid var(--secondary);
+    /* border: 2px solid var(--secondary); */
+    box-shadow: 0 0 6px 2px var(--secondary-light);
   }
   .shortcut {
     position: absolute;
@@ -63,6 +65,7 @@
     left: 4px;
     color: var(--grey);
     font-size: 8px;
+    font-weight: bold;
   }
   .image-card {
     display: flex;

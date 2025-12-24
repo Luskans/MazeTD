@@ -82,6 +82,21 @@ export class GameRoom extends Room<GameState> {
       }
     });
 
+    this.onMessage("grant_vision", (client: Client, data: { targetId: string }) => {
+      console.log("dans le grant view avec l'id", data.targetId)
+      const player = this.state.players.get(client.sessionId);
+      if (!player || !data.targetId) return;
+
+      player.viewers.set(data.targetId, true);
+      console.log("dans le grant view les viewers", player.viewers)
+    });
+
+    this.onMessage("remove_vision", (client: Client, data: { targetId: string }) => {
+      const player = this.state.players.get(client.sessionId);
+      if (!player || !data.targetId) return;
+
+      player.viewers.delete(data.targetId);
+    });
   }
 
   onJoin(client: Client, options: any) {

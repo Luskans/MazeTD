@@ -1,69 +1,53 @@
 <script lang="ts">
-  import { network } from '../services/NetworkService';
-  import { getOrCreateUID, getUsername, setUsername } from '../services/PlayerService';
-  import { screen, currentRoom } from '../stores/GlobalVariables';
+  import { network } from '../colyseus/Network';
+  import { getOrCreateUID, getUsername, isUsernameValid, setUsername } from '../colyseus/Customer';
   import Leaderboard from './pages/Leaderboard.svelte';
   import { toast } from '@zerodevx/svelte-toast'
 
-  let username = getUsername() ?? '';
-  // let uid: string | null = null;
-  let usernameInput = '';
-  let usernameError: string | null = null;
+  let username = $state<string | null>(getUsername());
+  let usernameInput = $state('');
+  let usernameError = $state<string | null>(null);
+  let isJoining = $state(false);
+  let canPlay = $derived(() => !!username || usernameInput.length > 0);
 
-  async function joinPublic() {
-    let pathName = window.location.pathname;
-    let roomId = pathName.substring(1);
-    let username = getUsername();
-    let uid = getOrCreateUID();
+  function ensureUsername(): string | null {
+    if (username) return username;
 
-    if (!username) {
-      if (!setUsername(usernameInput)) {
-        toast.push('Invalid username.', { classes: ['custom'] })
-        return;
-      }
-      username = getUsername();
+    if (!isUsernameValid(usernameInput)) {
+      usernameError = 'Invalid username';
+      toast.push('Invalid username.', { classes: ['custom'] });
+      return null;
     }
 
-    try {
-      let room;
-      if (roomId) {
-        room = await network.joinPrivateLobbyById(roomId, { uid: uid, username: username });
-        console.log(`Connection du joueur ${username} au lobby privé ${room.roomId} réussie.`);
-      } else {
-        room = await network.joinPublicLobby({ uid: uid, username : username, isPrivate: false });
-        console.log(`Connection du joueur ${username} au lobby public ${room.roomId} réussie.`);
-      }
-      currentRoom.set(room);
-      screen.set('lobby');
-
-    } catch (e: any) {
-      console.error("Error join public:", e);
-      const errorMessage = (e.code = 4212) ? "The lobby is full." : (e.message || "Error to join the lobby.");
-      toast.push({ msg: errorMessage, classes: ['custom'] });
-    }
+    setUsername(usernameInput)
+    return getUsername();
   }
 
-  async function createPrivate() {
-    let username = getUsername();
-    let uid = getOrCreateUID();
+  async function joinLobby(isPrivate: boolean) {
+    if (isJoining) return;
+    isJoining = true;
+
+    const uid = getOrCreateUID();
+    const username = ensureUsername();
 
     if (!username) {
-      if (!setUsername(usernameInput)) {
-        toast.push('Invalid username.', { classes: ['custom'] })
-        return;
-      }
-      username = getUsername();
+      isJoining = false;
+      return;
     }
 
     try {
-      const room = await network.createPrivateLobby({ uid: uid, username: username, isPrivate: true });
-      console.log(`Création du lobby privé ${room.roomId} par le joueur ${username} réussie.`);
-      currentRoom.set(room);
-      screen.set('lobby');
+      const roomIdFromUrl = window.location.pathname.slice(1);
+      (isPrivate)
+        ? await network.createPrivateLobby({ uid: uid, username: username, isPrivate: true })
+        : roomIdFromUrl
+          ? await network.joinPrivateLobbyById(roomIdFromUrl, { uid: uid, username: username })
+          : await network.joinPublicLobby({ uid: uid, username: username, isPrivate: false });
 
-    } catch (e) {
-      console.error("Error create private:", e);
-      toast.push("Error to create a private lobby.", { classes: ['custom'] })
+    } catch (e: any) {
+      const errorMessage = (e.code = 4212) ? "The lobby is full." : (e.message || "Error joining lobby.");
+      toast.push({ msg: errorMessage, classes: ['custom'] });
+    } finally {
+      isJoining = false;
     }
   }
 </script>
@@ -82,20 +66,41 @@
         <p>Welcome back {username}</p>
         {:else}
         <div class="input-row">
-          <input bind:value={usernameInput} on:input={() => usernameError = null} class:error={usernameError}/>
+          <input
+            value={usernameInput}
+            oninput={(e) => {
+              usernameInput = (e.target as HTMLInputElement).value;
+              usernameError = null;
+            }}
+            class:error={!!usernameError}
+            placeholder="Username"
+          />
           {#if usernameError}
-            <p class="error-message">{usernameError}</p>
+          <p class="error-message">{usernameError}</p>
           {/if}
           <p class="input-infos">2-20 characters, letters and numbers only</p>
         </div>
         {/if}
 
-        <button class="btn primary" on:click={joinPublic}>Play</button>
-        <button class="btn secondary" on:click={createPrivate}>Create private room</button>
+        <button
+          class="btn primary"
+          disabled={!canPlay || isJoining}
+          onclick={() => joinLobby(false)}
+        >
+          {isJoining ? 'Joining...' : 'Play'}
+        </button>
+
+        <button
+          class="btn secondary"
+          disabled={!canPlay || isJoining}
+          onclick={() => joinLobby(true)}
+        >
+          {isJoining ? 'Joining...' : 'Create private room'}
+        </button>
       </div>
     </div>
 
-    <Leaderboard currentName={username} />
+    <Leaderboard currentName={username ?? ''} />
   </div>
 </section>
 

@@ -74,7 +74,7 @@
   .shop-panel {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 20px;
   }
   .shop-category {
     display: flex;

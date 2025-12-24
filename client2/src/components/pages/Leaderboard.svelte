@@ -1,6 +1,5 @@
 <script lang="ts">
-  export let currentName: string | null;
-  let list = [
+  const list = [
     { rank: 1, name: 'Aster', elo: 1620 },
     { rank: 2, name: 'Blossom', elo: 1590 },
     { rank: 3, name: 'Clover', elo: 1555 },
@@ -8,7 +7,11 @@
     { rank: 5, name: "Dune", elo: 1420 },
     { rank: 6, name: "Echo", elo: 1390 }
   ];
-  $: personnalData = list.find(item => item.name === "You");
+  let { currentName } = $props<{ currentName: string }>();
+  const personnalData = $derived(
+    list.find(item => item.name === "You")
+  );
+
 </script>
 
 <div class="home-leaderboard">

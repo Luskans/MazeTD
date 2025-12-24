@@ -17,14 +17,18 @@ export class PlayerState extends Schema {
   @type("boolean") isDefeated: boolean = false;
   @type("boolean") isDisconnected: boolean = false;
   @type("number") rank: number | null = null;
+  @type({ map: "boolean" }) viewers = new MapSchema<boolean>();
+  @type("boolean") isReady: boolean = false;
 
-  @type("number") position: number | null = null;
-  @type('number') hp: number;
+  @type('number') life: number;
   @type('number') gold: number;
   @type('number') income: number;
   @type('number') incomeBonus: number = 0;
   @type('number') population: number = 0;
   @type('number') maxPopulation: number;
+  @type('number') kills: number = 0;
+  @type('number') damages: number = 0;
+  @type('number') mazeTime: number = 0;
 
   @type({ map: UpgradeState }) upgrades = new MapSchema<UpgradeState>();
   @type({ map: TowerState }) towers = new MapSchema<TowerState>();

@@ -1,11 +1,11 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { screen } from './stores/GlobalVariables';
   import Home from './components/Home.svelte';
   import Lobby from './components/Lobby.svelte';
-  import { getOrCreateUID } from './services/PlayerService';
+  import { getOrCreateUID } from './colyseus/Customer';
   import { SvelteToast } from '@zerodevx/svelte-toast';
   import Game from './components/Game.svelte';
+  import { screenStore } from './stores/screenStore';
 
   onMount(() => {
     getOrCreateUID();
@@ -14,9 +14,9 @@
 
 
 <main>
-  {#if $screen === 'home'}
+  {#if $screenStore === 'home'}
     <Home />
-  {:else if $screen === 'lobby'}
+  {:else if $screenStore === 'lobby'}
     <Lobby />
   {:else}
     <!-- <Game playerData={$playerData}/> -->

@@ -2,6 +2,7 @@ import type { Scene } from "phaser";
 import type { PlayerState } from "../../../server/src/rooms/schema/PlayerState";
 import type { GameState } from "../../../server/src/rooms/schema/GameState";
 import { MAP_DATA } from "../../../server/src/constants/mapData";
+import type { Room } from "colyseus.js";
 
 // const ZONE_SIZE = 2048;
 // const SPACING = 256;
@@ -12,10 +13,11 @@ import { MAP_DATA } from "../../../server/src/constants/mapData";
 
 export class SetupService {
   private scene: Phaser.Scene;
+  private room: Room<GameState>;
 
-  constructor(scene: Phaser.Scene) {
+  constructor(scene: Phaser.Scene, room: Room<GameState>) {
       this.scene = scene;
-
+      this.room = room;
   }
 
   // createPlayersZone(players: Map<string, any> | any[]) {
@@ -76,9 +78,9 @@ export class SetupService {
   // }
 
 
-  private getGridPixelSize(game: GameState) {
-    const w = game.grid.col  * MAP_DATA.cellSize;
-    const h = game.grid.row * MAP_DATA.cellSize;
+  private getGridPixelSize() {
+    const w = this.room.state.grid.col  * MAP_DATA.cellSize;
+    const h = this.room.state.grid.row * MAP_DATA.cellSize;
 
     return {
       width:  w + MAP_DATA.outsideSize * 2,
@@ -87,8 +89,8 @@ export class SetupService {
   }
 
   private computeGridPosition2x4(index: number, gridW: number, gridH: number) {
-    const COLS = 4;  // 4 grilles par ligne
-    const ROWS = 2;  // maximum 2 lignes
+    const COLS = 4;
+    const ROWS = 2;
 
     const col = index % COLS;
     const row = Math.floor(index / COLS);
@@ -99,20 +101,20 @@ export class SetupService {
     return { x, y };
   }
 
-  public getPlayerOffsets(game: GameState, index: number) {
-    const { width: gridW, height: gridH } = this.getGridPixelSize(game);
+  public getPlayerOffsets(index: number) {
+    const { width: gridW, height: gridH } = this.getGridPixelSize();
     const pos = this.computeGridPosition2x4(index, gridW, gridH);
     const x = pos.x + MAP_DATA.outsideSize;
     const y = pos.y + MAP_DATA.outsideSize;
     return { x, y };
   }
 
-  public createPlayersGrid(game: GameState) {
-    const { width: gridW, height: gridH } = this.getGridPixelSize(game);
-    const players = Array.from(game.players.values());
+  public createPlayersGrid(room: Room<GameState>) {
+    const { width: gridW, height: gridH } = this.getGridPixelSize();
+    const players = Array.from(room.state.players.values());
 
     players.forEach((player, index) => {
-      // ⭐ Position 2x4
+      // Position 2x4
       const pos = this.computeGridPosition2x4(index, gridW, gridH);
 
       // --- DESSIN FOND ---
@@ -125,8 +127,8 @@ export class SetupService {
       const startY = pos.y + MAP_DATA.outsideSize;
 
       // --- CELLS ---
-      for (let cx = 0; cx < game.grid.col; cx++) {
-        for (let cy = 0; cy < game.grid.row; cy++) {
+      for (let cx = 0; cx < room.state.grid.col; cx++) {
+        for (let cy = 0; cy < room.state.grid.row; cy++) {
           const x = startX + cx * MAP_DATA.cellSize;
           const y = startY + cy * MAP_DATA.cellSize;
 
@@ -144,7 +146,7 @@ export class SetupService {
       }
 
       // --- ROCKS ---
-      for (const r of game.grid.rocks) {
+      for (const r of room.state.grid.rocks) {
         const x = startX + r.gridX * MAP_DATA.cellSize;
         const y = startY + r.gridY * MAP_DATA.cellSize;
 
@@ -158,7 +160,7 @@ export class SetupService {
       }
 
       // --- AREAS ---
-      for (const z of game.grid.areas) {
+      for (const z of room.state.grid.areas) {
         const x = startX + z.gridX * MAP_DATA.cellSize;
         const y = startY + z.gridY * MAP_DATA.cellSize;
 
@@ -174,7 +176,7 @@ export class SetupService {
       }
 
       // --- CHEKCPOINTS ---
-      for (const c of game.grid.checkpoints) {
+      for (const c of room.state.grid.checkpoints) {
         const x = startX + c.gridX * MAP_DATA.cellSize;
         const y = startY + c.gridY * MAP_DATA.cellSize;
 
