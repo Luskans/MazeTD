@@ -1,32 +1,37 @@
 <script lang="ts">
-  import type { PlayerState } from "../../../../server/src/rooms/schema/PlayerState";
+    import { playerSnapshot } from "../../colyseus/uiSnapshotStore";
+  import { playerHUD } from "../../stores/gameStore";
   import Button from "./Button.svelte";
 
-  let { player, activePanel, onButtonClick } = $props<{
-    player: PlayerState,
+  // let { player, activePanel, onButtonClick } = $props<{
+  //   player: PlayerState,
+  //   activePanel: "players" | "shop" | "waves" | "settings" | null,
+  //   onButtonClick: (panel: "players" | "shop" | "waves" | "settings") => void
+  // }>();
+  let { activePanel, onButtonClick } = $props<{
     activePanel: "players" | "shop" | "waves" | "settings" | null,
     onButtonClick: (panel: "players" | "shop" | "waves" | "settings") => void
   }>();
-  $inspect(player.gold);
 </script>
 
-{#if player}
+<h1>GOLD: {$playerHUD.gold}</h1>
+{#if $playerHUD}
 <div class="hud-resources">
   <div class="hud-item">
     <img src="/icons/heart.png" alt="Life" class="hud-icon" />
-    <p class="hud-text" class:danger={player.life <= 10}>{player.life}</p>
+    <!-- <p class="hud-text" class:danger={$playerHUD?.lives <= 10}>{$playerHUD?.lives}</p> -->
   </div>
   <div class="hud-item">
     <img src="/icons/gold.png" alt="Gold" class="hud-icon" />
-    <p class="hud-text">{player.gold}</p>
+    <p class="hud-text">{$playerHUD.gold}</p>
   </div>
   <div class="hud-item">
     <img src="/icons/income.png" alt="Income" class="hud-icon" />
-    <p class="hud-text">{player.income}</p>
+    <p class="hud-text">{$playerHUD?.income}</p>
   </div>
   <div class="hud-item">
     <img src="/icons/tower.png" alt="Population" class="hud-icon" />
-    <p class="hud-text" class:danger={player.population == player.maxPopulation}>{player.population}/{player.maxPopulation}</p>
+    <p class="hud-text" class:danger={$playerHUD?.population == $playerHUD?.maxPopulation}>{$playerHUD?.population}/{$playerHUD?.maxPopulation}</p>
   </div>
 </div>
 {/if}

@@ -5,7 +5,8 @@
   import { getOrCreateUID } from './colyseus/Customer';
   import { SvelteToast } from '@zerodevx/svelte-toast';
   import Game from './components/Game.svelte';
-  import { screenStore } from './stores/screenStore';
+    import { screenStore } from './stores/screenStore.svelte';
+  // import { screenStore } from './stores/screenStore.svelte';
 
   onMount(() => {
     getOrCreateUID();
@@ -14,9 +15,9 @@
 
 
 <main>
-  {#if $screenStore === 'home'}
+  {#if screenStore.current === 'home'}
     <Home />
-  {:else if $screenStore === 'lobby'}
+  {:else if screenStore.current === 'lobby'}
     <Lobby />
   {:else}
     <!-- <Game playerData={$playerData}/> -->

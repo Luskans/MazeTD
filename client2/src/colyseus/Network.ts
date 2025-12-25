@@ -1,11 +1,12 @@
 import { Client, Room } from 'colyseus.js';
 import { connectGame, disconnectGame } from './GameBridge';
-import { screenStore } from '../stores/screenStore';
-import { connectLobby, disconnectLobby } from './LobbyBridge';
-import { lobbyRoom } from '../stores/lobbyStore';
+import { screenStore } from '../stores/screenStore.svelte';
+// import { connectLobby, disconnectLobby } from './LobbyBridge';
+// import { lobbyRoom } from '../stores/lobbyStore';
 import { gameRoom } from '../stores/gameStore';
 import { LobbyState } from '../../../server/src/rooms/schema/LobbyState';
 import type { GameState } from '../../../server/src/rooms/schema/GameState';
+import { connectLobby, disconnectLobby } from './LobbyBridge2';
 
 class Network {
   client: Client;
@@ -20,7 +21,8 @@ class Network {
     console.log(`Connection du joueur ${options?.username} au lobby public ${this.room?.roomId} réussie.`);
     // lobbyRoom.set(this.room);
     connectLobby(this.room as Room<LobbyState>);
-    screenStore.set('lobby');
+    // screenStore.set('lobby');
+    screenStore.current = "lobby";
     return this.room;
   }
 
@@ -29,7 +31,8 @@ class Network {
     console.log(`Création du lobby privé ${this.room?.roomId} par le joueur ${options?.username} réussie.`);
     // lobbyRoomStore.set(this.room);
     connectLobby(this.room as Room<LobbyState>);
-    screenStore.set('lobby');
+    // screenStore.set('lobby');
+    screenStore.current = "lobby";
     return this.room;
   }
 
@@ -38,7 +41,8 @@ class Network {
     console.log(`Connection du joueur ${options?.username} au lobby privé ${this.room?.roomId} réussie.`);
     // lobbyRoomStore.set(this.room);
     connectLobby(this.room as Room<LobbyState>);
-    screenStore.set('lobby');
+    // screenStore.set('lobby');
+    screenStore.current = "lobby";
     return this.room;
   }
 
@@ -47,7 +51,8 @@ class Network {
     console.log(`Connection du joueur ${options?.username} à la game room ${this.room?.roomId} réussie.`);
     // gameRoom.set(this.room);
     connectGame(this.room as Room<GameState>);
-    screenStore.set("game");
+    // screenStore.set("game");
+    screenStore.current = "game";
     return this.room;
   }
 
@@ -64,11 +69,11 @@ class Network {
   }
 
   public leaveRoom() {
-    this.room?.leave();
+    // this.room?.leave();
     this.room = null;
     disconnectLobby();
     disconnectGame();
-    // screenStore.set("home");
+    screenStore.current = "home";
   }
 }
 

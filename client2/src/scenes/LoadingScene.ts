@@ -3,7 +3,7 @@ import { network } from "../colyseus/Network";
 import { GameState } from "../../../server/src/rooms/schema/GameState";
 import { Room } from "colyseus.js";
 import { toast } from "@zerodevx/svelte-toast";
-import { sceneStore, screenStore } from "../stores/screenStore";
+import { sceneStore, screenStore } from "../stores/screenStore.svelte";
 import { gameRoom } from "../stores/gameStore";
 import { connectGame } from "../colyseus/GameBridge";
 import { get } from "svelte/store";
@@ -29,6 +29,12 @@ export class LoadingScene extends Phaser.Scene {
   //   //@ts-ignore
   //   console.log("Dans loading scene, le state de la game : ", this.room.state.toJSON())
   // }
+
+  init() {
+    this.room = get(gameRoom) as Room<GameState>;
+    //@ts-ignore
+    console.log("Dans loading scene, le state de la game : ", this.room?.state.toJSON());
+  }
 
   preload() {
     // Loading bar
@@ -94,11 +100,7 @@ export class LoadingScene extends Phaser.Scene {
   // }
 
   async create() {
-    this.room = get(gameRoom) as Room<GameState>;
-    //@ts-ignore
-    console.log("Dans loading scene, le state de la game : ", this.room?.state.toJSON());
-
-    await new Promise(resolve => setTimeout(resolve, 5000));
+    await new Promise(resolve => setTimeout(resolve, 3000));
     this.room?.send("loaded"); 
 
     this.room?.onMessage("begin", () => {

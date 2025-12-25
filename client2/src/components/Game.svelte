@@ -3,7 +3,7 @@
   import { LoadingScene } from '../scenes/LoadingScene';
   import { GameScene } from '../scenes/GameScene';
   import GameUI from './GameUI.svelte';
-  import { sceneStore } from '../stores/screenStore';
+  import { sceneStore } from '../stores/screenStore.svelte';
 
   let container: HTMLElement;
   let gameInstance: Phaser.Game | null = null;

@@ -65,18 +65,16 @@
 
 
 <script lang="ts">
-  import { get } from "svelte/store";
-  import type { CustomerState } from "../../../../server/src/rooms/schema/CustomerState";
-  import { lobbyLocked, lobbyRoom } from "../../stores/lobbyStore";
   import { network } from "../../colyseus/Network";
+  import { lobbyStore, type CustomerStore } from "../../stores/lobbyStore.svelte";
 
   const {customer, canKick} = $props<{
-    customer: CustomerState;
+    customer: CustomerStore;
     canKick: boolean;
   }>();
-  const isHost = $derived(customer.sessionId === get(lobbyRoom)?.state.hostId)
+  const isHost = $derived(customer.sessionId === lobbyStore.hostId)
   const isReady = $derived(customer.isReady);
-  const isSelf = $derived(customer.sessionId === get(lobbyRoom)?.sessionId)
+  const isSelf = $derived(customer.sessionId === lobbyStore.me?.sessionId)
   // const isKickVoted = $derived(get(lobbyRoom)?.state.kicks.has(customer.sessionId) && get(lobbyRoom)?.state.kicks.get(customer.sessionId)?.includes(get(lobbyRoom)?.sessionId));
   // const isLocked = $derived(customer.sessionId === get(lobbyRoom)?.sessionId)
   

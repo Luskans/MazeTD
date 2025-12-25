@@ -1,6 +1,5 @@
 <script lang="ts">
-    import { gameRoom } from "../../stores/gameStore";
-
+  import { gameRoom } from "../../stores/gameStore";
 
   const me = $derived($gameRoom?.state.players.get($gameRoom.sessionId));
   const isReady = $derived(me?.isReady ?? false);

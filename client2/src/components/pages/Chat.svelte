@@ -1,4 +1,4 @@
-<script lang="ts">
+<!-- <script lang="ts">
   import { onMount, tick } from "svelte";
 
   export let room: any; 
@@ -71,7 +71,57 @@
     />
     <button class="btn" on:click={send}>Envoyer</button>
   </div>
+</div> -->
+
+
+
+<script lang="ts">
+  import { tick } from "svelte";
+  import { chat } from "../../stores/chatStore.svelte";
+  import { sendChatMessage } from "../../colyseus/LobbyBridge2";
+
+  let messagesEl: HTMLDivElement;
+
+  async function scrollToBottom() {
+    await tick();
+    messagesEl?.scrollTo({ top: messagesEl.scrollHeight });
+  }
+
+  $effect(() => {
+    chat.messages.length;
+    scrollToBottom();
+  });
+</script>
+
+<div class="chat-panel">
+  <h4>Chat</h4>
+
+  <div class="chat-messages" bind:this={messagesEl}>
+    {#each chat.messages as m (m.id)}
+      <div class:sys={m.type === "sys"}>
+        {#if m.type === "sys"}
+          {m.text}
+        {:else}
+          <strong>{m.from}</strong> : {m.text}
+        {/if}
+      </div>
+    {/each}
+  </div>
+
+  <div class="chat-input-row">
+    <input
+      bind:value={chat.input}
+      placeholder="Message…"
+      onkeydown={(e) => e.key === "Enter" && sendChatMessage()}
+    />
+    <button class="btn" onclick={sendChatMessage}>
+      Envoyer
+    </button>
+  </div>
 </div>
+
+
+
 
 <style>
   .chat-panel {

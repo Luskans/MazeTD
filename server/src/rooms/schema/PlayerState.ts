@@ -20,14 +20,14 @@ export class PlayerState extends Schema {
   @type({ map: "boolean" }) viewers = new MapSchema<boolean>();
   @type("boolean") isReady: boolean = false;
 
-  @type('number') life: number;
-  @type('number') gold: number;
-  @type('number') income: number;
+  @type('number') lives: number = 100;
+  @type('number') gold: number = 100;
+  @type('number') income: number = 10;
   @type('number') incomeBonus: number = 0;
   @type('number') population: number = 0;
-  @type('number') maxPopulation: number;
+  @type('number') maxPopulation: number = 10;
   @type('number') kills: number = 0;
-  @type('number') damages: number = 0;
+  @type('number') damage: number = 0;
   @type('number') mazeTime: number = 0;
 
   @type({ map: UpgradeState }) upgrades = new MapSchema<UpgradeState>();

@@ -1,11 +1,11 @@
 <script lang="ts">
   import { PlayerState } from '../../../../server/src/rooms/schema/PlayerState';
-    import { gameRoom } from '../../stores/gameStore';
+  import { gameRoom, type PlayersPanel } from '../../stores/gameStore';
   import ViewButton from './ViewButton.svelte';
   import ViewCheckbox from './ViewCheckbox.svelte';
 
-  let { players } = $props<{players: any}>();
-  const playersList = $derived(Array.from(players.values() as PlayerState[]));
+  let { players } = $props<{players: PlayersPanel[]}>();
+  const playersList = $derived(Array.from(players.values() as PlayersPanel[]));
   
 </script>
 
@@ -33,7 +33,7 @@
     </div>
     <div class="hud-item">
       <img src="/icons/heart.png" alt="Player life" class="hud-icon" />
-      <p class="hud-text class:danger={player.life <= 10}">{player.isDefeated ? "Lost" : player.life}</p>
+      <p class="hud-text class:danger={player.lives <= 10}">{player.isDefeated ? "Lost" : player.lives}</p>
     </div>
     <div class="hud-item">
       <img src="/icons/waves.png" alt="Enemies killed during the wave" class="hud-icon" />
@@ -41,7 +41,7 @@
     </div>
     <div class="hud-item">
       <img src="/icons/settings.png" alt="Damages to enemies during the wave" class="hud-icon" />
-      <p class="hud-text">{player.damages}</p>
+      <p class="hud-text">{player.damage}</p>
     </div>
     <div class="hud-item">
       <img src="/icons/settings.png" alt="Time made by enemies during the wave" class="hud-icon" />

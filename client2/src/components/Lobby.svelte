@@ -276,40 +276,29 @@
   import Chat from "./pages/Chat.svelte";
   import CustomerRow from "./pages/CustomerRow.svelte";
   import { toast } from "@zerodevx/svelte-toast";
-  import {
-    lobbyRoom,
-    lobbyCustomers,
-    lobbyCountdown,
-    lobbyLocked,
-    myLobbyPlayer,
-    isHostAndPrivate
-  } from "../stores/lobbyStore";
   import { network } from "../colyseus/Network";
-  import { screenStore } from "../stores/screenStore";
-  import { get } from "svelte/store";
+  import { lobbyStore } from "../stores/lobbyStore.svelte";
 
   let chatComponent = $state<any>(null);
-  let readyButtonText = $derived($myLobbyPlayer?.isReady ? "Not Ready" : "Ready");
-  let test = $derived($isHostAndPrivate);
-  function leave() {
-    network.leaveRoom();
-    screenStore.set("home");
-  }
+  let readyButtonText = $derived(lobbyStore.me?.isReady ? "Not Ready" : "Ready");
+  let isHostAndPrivate = $derived(lobbyStore.isPrivate && lobbyStore.hostId === lobbyStore.me?.sessionId);
 
   function toggleReady() {
-    if ($lobbyLocked) return;
+    if (lobbyStore.isLocked) return;
     network.toggleReady();
   }
 
-  function hasVotedKick(id: string): boolean {
-    const votes = get(lobbyRoom)?.state?.kicks?.get(id);
-    return votes?.includes(get(myLobbyPlayer)?.sessionId) ?? false;
+  function hasVotedKick(targetId: string): boolean {
+    const votes = lobbyStore.kicks[targetId];
+    const mySessionId = lobbyStore.me?.sessionId;
+    if (!mySessionId || !votes) return false;
+    return votes.includes(mySessionId);
   }
 
   function invite() {
-    if (!$lobbyRoom) return;
+    if (!lobbyStore.roomId) return;
 
-    const inviteURL = `${window.location.origin}/${$lobbyRoom.roomId}`;
+    const inviteURL = `${window.location.origin}/${lobbyStore.roomId}`;
     navigator.clipboard
       .writeText(inviteURL)
       .then(() => {
@@ -325,7 +314,7 @@
   <header>
     <h2>Lobby</h2>
 
-    {#if test}
+    {#if isHostAndPrivate}
       <button class="btn primary" onclick={invite}>
         Invite
       </button>
@@ -335,11 +324,11 @@
   <div class="lobby-content">
     <div class="lobby-left">
       <div class="players-list">
-        {#if $lobbyCustomers.length > 0}
-          {#each $lobbyCustomers as customer (customer.sessionId)}
+        {#if lobbyStore.customers.length > 0}
+          {#each lobbyStore.customers as customer (customer.sessionId)}
             <CustomerRow
               customer={customer}
-              canKick={!$lobbyLocked && !hasVotedKick(customer.sessionId)}
+              canKick={!lobbyStore.isLocked && !hasVotedKick(customer.sessionId)}
             />
           {/each}
         {:else}
@@ -350,8 +339,8 @@
       <div class="lobby-controls">
         <button
           class="btn primary"
-          class:disabled={$lobbyLocked}
-          disabled={$lobbyLocked}
+          class:disabled={lobbyStore.isLocked}
+          disabled={lobbyStore.isLocked}
           onclick={toggleReady}
         >
           {readyButtonText}
@@ -359,16 +348,16 @@
 
         <button
           class="btn secondary"
-          class:disabled={$lobbyLocked}
-          disabled={$lobbyLocked}
-          onclick={leave}
+          class:disabled={lobbyStore.isLocked}
+          disabled={lobbyStore.isLocked}
+          onclick={() => network.leaveRoom()}
         >
           Leave
         </button>
 
-        {#if $lobbyCountdown !== null}
+        {#if lobbyStore.countdown !== null}
           <div class="countdown">
-            START {$lobbyCountdown}
+            START {lobbyStore.countdown}
           </div>
         {:else}
           <div class="countdown hidden">00</div>
@@ -377,7 +366,7 @@
     </div>
 
     <div class="lobby-right">
-      <Chat room={$lobbyRoom} bind:this={chatComponent} />
+      <Chat />
     </div>
   </div>
 </section>

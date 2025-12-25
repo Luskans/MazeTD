@@ -6,6 +6,7 @@ import { PlayerState } from "./schema/PlayerState";
 import { SetupService } from "../services/SetupService";
 import { PathfindingService } from "../services/PathfindingService";
 import { BuildService } from "../services/BuildService";
+import { Encoder } from "@colyseus/schema";
 
 export class GameRoom extends Room<GameState> {
   private setupService: SetupService;
@@ -13,6 +14,7 @@ export class GameRoom extends Room<GameState> {
   private buildService: BuildService;
 
   onCreate(options: any) {
+    Encoder.BUFFER_SIZE = 40 * 1024; // 16 KB
     console.log(`🚀 Creation la game room ${this.roomId} !`);
     this.state = new GameState();
     this.setPrivate();
@@ -96,6 +98,12 @@ export class GameRoom extends Room<GameState> {
       if (!player || !data.targetId) return;
 
       player.viewers.delete(data.targetId);
+    });
+
+    this.setSimulationInterval((deltaTime) => {
+        // this.updateEnemies(deltaTime);
+        // Ici, Colyseus va automatiquement checker si des variables 
+        // comme player.gold ont changé et envoyer le patch aux clients.
     });
   }
 

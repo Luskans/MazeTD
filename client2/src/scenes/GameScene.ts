@@ -23,22 +23,13 @@ export class GameScene extends Phaser.Scene {
     super("GameScene");
   }
 
-  // init(data: any) {
-  //   this.room = data.room;
-  //   //@ts-ignore
-  //   console.log("Dans game scene, le state de la game : ", this.room.state.toJSON())
-  // }
-
-  // init() {
-  //   this.room = get(gameRoom);
-  //   //@ts-ignore
-  //   console.log("Dans game scene, le state de la game : ", this.room.state.toJSON());
-  // }
-
-  create() {
+  init() {
     this.room = get(gameRoom) as Room<GameState>;
     //@ts-ignore
-    console.log("Dans game scene, le state de la game : ", this.room?.state.toJSON());
+    console.log("Dans game scene, le state de la game : ", this.room.state.toJSON());
+  }
+
+  create() {
     const $ = getStateCallbacks(this.room);
 
     // INIT SERVICES

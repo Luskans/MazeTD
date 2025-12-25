@@ -8,10 +8,9 @@
   import ActionBar from './ActionBar.svelte';
   import { onMount } from 'svelte';
   import { getStateCallbacks } from 'colyseus.js';
-  import { gameRoom } from '../../stores/gameStore';
+  import { gameRoom, playerHUD, playersPanel } from '../../stores/gameStore';
   
   let activePanel = $state<"players" | "shop" | "waves" | "settings" | null>(null);
-
   const player = $derived($gameRoom?.state.players.get($gameRoom.sessionId));
   // $: state = $roomState;
   // let player = $state("");
@@ -33,9 +32,13 @@
 </div>
 
 <div class="action-bar">
-  <p>c'est le player {player.gold}</p>
-  <ActionBar 
+  <p>c'est le player {$playerHUD?.gold}</p>
+  <!-- <ActionBar 
     {player} 
+    {activePanel} 
+    onButtonClick={togglePanel} 
+  /> -->
+  <ActionBar 
     {activePanel} 
     onButtonClick={togglePanel} 
   />
@@ -44,7 +47,8 @@
 {#if activePanel === "players" && $gameRoom}
   <Panel title={activePanel} onClose={() => activePanel = null}>
     <!-- <PlayersPanel players={$gameRoom.state.players} /> -->
-    <PlayersPanel players={$gameRoom.state.players} />
+    <!-- <PlayersPanel players={$gameRoom.state.players} /> -->
+    <PlayersPanel players={$playersPanel} />
   </Panel>
 {/if}
 

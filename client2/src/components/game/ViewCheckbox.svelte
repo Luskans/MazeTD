@@ -1,8 +1,8 @@
 <script lang="ts">
   import type { PlayerState } from '../../../../server/src/rooms/schema/PlayerState';
-    import { gameRoom } from '../../stores/gameStore';
+  import { gameRoom, type PlayersPanel } from '../../stores/gameStore';
 
-  let { player } = $props<{ player: PlayerState }>();
+  let { player } = $props<{ player: PlayersPanel }>();
   // const myId = $derived($gameRoom?.sessionId);
   // const me = $derived($gameRoom?.state.players.get(myId));
   // const hasVision = $derived(me?.viewers.has(player.sessionId));
