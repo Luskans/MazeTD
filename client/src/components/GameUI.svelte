@@ -1,12 +1,13 @@
-<script>
-  import DesktopUI from "./ui/DesktopUI.svelte";
-  import MobileUI from "./ui/MobileUI.svelte";
+<script lang="ts">
+  import DesktopUI from "./game/DesktopUI.svelte";
+  // import MobileUI from "./ui/MobileUI.svelte";
 
-  const isMobile = window.innerWidth < 768;
+  const isMobile = $derived(window.innerWidth < 768);
 </script>
 
 {#if isMobile}
-  <MobileUI />
+  <!-- <MobileUI /> -->
+  <p>mobile</p>
 {:else}
   <DesktopUI />
 {/if}

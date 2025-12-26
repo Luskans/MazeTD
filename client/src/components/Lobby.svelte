@@ -1,168 +1,90 @@
 <script lang="ts">
-  import { onMount, onDestroy } from "svelte";
-  import { currentRoom, screen } from "../stores/ui";
-  import { network } from "../services/network";
-  import Chat from "./Chat.svelte";
-  import CustomerRow from "./CustomerRow.svelte";
-  import { getStateCallbacks } from "colyseus.js";
-  import { toast } from '@zerodevx/svelte-toast';
-  import { createGame, getGame } from "../game/phaser";
+  import Chat from "./pages/Chat.svelte";
+  import CustomerRow from "./pages/CustomerRow.svelte";
+  import { toast } from "@zerodevx/svelte-toast";
+  import { network } from "../colyseus/Network";
+  import { lobbyStore } from "../stores/lobbyStore.svelte";
+  import { addSystemMessage } from "../stores/chatStore.svelte";
 
-
-  type LobbyState = any;
-  type CustomerState = any;
-
-  $: room = $currentRoom;
-
-  let customersEntries: [string, CustomerState][] = [];
-  let isLocked: boolean = false;
-  let countdown: number | null = null;
-  let chatComponent: any;
-
-  $: myPlayer = customersEntries.find(([id, p]) => id === room?.sessionId)?.[1];
-  $: readyButtonText = myPlayer?.isReady ? "Not Ready" : "Ready";
-
-  $: isHostAndPrivate = room && room.state.isPrivate && room.sessionId === room.state.hostId;
-
-  // --- Fonctions de Contrôle ---
-
-  function leave() {
-    network.leaveRoom();
-    screen.set("home");
-  }
+  let readyButtonText = $derived(lobbyStore.me?.isReady ? "Not Ready" : "Ready");
+  let isHostAndPrivate = $derived(lobbyStore.isPrivate && lobbyStore.hostId === lobbyStore.me?.sessionId);
 
   function toggleReady() {
-    if (isLocked) return;
-    network.toggleReady();
+    if (lobbyStore.isLocked) return;
+    network.sendCustomerReady();
   }
 
-  // --- Logique d'État Colyseus (listenStates) ---
-
-  function updateCustomersList() {
-    if (room?.state?.customers) {
-      customersEntries = Array.from(room.state.customers.entries());
-    }
+  function hasVotedKick(targetId: string): boolean {
+    const votes = lobbyStore.kicks[targetId];
+    const mySessionId = lobbyStore.me?.sessionId;
+    if (!mySessionId || !votes) return false;
+    return votes.includes(mySessionId);
   }
 
-  function handleInviteClick() {
-    if (!room) return;
-    const inviteURL = `${window.location.origin}/${room.roomId}`;
+  function invite() {
+    if (!lobbyStore.roomId) return;
+
+    const inviteURL = `${window.location.origin}/${lobbyStore.roomId}`;
     navigator.clipboard
       .writeText(inviteURL)
       .then(() => {
-        if (chatComponent) {
-          chatComponent.appendSys(`Room link copied to clipboard.`);
-        }
+        addSystemMessage("Room link copied to clipboard.");
       })
-      .catch(() => toast.push("Error to copy the invite link.", { classes: ['custom'] }));
+      .catch(() =>
+        toast.push("Error to copy invite link.", { classes: ["custom"] })
+      );
   }
-
-  function onCountdown(sec: number) {
-    countdown = sec;
-    isLocked = sec <= 3;
-  }
-
-  function onCountdown_stop() {
-    countdown = null;
-    isLocked = false;
-  }
-
-  onMount(() => {
-    if (!room) return;
-
-    const stateCallback = getStateCallbacks(room);
-    let listeners: Function[] = [];
-
-    listeners.push(
-      stateCallback(room.state.customers).onAdd((p: CustomerState, id: string) => {
-        stateCallback(p).onChange(() => updateCustomersList());
-        updateCustomersList();
-      }),
-    );
-
-    listeners.push(
-      stateCallback(room.state.customers).onRemove((p: CustomerState, id: string) => {
-        updateCustomersList();
-        if (room?.sessionId === id) {
-          console.log("Déconnexion ou kick détecté.");
-          leave();
-        }
-      }),
-    );
-
-    listeners.push(room.onMessage("countdown", onCountdown));
-    listeners.push(room.onMessage("countdown_stop", onCountdown_stop));
-
-    listeners.push(
-      room.onMessage("kicked", (msg: string) => {
-        toast.push("You were kicked from this lobby.", { classes: ['custom'] })
-        network.leaveRoom();
-        screen.set("home");
-      }),
-    );
-
-    listeners.push(
-      room.onMessage("start_game", async ({ roomId }: any) => {
-        network.leaveRoom();
-
-        await createGame();
-        const game = getGame();
-        if (!game) return;
-        
-        game.scene.start("LoadingScene", { 
-            roomId, 
-            options: { uid: myPlayer.uid, username: myPlayer.username, elo: myPlayer.elo } 
-        });
-        screen.set("game");
-      }),
-    );
-
-    listeners.push(room.onStateChange(() => {
-      room = room;
-      updateCustomersList();
-    }));
-
-    updateCustomersList();
-
-    // return () => {
-    //   listeners.forEach((unsubscribe) => unsubscribe());
-    // };
-  });
-  
 </script>
 
 <section class="screen lobby-screen">
   <header>
     <h2>Lobby</h2>
-    <div id="invite-container">
-      {#if isHostAndPrivate}
-        <button class="btn primary" on:click={handleInviteClick}>Invite</button>
-      {/if}
-    </div>
+
+    {#if isHostAndPrivate}
+      <button class="btn primary" onclick={invite}>
+        Invite
+      </button>
+    {/if}
   </header>
 
   <div class="lobby-content">
     <div class="lobby-left">
       <div class="players-list">
-        {#if customersEntries.length > 0} 
-          {#each customersEntries as [id, c] (id)}
-            <CustomerRow c={c} id={id} room={room} isLocked={isLocked} />
+        {#if lobbyStore.customers.length > 0}
+          {#each lobbyStore.customers as customer (customer.sessionId)}
+            <CustomerRow
+              customer={customer}
+              canKick={!lobbyStore.isLocked && !hasVotedKick(customer.sessionId)}
+            />
           {/each}
         {:else}
-          <p>Waiting for players...</p> 
+          <p>Waiting for players…</p>
         {/if}
       </div>
 
       <div class="lobby-controls">
-        <button class="btn primary" on:click={toggleReady} disabled={isLocked}>
+        <button
+          class="btn primary"
+          class:disabled={lobbyStore.isLocked}
+          disabled={lobbyStore.isLocked}
+          onclick={toggleReady}
+        >
           {readyButtonText}
         </button>
-        <button class="btn secondary" on:click={leave} disabled={isLocked}>
+
+        <button
+          class="btn secondary"
+          class:disabled={lobbyStore.isLocked}
+          disabled={lobbyStore.isLocked}
+          onclick={() => network.leaveRoom()}
+        >
           Leave
         </button>
 
-        {#if countdown}
-          <div class="countdown">START {countdown}</div>
+        {#if lobbyStore.countdown !== null}
+          <div class="countdown">
+            START {lobbyStore.countdown}
+          </div>
         {:else}
           <div class="countdown hidden">00</div>
         {/if}
@@ -170,7 +92,7 @@
     </div>
 
     <div class="lobby-right">
-      <Chat {room} bind:this={chatComponent} />
+      <Chat />
     </div>
   </div>
 </section>

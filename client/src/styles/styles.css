@@ -15,13 +15,14 @@
   --toastContainerBottom: auto;
   --toastContainerLeft: calc(50vw - 8rem);
 
-  --primary:#2c4062;
-  --primary-light:#3f5781;
-  --primary-dark:#1e2b41;
-  --secondary:#ceb868;
-  --secondary-light:#edd16c;
-  --secondary-dark:#ad9950;
-  --grey:#9aa8c3;
+  --primary:#2e3b41;
+  --primary-light:#394a50;
+  --primary-dark:#202e37;
+  --secondary:#bb8859;
+  --secondary-light:#d3a66f;
+  --secondary-dark:#976b48;
+  --grey:#afb1b3;
+  --grey-dark:#898989;
   --white:#f6f9ff;
 }
 .custom {

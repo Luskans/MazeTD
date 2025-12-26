@@ -19,7 +19,7 @@ export class LobbyRoom extends Room<LobbyState> {
 
     this.setPrivate(options?.isPrivate === true)
 
-    this.onMessage("toggle_ready", (client: Client) => {
+    this.onMessage("customer_ready", (client: Client) => {
       const c = this.state.customers.get(client.sessionId);
       if (!c) return;
 
@@ -98,6 +98,7 @@ export class LobbyRoom extends Room<LobbyState> {
   }
 
   onLeave(client: Client, consented: boolean) {
+    console.log(`[Lobby ${this.roomId}] Client ${client.sessionId} quitte. Clients actuels: ${this.clients.length}`);
     const customer = this.state.customers.get(client.sessionId);
     if (customer) {
       this.state.customers.delete(client.sessionId);
@@ -132,11 +133,11 @@ export class LobbyRoom extends Room<LobbyState> {
   _startCountdown(seconds: number) {
     if (this.countdownInterval) return;
     this.countdownRemaining = seconds;
-    this.broadcast("countdown", this.countdownRemaining);
+    this.broadcast("lobby_countdown", this.countdownRemaining);
 
     this.countdownInterval = this.clock.setInterval(() => {
       this.countdownRemaining!--;
-      this.broadcast("countdown", this.countdownRemaining);
+      this.broadcast("lobby_countdown", this.countdownRemaining);
 
       if (this.countdownRemaining <= 3) {
         this.lock();
@@ -155,7 +156,7 @@ export class LobbyRoom extends Room<LobbyState> {
     }
     this.unlock();
     this.countdownRemaining = this.countdownDefault;
-    this.broadcast("countdown_stop");
+    this.broadcast("lobby_countdown_stop");
     console.log("Compte à rebourd arrêté : " + reason);
   }
 

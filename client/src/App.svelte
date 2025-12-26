@@ -1,12 +1,11 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { screen } from './stores/ui';
   import Home from './components/Home.svelte';
   import Lobby from './components/Lobby.svelte';
+  import { getOrCreateUID } from './colyseus/Customer';
+  import { SvelteToast } from '@zerodevx/svelte-toast';
   import Game from './components/Game.svelte';
-  import GameUI from './components/GameUI.svelte';
-  import { getOrCreateUID } from './services/player';
-  import { SvelteToast } from '@zerodevx/svelte-toast'
+  import { screenStore } from './stores/screenStore.svelte';
 
   onMount(() => {
     getOrCreateUID();
@@ -15,14 +14,12 @@
 
 
 <main>
-  {#if $screen === 'home'}
+  {#if screenStore.current === 'home'}
     <Home />
-  {:else if $screen === 'lobby'}
+  {:else if screenStore.current === 'lobby'}
     <Lobby />
   {:else}
-    <!-- <Game /> -->
-    <div class="game-screen"></div>
-    <GameUI />
+    <Game />
   {/if}
   <!-- <SvelteToast options={{ intro: { y: -32 } }} /> -->
   <SvelteToast />

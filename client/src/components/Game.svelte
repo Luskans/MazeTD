@@ -1,48 +1,53 @@
-<!-- <script lang="ts">
-  import { onMount, onDestroy } from "svelte";
-  import Phaser from "phaser";
-  import { GameScene } from "../game/scenes/GameScene";
-  import { LoadingScene } from "../game/scenes/LoadingScene";
+<script lang="ts">
+  import { onMount, onDestroy } from 'svelte';
+  import { LoadingScene } from '../scenes/LoadingScene';
+  import { GameScene } from '../scenes/GameScene';
+  import GameUI from './GameUI.svelte';
+  import { sceneStore } from '../stores/screenStore.svelte';
 
-  let container: HTMLDivElement;
-  export let phaserGame: Phaser.Game | null = null;
+  let container: HTMLElement;
+  let gameInstance = $state<Phaser.Game | null>(null);
 
-  onMount(() => {
+  onMount(async () => {
     const config: Phaser.Types.Core.GameConfig = {
       type: Phaser.AUTO,
       width: 1280,
       height: 720,
-      backgroundColor: '#b6d53c',
       parent: container,
+      backgroundColor: "#d7899eff",
       physics: { default: "arcade" },
-      pixelArt: true,
+      pixelArt: false,
+      scale: {
+        // mode: Phaser.Scale.FIT,
+        mode: Phaser.Scale.RESIZE,
+        // autoCenter: Phaser.Scale.CENTER_BOTH
+      },
       scene: [LoadingScene, GameScene],
     };
-    phaserGame = new Phaser.Game(config);
+
+    gameInstance = new Phaser.Game(config);
+    (window as any).phaserGame = gameInstance;
+    gameInstance.scene.start("LoadingScene");
   });
 
   onDestroy(() => {
-    phaserGame?.destroy(true);
-    phaserGame = null;
+    if (gameInstance) {
+      gameInstance.destroy(true);
+      gameInstance = null;
+    }
   });
 </script>
 
-<div bind:this={container} class="game-screen"></div> -->
+<svelte:window on:contextmenu|preventDefault />
+<div class="game-screen" bind:this={container}>
+  {#if sceneStore.current === 'game'}
+    <GameUI />
+  {/if}
+</div>
 
-
-<script lang="ts">
-  import { onMount, onDestroy } from "svelte";
-  import { createGame, getGame } from "../game/phaser";
-
-  let container: HTMLDivElement;
-
-  onMount(() => {
-    createGame(container);
-  });
-
-  onDestroy(() => {
-    getGame()?.destroy(true);
-  });
-</script>
-
-<div bind:this={container} class="game-screen"></div>
+<style>
+  .game-screen {
+    width: 100%;
+    height: 100vh;
+  }
+</style>

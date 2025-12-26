@@ -100,6 +100,21 @@ export class GameRoom extends Room<GameState> {
       player.viewers.delete(data.targetId);
     });
 
+    this.onMessage("player_ready", (client) => {
+      const player = this.state.players.get(client.sessionId);
+      if (!player) return;
+
+      player.isReady = true;
+
+      // Vérifier si tous les joueurs sont prêts
+      const allReady = Array.from(this.state.players.values())
+        .every(p => p.isReady && !p.isDefeated && !p.isDisconnected);
+
+      if (allReady) {
+        this._startNextWave();
+      }
+    });
+
     this.setSimulationInterval((deltaTime) => {
         // this.updateEnemies(deltaTime);
         // Ici, Colyseus va automatiquement checker si des variables 
@@ -135,6 +150,15 @@ export class GameRoom extends Room<GameState> {
   _allPlayersLoaded(): boolean {
     if (this.state.players.size === 0) return false;
     return Array.from(this.state.players.values()).every(p => p.hasLoaded === true);
+  }
+
+  _startNextWave(): void {
+    this.state.players.forEach(p => {
+      p.isReady = false;
+    });
+    this.state.currentWaveIndex = (this.state.currentWaveIndex + 1) % this.state.waves.length;
+    this.state.waveCount++;
+    this.broadcast("wave_start");
   }
 
   // Exemple de logique de simulation dans GameRoom

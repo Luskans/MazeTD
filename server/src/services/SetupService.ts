@@ -15,7 +15,7 @@ import { TowerConfig } from "../rooms/schema/TowerConfig";
 import { UpgradeConfig } from "../rooms/schema/UpgradeConfig";
 import { UpgradeState } from "../rooms/schema/UpgradeState";
 import { WallConfig } from "../rooms/schema/WallConfig";
-import { WaveState } from "../rooms/schema/WaveState";
+import { WaveConfig } from "../rooms/schema/WaveConfig";
 import { PathfindingService } from "./PathfindingService";
 import { getRandom, getRandomDecimal } from "./utils";
 
@@ -45,7 +45,7 @@ export class SetupService {
     const minRocks = Math.floor(totalCells * MAP_DATA.minRocks);
     const maxRocks = Math.floor(totalCells * MAP_DATA.maxRocks);
     const rockCount = getRandom(minRocks, maxRocks);
-    const rocks: {x: number, y: number}[] = [];
+    const rocks: { x: number, y: number }[] = [];
 
     for (let i = 0; i < rockCount; i++) {
       let placed = false;
@@ -55,7 +55,7 @@ export class SetupService {
         const y = getRandom(0, state.grid.row - 2);
 
         let overlap = rocks.some(r => {
-          return !(x+2 <= r.x || r.x+2 <= x || y+2 <= r.y || r.y+2 <= y);
+          return !(x + 2 <= r.x || r.x + 2 <= x || y + 2 <= r.y || r.y + 2 <= y);
         });
 
         if (!overlap) {
@@ -190,7 +190,7 @@ export class SetupService {
       area.damageMultiplier = getRandom(MAP_DATA.minAreaMultiplier, MAP_DATA.maxAreaMultiplier);
       area.attackSpeedMultiplier = getRandom(MAP_DATA.minAreaMultiplier, MAP_DATA.maxAreaMultiplier);
       area.rangeMultiplier = getRandom(MAP_DATA.minAreaMultiplier, MAP_DATA.maxAreaMultiplier);
-      area.speedMultiplier = getRandom((1/MAP_DATA.maxAreaMultiplier), MAP_DATA.maxAreaMultiplier);
+      area.speedMultiplier = getRandom((1 / MAP_DATA.maxAreaMultiplier), MAP_DATA.maxAreaMultiplier);
 
       state.grid.areas.push(area);
     }
@@ -207,7 +207,7 @@ export class SetupService {
       // enemy.armor = randomEnemy.armor;
       // enemy.count = randomEnemy.count;
 
-      const wave = new WaveState();
+      const wave = new WaveConfig();
       wave.index = i;
       wave.enemyId = randomEnemy.name;
 
@@ -222,14 +222,14 @@ export class SetupService {
 
   private generateShop(state: GameState) {
     const shop = new ShopState();
-    
+
     for (let towerData of TOWERS_DATA) {
       const towerConfig = new TowerConfig();
       const randomPrice = Math.floor(towerData.price * getRandom(MAP_DATA.minPriceMultiplier, MAP_DATA.maxPriceMultiplier));
-      
+
       towerConfig.id = towerData.id;
       towerConfig.price = towerData.id === "basic" ? towerData.price : randomPrice;
-      
+
       shop.towersConfig.set(towerConfig.id, towerConfig);
     }
 
@@ -241,7 +241,7 @@ export class SetupService {
       upgradeConfig.id = upgradeData.id;
       upgradeConfig.price = randomPrice;
       upgradeConfig.upgradeMultiplier = randomUpgradeMultiplier;
-      
+
       shop.upgradesConfig.set(upgradeConfig.id, upgradeConfig);
     }
 
@@ -250,7 +250,7 @@ export class SetupService {
 
       wallConfig.id = wallData.id;
       wallConfig.price = wallData.price;
-      
+
       shop.wallsConfig.set(wallConfig.id, wallConfig);
     }
     state.shop = shop;
@@ -277,19 +277,20 @@ export class SetupService {
 
   private setupPlayerGrid(state: GameState, player: PlayerState) {
     for (const rock of state.grid.rocks) {
-        player.rocks.set(rock.id, new RockState({
-          gridX: rock.gridX,
-          gridY: rock.gridY })); 
+      player.rocks.set(rock.id, new RockState({
+        gridX: rock.gridX,
+        gridY: rock.gridY
+      }));
     }
     for (const checkpoint of state.grid.checkpoints) {
-        player.checkpoints.set(checkpoint.id, new CheckpointState({ 
-          gridX: checkpoint.gridX,
-          gridY: checkpoint.gridY,
-          order: checkpoint.order
-        })); 
+      player.checkpoints.set(checkpoint.id, new CheckpointState({
+        gridX: checkpoint.gridX,
+        gridY: checkpoint.gridY,
+        order: checkpoint.order
+      }));
     }
     for (const area of state.grid.areas) {
-      player.areas.set(area.id, new AreaState({ 
+      player.areas.set(area.id, new AreaState({
         gridX: area.gridX,
         gridY: area.gridY,
         radius: area.radius,
@@ -297,7 +298,7 @@ export class SetupService {
         attackMultiplier: area.attackSpeedMultiplier,
         rangeMultiplier: area.rangeMultiplier,
         speedMultiplier: area.speedMultiplier
-      })); 
+      }));
     }
   }
 }

@@ -4,7 +4,7 @@ import { CellState } from "./CellState";
 import { RockState } from "./RockState";
 import { AreaState } from "./AreaState";
 import { CheckpointState } from "./CheckpointState";
-import { WaveState } from "./WaveState";
+import { WaveConfig } from "./WaveConfig";
 import { GridState } from "./GridState";
 import { ShopState } from "./ShopState";
 
@@ -23,8 +23,8 @@ export class GameState extends Schema {
   // @type([AreaState]) areas = new ArraySchema<AreaState>();
   // @type([CheckpointState]) checkpoints = new ArraySchema<CheckpointState>();
 
-  @type([WaveState]) waves = new ArraySchema<WaveState>();
+  @type([WaveConfig]) waves = new ArraySchema<WaveConfig>();
   @type("number") currentWaveIndex: number = 1;
-  @type("number") currentWaveCount: number = 1;
-  @type("number") tick: number; // tick server
+  @type("number") waveCount: number = 1;
+  // @type("number") tick: number; // tick server
 }
