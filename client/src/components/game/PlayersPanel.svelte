@@ -12,7 +12,9 @@
 
 <div class="players-panel">
   <div class="header">
-    <div></div> <div></div> <div></div>
+    <span class="label">Focus</span>
+    <span class="label">Vision</span>
+    <div></div>
     <span class="label">Lives</span>
     <span class="label">Kills</span>
     <span class="label">Damage</span>
@@ -30,11 +32,17 @@
     {/if}
 
     <div class="player-item">
-      <p class="player-name class:disconnected={player.isDisconnected}">{player.username} <span class="player-elo class:disconnected={player.isDisconnected}">{(player.elo)}</span></p>
+      <p 
+        class="player-name"
+        class:disconnected={player.isDisconnected}
+        class:ready={player.isReady}
+      >
+        <span class="player-elo" class:disconnected={player.isDisconnected}>{(player.elo)} - </span> {player.username}
+      </p>
     </div>
     <div class="hud-item">
       <img src="/icons/heart.png" alt="Player life" class="hud-icon" />
-      <p class="hud-text class:danger={player.lives <= 10}">{player.isDefeated ? "Lost" : player.lives}</p>
+      <p class="hud-text" class:danger={player.lives <= 10}>{player.isDefeated ? "Lost" : player.lives}</p>
     </div>
     <div class="hud-item">
       <img src="/icons/waves.png" alt="Enemies killed during the wave" class="hud-icon" />
@@ -50,73 +58,10 @@
     </div>
     <div class="hud-item">
       <img src="/icons/settings.png" alt="Gold bonus for this wave" class="hud-icon" />
-      <p class="hud-text">+ {player.incomeBonus}</p>
+      <p class="hud-text">+{player.incomeBonus}</p>
     </div>
   </div>
   {/each}
-  <div class="player-line">
-    <button>
-      o
-    </button>
-    <button>
-      o
-    </button>
-    <div class="player-item">
-      <p class="player-name">Jean Boubacar Quartan <span class="player-elo">(1500)</span></p>
-    </div>
-    <div class="hud-item">
-      <img src="/icons/heart.png" alt="Player life" class="hud-icon" />
-      <p class="hud-text">100</p>
-    </div>
-    <div class="hud-item">
-      <img src="/icons/waves.png" alt="Enemies killed during the wave" class="hud-icon" />
-      <p class="hud-text kills">6 135</p>
-    </div>
-    <div class="hud-item">
-      <img src="/icons/settings.png" alt="Damages to enemies during the wave" class="hud-icon" />
-      <p class="hud-text damages">47 465 871</p>
-    </div>
-    <div class="hud-item">
-      <img src="/icons/settings.png" alt="Time made by enemies during the wave" class="hud-icon" />
-      <p class="hud-text">2'35"654</p>
-    </div>
-    <div class="hud-item">
-      <img src="/icons/settings.png" alt="Gold bonus for this wave" class="hud-icon" />
-      <p class="hud-text">+12</p>
-    </div>
-  </div>
-
-  <div class="player-line">
-    <button>
-      o
-    </button>
-    <button>
-      o
-    </button>
-    <div class="player-item">
-      <p class="player-name">Paul <span class="player-elo">(300)</span></p>
-    </div>
-    <div class="hud-item">
-      <img src="/icons/heart.png" alt="Player life" class="hud-icon" />
-      <p class="hud-text">11</p>
-    </div>
-    <div class="hud-item">
-      <img src="/icons/waves.png" alt="Enemies killed during the wave" class="hud-icon" />
-      <p class="hud-text">25</p>
-    </div>
-    <div class="hud-item">
-      <img src="/icons/settings.png" alt="Damages to enemies during the wave" class="hud-icon" />
-      <p class="hud-text">5 871</p>
-    </div>
-    <div class="hud-item">
-      <img src="/icons/settings.png" alt="Time made by enemies during the wave" class="hud-icon" />
-      <p class="hud-text">15"654</p>
-    </div>
-    <div class="hud-item">
-      <img src="/icons/settings.png" alt="Gold bonus for this wave" class="hud-icon" />
-      <p class="hud-text">+0</p>
-    </div>
-  </div>
 </div>
 
 <style>
@@ -134,7 +79,7 @@
   }
   .player-line, .header {
     display: grid;
-    grid-template-columns: 20px 20px 180px 56px 64px 92px 78px 56px;
+    grid-template-columns: 20px 20px 150px 56px 64px 92px 78px 56px;
     align-items: center;
     gap: 8px;
   }
@@ -150,17 +95,20 @@
     font-size: 12px;
     font-weight: bold;   
   }
-  .player-name.isDisconnected {
-    color: var(--grey-dark);
-  }
   .player-elo {
     color: var(--grey);
     font-style: italic;
     font-size: 10px;
     font-weight: bold;
   }
-  .player-elo.isDisconnected {
+  .disconnected {
     color: var(--grey-dark);
+  }
+  .danger {
+    color: var(--danger);
+  }
+  .ready {
+    color: var(--success);
   }
   .hud-item {
     display: flex;

@@ -10,7 +10,7 @@
   // const me = $derived($gameRoom?.state.players.get($gameRoom.sessionId));
   // const hasVision = $derived(me.viewers.has(player.sessionId));
   // const hasVision = $derived(me?.viewers?.get(player.sessionId) === true);
-  const hasVision = $derived(gameStore.me?.viewers.get(player.sessionId) === true);
+  const hasVision = $derived(gameStore.me?.viewers.includes(player.sessionId));
 
   function toggleVision(targetId: string) {
     const action = hasVision ? "remove_vision" : "grant_vision";
@@ -29,15 +29,24 @@
 
 <style>
   button {
-
+    background: transparent;
+    border: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+  }
+  button:hover {
+    box-shadow: 0 0 6px 2px var(--secondary-light);
+    /* filter: drop-shadow(0 0 4px var(--secondary)); */
   }
   img {
     width: 20px;
     height: 20px;
   }
   .granted {
-    /* filter: drop-shadow(0 0 4px var(--secondary)); */
-    box-shadow: 0 0 6px 2px var(--secondary-light);
+    filter: drop-shadow(0 0 2px var(--secondary-light));
+    /* box-shadow: 0 0 6px 2px var(--secondary-light); */
   }
 </style>
 

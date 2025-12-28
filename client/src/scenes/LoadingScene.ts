@@ -3,6 +3,7 @@ import { GameState } from "../../../server/src/rooms/schema/GameState";
 import { Room } from "colyseus.js";
 import { sceneStore } from "../stores/screenStore.svelte";
 import { getGameRoom } from "../colyseus/gameRoomService";
+import { connectGame } from "../colyseus/GameBridge";
 
 export class LoadingScene extends Phaser.Scene {
   private room!: Room<GameState>;
@@ -14,7 +15,7 @@ export class LoadingScene extends Phaser.Scene {
   init() {
     this.room = getGameRoom();
     //@ts-ignore
-    console.log("Dans loading scene, le state de la game : ", this.room.state.toJSON());
+    // console.log("Dans loading scene, le state de la game : ", this.room.state.toJSON());
   }
 
   preload() {
@@ -49,17 +50,17 @@ export class LoadingScene extends Phaser.Scene {
 
   async create() {
     await new Promise(resolve => setTimeout(resolve, 3000));
-    console.log("on est dans create de loading scene, la room : ", this.room)
     this.room.send("loaded"); 
 
     this.room.onMessage("begin", () => {
+      // connectGame(this.room);
       sceneStore.current = 'game';
       this.scene.start("GameScene");
     });
 
     // CLEAN WHEN CHANGE SCENE
     this.events.once('shutdown', () => {
-      this.room.removeAllListeners();
+      // this.room.removeAllListeners();
     });
   }
 }

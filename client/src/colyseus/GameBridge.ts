@@ -3,7 +3,7 @@ import { MapSchema } from "@colyseus/schema";
 import { network } from "./Network";
 import { addChatMessage, addSystemMessage, chat, clearChat } from "../stores/chatStore.svelte";
 import type { GameState } from "../../../server/src/rooms/schema/GameState";
-import type { PlayerState } from "../../../server/src/rooms/schema/PlayerState";
+import { PlayerState } from "../../../server/src/rooms/schema/PlayerState";
 import { gameStore, shopStore, type MyselfStore, type PlayerStore, type TowerConfigStore, type UpgradeConfigStore, type WallConfigStore, type WaveConfigStore } from "../stores/gameStore.svelte";
 import type { WaveConfig } from "../../../server/src/rooms/schema/WaveConfig";
 
@@ -19,6 +19,16 @@ export function connectGame(room: Room<GameState>) {
 
       $(players).onAdd((player, id) => {
         syncPlayers(room);
+
+        const myPlayer = room.state.players.get(room.sessionId);
+        $(myPlayer.viewers).onChange(() => {
+          if (gameStore.me) {
+            gameStore.me = {
+              ...gameStore.me,
+              viewers: Array.from(myPlayer.viewers.keys())
+            };
+          }
+        })
 
         $(player).onChange(() => {
           syncPlayers(room);
@@ -119,13 +129,13 @@ export function connectGame(room: Room<GameState>) {
 }
 
 const syncPlayers = (room: Room<GameState>) => {
-    const players = updatePlayers(room.state.players);
-    // const me = room.state.players.find((p: PlayerState) => p.sessionId === room.sessionId) ?? null;
-    const meState = room.state.players.get(room.sessionId) ?? null;
+  const players = updatePlayers(room.state.players);
+  // const me = room.state.players.find((p: PlayerState) => p.sessionId === room.sessionId) ?? null;
+  const meState = room.state.players.get(room.sessionId) ?? null;
 
-    gameStore.players = players.map(p => ({ ...p }));
-    gameStore.me = meState ? updateMyself(meState) : null;
-  };
+  gameStore.players = players.map(p => ({ ...p }));
+  gameStore.me = meState ? updateMyself(meState) : null;
+};
 
 const updatePlayers = (players: MapSchema<PlayerState>): PlayerStore[] => {
   const result: PlayerStore[] = [];
@@ -158,7 +168,8 @@ const updateMyself = (player: PlayerState): MyselfStore => {
     rank: player.rank,
     isDefeated: player.isDefeated,
     isReady: player.isReady,
-    viewers: player.viewers,
+    // viewers: player.viewers,
+    viewers: Array.from(player.viewers.keys() as string),
     lives: player.lives,
     gold: player.gold,
     income: player.income,

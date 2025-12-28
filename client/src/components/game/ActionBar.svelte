@@ -6,7 +6,6 @@
     activePanel: "players" | "shop" | "waves" | "settings" | null,
     onButtonClick: (panel: "players" | "shop" | "waves" | "settings") => void
   }>();
-  console.log("le game store", gameStore)
 </script>
 
 {#if gameStore.me}

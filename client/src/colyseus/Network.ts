@@ -45,8 +45,8 @@ class Network {
     const room = await this.client.joinById(roomId, options);
     this.room = room;
     console.log(`Connection du joueur ${options?.username} à la game room ${room.roomId} réussie.`);
-    setGameRoom(room);
     connectGame(room);
+    setGameRoom(room);
     screenStore.current = "game";
     return room;
   }

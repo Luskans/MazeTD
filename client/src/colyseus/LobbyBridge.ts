@@ -88,13 +88,22 @@ export function connectLobby(room: Room<LobbyState>) {
   );
 
   cleanupFns.push(
-    room.onMessage("start_game", async ({ roomId }) => {
-      if (!lobbyStore.me) return;
-      network.leaveRoom();
-      await network.joinGame(roomId, {
-        uid: lobbyStore.me.uid,
-        username: lobbyStore.me.username,
-        elo: lobbyStore.me.elo
+    // room.onMessage("start_game", async ({ roomId }) => {
+    //   if (!lobbyStore.me) return;
+    //   network.leaveRoom();
+    //   await network.joinGame(roomId, {
+    //     uid: lobbyStore.me.uid,
+    //     username: lobbyStore.me.username,
+    //     elo: lobbyStore.me.elo
+    //   });
+    //   disconnectLobby();
+    // })
+    room.onMessage("start_game", async (data) => {    
+      network.leaveRoom();  
+      await network.joinGame(data.roomId, {
+        uid: data.customerData.uid,
+        username: data.customerData.username,
+        elo: data.customerData.elo
       });
       disconnectLobby();
     })

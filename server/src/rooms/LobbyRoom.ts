@@ -163,19 +163,32 @@ export class LobbyRoom extends Room<LobbyState> {
   async _launchGame() {
     this._stopCountdown("Lancement de la partie.");
 
-    const lobbyCustomers = Array.from(this.state.customers.entries()).map(([sessionId, customer]) => ({
-      sessionId: sessionId,
-      uid: customer.uid,
-      username: customer.username,
-      elo: customer.elo
-    }));
+    // const lobbyCustomers = Array.from(this.state.customers.entries()).map(([sessionId, customer]) => ({
+    //   // sessionId: sessionId,
+    //   uid: customer.uid,
+    //   username: customer.username,
+    //   elo: customer.elo
+    // }));
 
-    const gameRoom = await matchMaker.createRoom("game", {
-      customers: lobbyCustomers
-    });
+    // const gameRoom = await matchMaker.createRoom("game", {
+    //   customers: lobbyCustomers
+    // });
+    // const gameRoomId = crypto.randomUUID();
+
+    const gameRoom = await matchMaker.createRoom("game", {});
 
     for (const client of this.clients) {
-      client.send("start_game", { roomId: gameRoom.roomId });
+      // client.send("start_game", { roomId: gameRoom.roomId });
+
+      const customer = this.state.customers.get(client.sessionId);
+      client.send("start_game", { 
+        roomId: gameRoom.roomId,
+        customerData: {
+          uid: customer.uid,
+          username: customer.username,
+          elo: customer.elo
+        }
+      });
     }
 
     this.disconnect();

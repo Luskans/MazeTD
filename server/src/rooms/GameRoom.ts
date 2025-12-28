@@ -14,7 +14,7 @@ export class GameRoom extends Room<GameState> {
   private buildService: BuildService;
 
   onCreate(options: any) {
-    Encoder.BUFFER_SIZE = 40 * 1024; // 16 KB
+    Encoder.BUFFER_SIZE = 48 * 1024; // 16 KB
     console.log(`🚀 Creation la game room ${this.roomId} !`);
     this.state = new GameState();
     this.setPrivate();
@@ -24,6 +24,39 @@ export class GameRoom extends Room<GameState> {
 
     this.pathfindingService = new PathfindingService();
     this.buildService = new BuildService();
+
+
+
+    // // ✅ IMPORTANT : Créer les players à partir des customers du lobby
+    // if (options.customers && Array.isArray(options.customers)) {
+    //   console.log(`📋 Initializing ${options.customers.length} players from lobby`);
+      
+    //   for (const customer of options.customers) {
+    //     const player = new PlayerState();
+    //     // player.sessionId = customer.sessionId;
+    //     player.uid = customer.uid;
+    //     player.username = customer.username;
+    //     player.elo = customer.elo;
+    //     player.hasLoaded = false;
+    //     player.isDefeated = false;
+    //     player.isDisconnected = false;
+        
+    //     // Ajouter le player au state
+    //     this.state.players.set(customer.sessionId, player);
+        
+    //     // Setup du player
+    //     this.setupService.setupPlayer(this.state, player);
+    //     this.pathfindingService.calculateAndSetPath(this.state, player);
+        
+    //     console.log(`✅ Player ${player.username} (${customer.sessionId}) initialized`);
+    //   }
+    // }
+
+    console.log(" les players créées après on create", this.state.players)
+
+
+
+
 
     this.onMessage("loaded", (client: Client) => {
       const player = this.state.players.get(client.sessionId);
@@ -123,6 +156,8 @@ export class GameRoom extends Room<GameState> {
   }
 
   onJoin(client: Client, options: any) {
+    console.log(`🔌 Client ${client.sessionId} joining with options:`, options);
+
     const player = new PlayerState();
     player.sessionId = client.sessionId;
     player.uid = options?.uid;
@@ -134,7 +169,9 @@ export class GameRoom extends Room<GameState> {
     this.state.players.set(client.sessionId, player);
 
     this.setupService.setupPlayer(this.state, player);
-    this.pathfindingService.calculateAndSetPath(this.state, player); 
+    this.pathfindingService.calculateAndSetPath(this.state, player);
+
+    console.log(`✅ Player ${player.username} joined successfully`);
   }
 
   onLeave(client: Client, consented: boolean) {

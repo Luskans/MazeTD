@@ -68,6 +68,9 @@ export class GameScene extends Phaser.Scene {
       //@ts-ignore
       console.log("Chemin changé, nouvelle state de la game : ", this.room.state.toJSON())
     });
+    $(player).listen("gold", () => {
+      console.log("les golds dans la scene", player.gold)
+    });
     $(player).towers.onAdd((towerState: any, key: string) => {
       this.buildService.addBuildingSprite(towerState, "tower");
     });

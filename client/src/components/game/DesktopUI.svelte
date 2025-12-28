@@ -30,12 +30,6 @@
 </div>
 
 <div class="action-bar">
-  <p>c'est le player {gameStore.me?.gold}</p>
-  <!-- <ActionBar 
-    {player} 
-    {activePanel} 
-    onButtonClick={togglePanel} 
-  /> -->
   <ActionBar 
     {activePanel} 
     onButtonClick={togglePanel} 
