@@ -1,8 +1,8 @@
 <script lang="ts">
   import { shopStore } from '../../stores/gameStore.svelte';
-  import { TOWERS_DATA } from '../../../../server/src/constants/towersData';
-  import { WALLS_DATA } from '../../../../server/src/constants/wallsData';
-  import { UPGRADES_DATA } from '../../../../server/src/constants/upgradesData';
+  import { TOWERS_DATA } from '../../../../server/src/datas/towersData';
+  import { WALLS_DATA } from '../../../../server/src/datas/wallsData';
+  import { UPGRADES_DATA } from '../../../../server/src/datas/upgradesData';
   import Tooltip from './Tooltip.svelte';
 
   let { type, data, price, multiplier, onclick } = $props<{

@@ -1,5 +1,5 @@
 import type { GameState } from "../../../server/src/rooms/schema/GameState";
-import { MAP_DATA } from "../../../server/src/constants/mapData";
+import { MAP_DATA } from "../../../server/src/datas/mapData";
 import type { Room } from "colyseus.js";
 
 export class SetupService {

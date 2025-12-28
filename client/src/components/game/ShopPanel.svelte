@@ -1,10 +1,10 @@
 <script lang="ts">
   import ShopButton from './ShopButton.svelte';
-  import { TOWERS_DATA } from '../../../../server/src/constants/towersData';
-  import { WALLS_DATA } from '../../../../server/src/constants/wallsData';
-  import { UPGRADES_DATA } from '../../../../server/src/constants/upgradesData';
+  import { TOWERS_DATA } from '../../../../server/src/datas/towersData';
+  import { WALLS_DATA } from '../../../../server/src/datas/wallsData';
+  import { UPGRADES_DATA } from '../../../../server/src/datas/upgradesData';
   import { shopStore } from '../../stores/gameStore.svelte';
-    import { WallConfig } from '../../../../server/src/rooms/schema/WallConfig';
+  import { WallConfig } from '../../../../server/src/rooms/schema/WallConfig';
 
   function handleTowerClick(tower: any) {
     (window as any).phaserGame.events.emit('choose_tower', { 
@@ -30,30 +30,59 @@
     });
   }
 
+  // const towersWithConfig = $derived.by(() =>
+  //   TOWERS_DATA
+  //     .map((tower: any) => ({
+  //       tower,
+  //       config: shopStore.towers.find(t => t.id === tower.id)
+  //     }))
+  //     .filter((entry: any) => entry.config)
+  // );
   const towersWithConfig = $derived.by(() =>
-    TOWERS_DATA
+    shopStore.towers
       .map(tower => ({
-        tower,
-        config: shopStore.towers.find(t => t.id === tower.id)
+        id: tower.id,
+        price: tower.price,
+        data: TOWERS_DATA[tower.id]
       }))
-      .filter(entry => entry.config)
+      .filter(t => t.data)
   );
 
+  // const wallsWithConfig = $derived.by(() =>
+  //   WALLS_DATA
+  //     .map(wall => ({
+  //       wall,
+  //       config: shopStore.walls.find(w => w.id === wall.id)
+  //     }))
+  //     .filter(entry => entry.config)
+  // );
   const wallsWithConfig = $derived.by(() =>
-    WALLS_DATA
+    shopStore.walls
       .map(wall => ({
-        wall,
-        config: shopStore.walls.find(w => w.id === wall.id)
+        id: wall.id,
+        price: wall.price,
+        data: WALLS_DATA[wall.id]
       }))
-      .filter(entry => entry.config)
+      .filter(w => w.data)
   );
+
+  // const upgradesWithConfig = $derived.by(() =>
+  //   UPGRADES_DATA
+  //     .map(upgrade => ({
+  //       upgrade,
+  //       config: shopStore.upgrades.find(u => u.id === upgrade.id)
+  //     }))
+  //     .filter(entry => entry.config)
+  // );
   const upgradesWithConfig = $derived.by(() =>
-    UPGRADES_DATA
+    shopStore.upgrades
       .map(upgrade => ({
-        upgrade,
-        config: shopStore.upgrades.find(u => u.id === upgrade.id)
+        id: upgrade.id,
+        price: upgrade.price,
+        multiplier: upgrade.multiplier,
+        data: UPGRADES_DATA[upgrade.id]
       }))
-      .filter(entry => entry.config)
+      .filter(u => u.data)
   );
 </script>
 
@@ -61,52 +90,40 @@
   <div class="shop-category">
     <p class="shop-title">TOWERS</p>
     <div class="shop-grid">
-      {#each towersWithConfig as { tower, config }}
-      <!-- {#each TOWERS_DATA as tower} -->
-        <!-- {#if shopStore.towers.find(t => t.id === tower.id) as config} -->
-         {#if config}
-          <ShopButton 
-            type="towers"
-            data={tower}
-            price={config.price}
-            onclick={() => handleTowerClick(tower)} 
-          />
-        {/if}
+      {#each towersWithConfig as tower (tower.id)}
+        <ShopButton 
+          type="towers"
+          data={tower.data}
+          price={tower.price}
+          onclick={() => handleTowerClick(tower)} 
+        />
       {/each}
     </div>
   </div>
   <div class="shop-category">
     <p class="shop-title">WALLS</p>
     <div class="shop-grid">
-      {#each wallsWithConfig as { wall, config }}
-      <!-- {#each WALLS_DATA as wall} -->
-        <!-- {#if shopStore.walls.find(w => w.id === wall.id) as config} -->
-         {#if config}
-          <ShopButton
-            type="walls"
-            data={wall}
-            price={config.price}
-            onclick={() => handleWallClick(wall)} 
-          />
-        {/if}
+      {#each wallsWithConfig as wall (wall.id)}
+        <ShopButton
+          type="walls"
+          data={wall.data}
+          price={wall.price}
+          onclick={() => handleWallClick(wall)} 
+        />
       {/each}
     </div>
   </div>
   <div class="shop-category">
     <p class="shop-title">UPGRADES</p>
     <div class="shop-grid">
-      {#each upgradesWithConfig as { upgrade, config }}
-      <!-- {#each UPGRADES_DATA as upgrade} -->
-        <!-- {#if shopStore.upgrades.find(u => u.id === upgrade.id) as config} -->
-         {#if config}
-          <ShopButton
-            type="upgrades"
-            data={upgrade}
-            price={config.price}
-            multiplier={config.multiplier}
-            onclick={() => handleUpgradeClick(upgrade)} 
-          />
-        {/if}
+      {#each upgradesWithConfig as upgrade (upgrade.id)}
+        <ShopButton
+          type="upgrades"
+          data={upgrade.data}
+          price={upgrade.price}
+          multiplier={upgrade.multiplier}
+          onclick={() => handleUpgradeClick(upgrade)} 
+        />
       {/each}
     </div>
   </div>

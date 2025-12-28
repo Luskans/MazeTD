@@ -4,7 +4,8 @@
   let mousePos = $state({ x: 0, y: 0 });
 
   function handleMouseMove(e: MouseEvent) {
-    mousePos = { x: e.clientX + 15, y: e.clientY + 15 };
+    // mousePos = { x: e.clientX + 15, y: e.clientY + 15 };
+    mousePos = { x: e.clientX - 85, y: e.clientY };
   }
 </script>
 

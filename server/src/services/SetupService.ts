@@ -1,9 +1,9 @@
 import { generateId } from "colyseus";
-import { ENEMIES_DATA } from "../constants/enemiesData";
-import { MAP_DATA } from "../constants/mapData";
-import { TOWERS_DATA } from "../constants/towersData";
-import { UPGRADES_DATA } from "../constants/upgradesData";
-import { WALLS_DATA } from "../constants/wallsData";
+import { ENEMIES_DATA } from "../datas/enemiesData";
+import { MAP_DATA } from "../datas/mapData";
+import { TOWERS_DATA } from "../datas/towersData";
+import { UPGRADES_DATA } from "../datas/upgradesData";
+import { WALLS_DATA } from "../datas/wallsData";
 import { AreaState } from "../rooms/schema/AreaState";
 import { CheckpointState } from "../rooms/schema/CheckpointState";
 import { EnemyState } from "../rooms/schema/EnemyState";
@@ -223,7 +223,7 @@ export class SetupService {
   private generateShop(state: GameState) {
     const shop = new ShopState();
 
-    for (let towerData of TOWERS_DATA) {
+    for (let towerData of Object.values(TOWERS_DATA)) {
       const towerConfig = new TowerConfig();
       const randomPrice = Math.floor(towerData.price * getRandom(MAP_DATA.minPriceMultiplier, MAP_DATA.maxPriceMultiplier));
 
@@ -233,7 +233,7 @@ export class SetupService {
       shop.towersConfig.set(towerConfig.id, towerConfig);
     }
 
-    for (let upgradeData of UPGRADES_DATA) {
+    for (let upgradeData of Object.values(UPGRADES_DATA)) {
       const upgradeConfig = new UpgradeConfig();
       const randomPrice = Math.floor(upgradeData.price * getRandom(MAP_DATA.minPriceMultiplier, MAP_DATA.maxPriceMultiplier));
       const randomUpgradeMultiplier = getRandomDecimal(MAP_DATA.minUpgradeMultiplier, MAP_DATA.maxUpgradeMultiplier);
@@ -245,7 +245,7 @@ export class SetupService {
       shop.upgradesConfig.set(upgradeConfig.id, upgradeConfig);
     }
 
-    for (let wallData of WALLS_DATA) {
+    for (let wallData of Object.values(WALLS_DATA)) {
       const wallConfig = new WallConfig();
 
       wallConfig.id = wallData.id;
@@ -261,7 +261,7 @@ export class SetupService {
     player.gold = MAP_DATA.baseGold;
     player.income = MAP_DATA.baseIncome;
     player.maxPopulation = MAP_DATA.basePopulation;
-    for (let upgradeData of UPGRADES_DATA) {
+    for (let upgradeData of Object.values(UPGRADES_DATA)) {
       const upgradeConfig = state.shop.upgradesConfig.get(upgradeData.id);
       const upgrade = new UpgradeState();
       upgrade.id = generateId();

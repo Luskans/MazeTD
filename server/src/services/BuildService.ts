@@ -1,8 +1,8 @@
 import { generateId } from "colyseus";
-import { MAP_DATA } from "../constants/mapData";
-import { TOWERS_DATA } from "../constants/towersData";
-import { UPGRADES_DATA } from "../constants/upgradesData";
-import { WALLS_DATA } from "../constants/wallsData";
+import { MAP_DATA } from "../datas/mapData";
+import { TOWERS_DATA } from "../datas/towersData";
+import { UPGRADES_DATA } from "../datas/upgradesData";
+import { WALLS_DATA } from "../datas/wallsData";
 import { GameState } from "../rooms/schema/GameState";
 import { PlayerState } from "../rooms/schema/PlayerState";
 import { TowerState } from "../rooms/schema/TowerState";
@@ -48,15 +48,15 @@ export class BuildService {
     }
 
     const newTower = new TowerState({
-        id: generateId(),
-        dataId: data.id,
-        gridX: x,
-        gridY: y,
-        level: 1,
-        damage: data.damage * 1,
-        attackSpeed: data.attackSpeed * 1,
-        range: data.range,
-        totalCost: paymentCost
+      id: generateId(),
+      dataId: data.id,
+      gridX: x,
+      gridY: y,
+      level: 1,
+      damage: data.damage * 1,
+      attackSpeed: data.attackSpeed * 1,
+      range: data.range,
+      totalCost: paymentCost
     });
 
     player.towers.set(newTower.id, newTower);
@@ -71,11 +71,11 @@ export class BuildService {
     }
 
     const newWall = new WallState({
-        id: generateId(),
-        dataId: data.id,
-        gridX: x,
-        gridY: y,
-        size: data.size
+      id: generateId(),
+      dataId: data.id,
+      gridX: x,
+      gridY: y,
+      size: data.size
     });
 
     player.walls.set(newWall.id, newWall);
