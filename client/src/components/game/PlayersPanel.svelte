@@ -1,7 +1,7 @@
 <script lang="ts">
   import { PlayerState } from '../../../../server/src/rooms/schema/PlayerState';
-    import { getGameRoom } from '../../colyseus/gameRoomService';
-    import { gameStore, type PlayerStore } from '../../stores/gameStore.svelte';
+  import { getGameRoom } from '../../colyseus/gameRoomService';
+  import { gameStore, type PlayerStore } from '../../stores/gameStore.svelte';
   import ViewButton from './ViewButton.svelte';
   import ViewCheckbox from './ViewCheckbox.svelte';
 

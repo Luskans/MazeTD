@@ -41,7 +41,8 @@ export class BuildService {
   }
 
   public createTower(player: PlayerState, x: number, y: number, buildingId: string, paymentCost: number): void {
-    const data = TOWERS_DATA.find(tower => tower.id === buildingId);
+    // const data = TOWERS_DATA.find(tower => tower.id === buildingId);
+    const data = TOWERS_DATA[buildingId];
     if (!data) {
       console.error(`Tour introuvable pour ${buildingId}.`);
       return
@@ -64,7 +65,8 @@ export class BuildService {
   }
 
   public createWall(player: PlayerState, x: number, y: number, buildingId: string): void {
-    const data = WALLS_DATA.find(wall => wall.id === buildingId);
+    // const data = WALLS_DATA.find(wall => wall.id === buildingId);
+    const data = WALLS_DATA[buildingId];
     if (!data) {
       console.error(`Mur introuvable pour ${buildingId}.`);
       return

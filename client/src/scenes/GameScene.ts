@@ -52,7 +52,10 @@ export class GameScene extends Phaser.Scene {
       playerOffset.x,
       playerOffset.y
     );
+
+    // CENTER CAMERA ON PLAYER ZONE
     // this.cameras.main.centerOn(player.tower.position.x, player.tower.position.y);
+    this.cameraService.handleFocus(playerIndex);
 
     // LISTEN CHANGES AND EVENTS
     $(this.room.state).players.onRemove((p: PlayerState, id: string) => {

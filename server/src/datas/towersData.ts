@@ -2,28 +2,28 @@ export const TOWERS_DATA: Record<string, any> = {
   basic: {
     id: "basic",
     type: "tower",
-    name: "Basic Tower",
-    description: "Tour polyvalente qui peut se revendre à 95% des dépenses totales.",
+    name: "Basic Totem",
+    description: "Totem polyvalent qui peut se revendre à 95% des dépenses totales.",
     size: 2,    
     stats: {
-      damageMultiplier: 1,
-      damageInfo: "medium",
-      attackSpeedMultiplier: 1,
-      attackSpeedInfo: "medium",
+      damageMultiplier: 100,
+      damageInfo: 3,
+      attackSpeedMultiplier: 100,
+      attackSpeedInfo: 3,
       range: 100,
-      rangeInfo: "medium"
+      rangeInfo: 3
     },
     targeting: {
-      mode: "circle", // line ou cone
+      mode: "single",
+      maxTargets: 1,
       canTargetGround: true,
       canTargetAir: true,
+    },
+    attack: {
+      mode: "circle",
       dual: false,
       angle: 360,
       direction: 0
-    },
-    attack: {
-      mode: "single", // multi ou area
-      maxTargets: 1,
     },
     projectile: {
       type: "bullet",
@@ -32,50 +32,50 @@ export const TOWERS_DATA: Record<string, any> = {
     splash: {
       enabled: false,
       radius: 50,
-      info: "very low"
+      info: 1
     },
     chain: {
       enabled: false,
       count: 1,
       range: 10,
       damageReduction: 10,
-      info: "high"
+      info: 4
     },
     pierce: {
       enabled: false,
       count: 1,
       damageReduction: 10,
-      info: "very high"
+      info: 5
     },
     price: 20,
-    sellPercentage: 0.7
+    sellPercentage: 70
   },
 
   earth_shock: {
     id: "earth_shock",
     type: "tower",
-    name: "Eath Shock Tower",
+    name: "Earth Shock Totem",
     description: "Pulse une onde de choc autour de lui, infligeant des dégats à tous les ennemis.",
     size: 2,    
     stats: {
-      damageMultiplier: 0.65,
-      damageInfo: "low",
-      attackSpeedMultiplier: 0.9,
-      attackSpeedInfo: "medium",
+      damageMultiplier: 65,
+      damageInfo: 2,
+      attackSpeedMultiplier: 90,
+      attackSpeedInfo: 3,
       range: 80,
-      rangeInfo: "low"
+      rangeInfo: 2
     },
     targeting: {
-      mode: "circle", // line ou cone
+      mode: "area",
+      maxTargets: 1,
       canTargetGround: true,
       canTargetAir: false,
+    },
+    attack: {
+      mode: "circle",
       dual: false,
       angle: 360,
       direction: 0
-    },
-    attack: {
-      mode: "area", // multi ou area
-      maxTargets: 1,
     },
     projectile: {
       enabled: false,
@@ -85,50 +85,50 @@ export const TOWERS_DATA: Record<string, any> = {
     splash: {
       enabled: false,
       radius: 50,
-      info: "very low"
+      info: 1
     },
     chain: {
       enabled: false,
       count: 1,
       range: 10,
       damageReduction: 10,
-      info: "high"
+      info: 4
     },
     pierce: {
       enabled: false,
       count: 1,
       damageReduction: 10,
-      info: "very high"
+      info: 5
     },
     price: 20,
-    sellPercentage: 0.7
+    sellPercentage: 70
   },
 
   water_wave: {
     id: "water_wave",
     type: "tower",
-    name: "Water Wave Tower",
+    name: "Water Wave Totem",
     description: "Projette une vague en cône, infligeant des dégats à tous les ennemis.",
     size: 2,    
     stats: {
-      damageMultiplier: 0.8,
-      damageInfo: "medium",
-      attackSpeedMultiplier: 1.2,
-      attackSpeedInfo: "high",
+      damageMultiplier: 80,
+      damageInfo: 3,
+      attackSpeedMultiplier: 120,
+      attackSpeedInfo: 4,
       range: 100,
-      rangeInfo: "medium"
+      rangeInfo: 3
     },
     targeting: {
-      mode: "cone", // line ou cone
+      mode: "area",
+      maxTargets: 1,
       canTargetGround: true,
       canTargetAir: true,
+    },
+    attack: {
+      mode: "cone",
       dual: false,
       angle: 90,
       direction: 0
-    },
-    attack: {
-      mode: "area", // multi ou area
-      maxTargets: 1,
     },
     projectile: {
       enabled: false,
@@ -138,50 +138,50 @@ export const TOWERS_DATA: Record<string, any> = {
     splash: {
       enabled: false,
       radius: 50,
-      info: "very low"
+      info: 1
     },
     chain: {
       enabled: false,
       count: 1,
       range: 10,
       damageReduction: 10,
-      info: "high"
+      info: 4
     },
     pierce: {
       enabled: false,
       count: 1,
       damageReduction: 10,
-      info: "very high"
+      info: 5
     },
     price: 20,
-    sellPercentage: 0.7
+    sellPercentage: 70
   },
 
   fire_ball: {
     id: "fire_ball",
     type: "tower",
-    name: "Fire Ball Tower",
+    name: "Fire Ball Totem",
     description: "Projette une boule de feu qui inflige des dégats aux ennemis dans une grande zone.",
     size: 2,    
     stats: {
-      damageMultiplier: 0.8,
-      damageInfo: "medium",
-      attackSpeedMultiplier: 1,
-      attackSpeedInfo: "medium",
+      damageMultiplier: 80,
+      damageInfo: 3,
+      attackSpeedMultiplier: 100,
+      attackSpeedInfo: 1,
       range: 150,
-      rangeInfo: "high"
+      rangeInfo: 4
     },
     targeting: {
-      mode: "circle", // circle, line ou cone
+      mode: "single",
+      maxTargets: 1,
       canTargetGround: true,
       canTargetAir: true,
+    },
+    attack: {
+      mode: "circle",
       dual: false,
       angle: 360,
       direction: 0
-    },
-    attack: {
-      mode: "single", // single, multi ou area
-      maxTargets: 1,
     },
     projectile: {
       enabled: true,
@@ -191,50 +191,50 @@ export const TOWERS_DATA: Record<string, any> = {
     splash: {
       enabled: true,
       radius: 50,
-      info: "very high"
+      info: 5
     },
     chain: {
       enabled: false,
       count: 1,
       range: 10,
       damageReduction: 10,
-      info: "high"
+      info: 4
     },
     pierce: {
       enabled: false,
       count: 1,
       damageReduction: 10,
-      info: "very high"
+      info: 5
     },
     price: 20,
-    sellPercentage: 0.7
+    sellPercentage: 70
   },
 
   ice_spike: {
     id: "ice_spike",
     type: "tower",
-    name: "Ice Spike Tower",
+    name: "Ice Spike Totem",
     description: "Projette un pique de glace qui traverse tous les ennemis en ligne dans une direction.",
     size: 2,    
     stats: {
-      damageMultiplier: 1.2,
-      damageInfo: "high",
-      attackSpeedMultiplier: 1,
-      attackSpeedInfo: "medium",
+      damageMultiplier: 120,
+      damageInfo: 5,
+      attackSpeedMultiplier: 60,
+      attackSpeedInfo: 1,
       range: 200,
-      rangeInfo: "very high"
+      rangeInfo: 5
     },
     targeting: {
-      mode: "line", // circle, line ou cone
+      mode: "single",
+      maxTargets: 1,
       canTargetGround: true,
       canTargetAir: true,
+    },
+    attack: {
+      mode: "line",
       dual: false,
       angle: 360,
       direction: 0
-    },
-    attack: {
-      mode: "single", // single, multi ou area
-      maxTargets: 1,
     },
     projectile: {
       enabled: true,
@@ -244,50 +244,50 @@ export const TOWERS_DATA: Record<string, any> = {
     splash: {
       enabled: false,
       radius: 50,
-      info: "very high"
+      info: 5
     },
     chain: {
       enabled: false,
       count: 1,
       range: 10,
       damageReduction: 10,
-      info: "high"
+      info: 4
     },
     pierce: {
       enabled: true,
       count: 10,
       damageReduction: 10,
-      info: "very high"
+      info: 5
     },
     price: 20,
-    sellPercentage: 0.7
+    sellPercentage: 70
   },
 
   chain_lightning: {
     id: "chain_lightning",
     type: "tower",
-    name: "Chain Lightning Tower",
+    name: "Chain Lightning Towtem",
     description: "Crée un arc électrique qui rebondit sur 5 ennemis aériens.",
     size: 2,    
     stats: {
-      damageMultiplier: 1.6,
-      damageInfo: "very high",
-      attackSpeedMultiplier: 0.9,
-      attackSpeedInfo: "medium",
-      range: 200,
-      rangeInfo: "very high"
+      damageMultiplier: 160,
+      damageInfo: 5,
+      attackSpeedMultiplier: 90,
+      attackSpeedInfo: 3,
+      range: 80,
+      rangeInfo: 2
     },
     targeting: {
-      mode: "circle", // circle, line ou cone
+      mode: "single",
+      maxTargets: 1,
       canTargetGround: false,
-      canTargetAir: true,
+      canTargetAir: true, 
+    },
+    attack: {
+      mode: "circle",
       dual: false,
       angle: 360,
       direction: 0
-    },
-    attack: {
-      mode: "single", // single, multi ou area
-      maxTargets: 1,
     },
     projectile: {
       enabled: false,
@@ -297,50 +297,50 @@ export const TOWERS_DATA: Record<string, any> = {
     splash: {
       enabled: false,
       radius: 50,
-      info: "very high"
+      info: 5
     },
     chain: {
       enabled: true,
       count: 5,
       range: 10,
       damageReduction: 10,
-      info: "high"
+      info: 4
     },
     pierce: {
       enabled: false,
       count: 10,
       damageReduction: 10,
-      info: "very high"
+      info: 5
     },
     price: 20,
-    sellPercentage: 0.7
+    sellPercentage: 70
   },
 
   multi_vine: {
     id: "multi_vine",
     type: "tower",
-    name: "Multi Vine Tower",
+    name: "Multi Vine Totem",
     description: "Crée des lianes qui inflige des dégâts à 3 ennemis à portée.",
     size: 2,    
     stats: {
-      damageMultiplier: 0.8,
-      damageInfo: "low",
-      attackSpeedMultiplier: 1.4,
-      attackSpeedInfo: "very high",
+      damageMultiplier: 80,
+      damageInfo: 2,
+      attackSpeedMultiplier: 140,
+      attackSpeedInfo: 5,
       range: 120,
-      rangeInfo: "medium"
+      rangeInfo: 3
     },
     targeting: {
-      mode: "circle", // circle, line ou cone
+      mode: "multi",
+      maxTargets: 3,
       canTargetGround: true,
       canTargetAir: true,
+    },
+    attack: {
+      mode: "circle",
       dual: false,
       angle: 360,
       direction: 0
-    },
-    attack: {
-      mode: "multi", // single, multi ou area
-      maxTargets: 3,
     },
     projectile: {
       enabled: false,
@@ -350,23 +350,23 @@ export const TOWERS_DATA: Record<string, any> = {
     splash: {
       enabled: false,
       radius: 50,
-      info: "very high"
+      info: 5
     },
     chain: {
       enabled: false,
       count: 5,
       range: 10,
       damageReduction: 10,
-      info: "high"
+      info: 4
     },
     pierce: {
       enabled: false,
       count: 10,
       damageReduction: 10,
-      info: "very high"
+      info: 5
     },
     price: 20,
-    sellPercentage: 0.7
+    sellPercentage: 70
   }
 };
   

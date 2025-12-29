@@ -2,8 +2,18 @@ export function getRandom(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+// export function getRandomDecimal(min: number, max: number, decimals: number = 2): number {
+//   const randomValue = Math.random() * (max - min) + min;
+//   const factor = Math.pow(10, decimals);
+//   return Math.round(randomValue * factor) / factor;
+// }
+
 export function getRandomDecimal(min: number, max: number, decimals: number = 2): number {
   const randomValue = Math.random() * (max - min) + min;
+  return Number(randomValue.toFixed(decimals));
+}
+
+export function round(value: number, decimals: number = 2): number {
   const factor = Math.pow(10, decimals);
-  return Math.round(randomValue * factor) / factor;
+  return Math.round(value * factor) / factor;
 }

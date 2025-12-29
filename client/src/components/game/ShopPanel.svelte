@@ -3,14 +3,15 @@
   import { TOWERS_DATA } from '../../../../server/src/datas/towersData';
   import { WALLS_DATA } from '../../../../server/src/datas/wallsData';
   import { UPGRADES_DATA } from '../../../../server/src/datas/upgradesData';
-  import { shopStore } from '../../stores/gameStore.svelte';
+  import { gameStore, shopStore } from '../../stores/gameStore.svelte';
   import { WallConfig } from '../../../../server/src/rooms/schema/WallConfig';
 
   function handleTowerClick(tower: any) {
+    console.log("data", tower);
     (window as any).phaserGame.events.emit('choose_tower', { 
-      buildingId: String(tower.id), 
-      buildingType: String(tower.type), 
-      buildingSize: Number(tower.size)
+      buildingId: tower.id, 
+      buildingType: tower.type, 
+      buildingSize: tower.size
     });
   }
 
@@ -74,16 +75,34 @@
   //     }))
   //     .filter(entry => entry.config)
   // );
-  const upgradesWithConfig = $derived.by(() =>
-    shopStore.upgrades
+  // const upgradesWithConfig = $derived.by(() =>
+  //   shopStore.upgrades
+  //     .map(upgrade => ({
+  //       id: upgrade.id,
+  //       price: upgrade.price,
+  //       // multiplier: upgrade.multiplier,
+  //       data: UPGRADES_DATA[upgrade.id]
+  //     }))
+  //     .filter(u => u.data)
+  // );
+  const upgradesWithConfig = $derived.by(() => {
+    const upgrades = gameStore.me?.upgrades ?? [];
+    return upgrades
       .map(upgrade => ({
         id: upgrade.id,
-        price: upgrade.price,
-        multiplier: upgrade.multiplier,
+        level: upgrade.level,
+        price: upgrade.currentCost,
+        cost: upgrade.currentCost,
+        value: upgrade.currentValue,
+        nextValue: upgrade.nextValue,
+        nextCost: upgrade.nextCost,
         data: UPGRADES_DATA[upgrade.id]
       }))
-      .filter(u => u.data)
-  );
+      // .filter(u => u.data)
+      .filter((u): u is NonNullable<typeof u> => u !== null);
+  });
+  console.log("les upgrades dans gamestore me", gameStore.me?.upgrades)
+  console.log("upgrades config changé", upgradesWithConfig)
 </script>
 
 <div class="shop-panel">
@@ -95,7 +114,7 @@
           type="towers"
           data={tower.data}
           price={tower.price}
-          onclick={() => handleTowerClick(tower)} 
+          onclick={() => handleTowerClick(tower.data)}
         />
       {/each}
     </div>
@@ -120,8 +139,12 @@
         <ShopButton
           type="upgrades"
           data={upgrade.data}
+          level={upgrade.level}
           price={upgrade.price}
-          multiplier={upgrade.multiplier}
+          cost={upgrade.cost}
+          value={upgrade.value}
+          nextCost={upgrade.nextCost}
+          nextValue={upgrade.nextValue}
           onclick={() => handleUpgradeClick(upgrade)} 
         />
       {/each}

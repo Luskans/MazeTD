@@ -3,24 +3,28 @@ export const UPGRADES_DATA: Record<string, any> = {
     id: "population",
     type: "upgrade",
     name: "Increase population",
-    description: "Augmente le nombre maximum de bâtiments que vous pouvez construire.",
+    description: "Augmente le nombre maximum de bâtiments qui peuvent être construits de 5.",
     price: 20,
-    value: 5
+    baseValue: 0,
+    upgradeValue: 5
   },
   income: {
     id: "income",
     type: "upgrade",
     name: "Increase income",
-    description: "Augmente les gold reçus à la fin d'une vague.",
+    description: "Augmente l'or reçu en fin de vague de 5%.",
+    description2: "( 10 + wave level + bonus )",
     price: 40,
-    value: 5
+    baseValue: 0,
+    upgradeValue: 5
   },
   destroy: {
     id: "destroy",
     type: "upgrade",
     name: "Destroy Rock",
-    description: "Permet de détruire un rocher ciblé.",
+    description: "Permet de détruire un rocher ciblé, le prix augmente à chaque utilisation.",
     price: 40,
-    value: null
+    baseValue: null,
+    upgradeValue: null
   }
 };

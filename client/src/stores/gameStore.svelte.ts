@@ -39,11 +39,20 @@ export type MyselfStore = {
   gold: number,
   income: number,
   population: number,
-  maxPopulation: number
+  maxPopulation: number,
+  upgrades: UpgradeStore[]
 }
 export type WaveConfigStore = {
   index: number,
   enemyId: string
+}
+export type UpgradeStore = {
+  id: string,
+  level: number,
+  currentCost: number,
+  nextCost: number,
+  currentValue: number,
+  nextValue: number
 }
 export type ShopStore = {
   towers: TowerConfigStore[];
@@ -61,7 +70,7 @@ export type WallConfigStore = {
 export type UpgradeConfigStore = {
   id: string,
   price: number,
-  multiplier: number;
+  // multiplier: number;
 }
 
 export const gameStore: GameStore = $state({

@@ -71,7 +71,7 @@ export class CameraService {
     }
   }
 
-  private handleFocus(playerIndex: number): void {
+  public handleFocus(playerIndex: number): void {
     const camera = this.scene.cameras.main;
     const playerOffset = this.setupService.getPlayerOffsets(playerIndex)
     const halfGridWidth = Math.round(this.room.state.grid.col * 16);
