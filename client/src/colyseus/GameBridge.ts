@@ -131,12 +131,24 @@ export function connectGame(room: Room<GameState>) {
   );
 
   cleanupFns.push(
-    room.onMessage("wave_countdown", (sec: number) => { gameStore.countdown = sec; })
+    $(room.state).listen("wavePhase", () => { gameStore.wavePhase = room.state.wavePhase; })
   );
 
   cleanupFns.push(
-    room.onMessage("wave_start", () => { gameStore.countdown = null; })
+    $(room.state).listen("countdown", () => { gameStore.countdown = room.state.countdown; })
   );
+
+  cleanupFns.push(
+    $(room.state).listen("countdownMax", () => { gameStore.countdownMax = room.state.countdownMax; })
+  );
+
+  // cleanupFns.push(
+  //   room.onMessage("wave_countdown", (sec: number) => { gameStore.countdown = sec; })
+  // );
+
+  // cleanupFns.push(
+  //   room.onMessage("wave_start", () => { gameStore.countdown = null; })
+  // );
 
   cleanupFns.push(
     room.onMessage("chat", (msg: any) => { addChatMessage(msg.from ?? "anonymous", msg.text); })
@@ -171,7 +183,7 @@ const updatePlayers = (players: MapSchema<PlayerState>): PlayerStore[] => {
       lives: player.lives,
       kills: player.kills,
       damage: player.damage,
-      mazeTime: player.mazeTime,
+      mazeDuration: player.mazeDuration,
       incomeBonus: player.incomeBonus
     });
   });
@@ -232,5 +244,6 @@ export function disconnectGame() {
   gameStore.waves = [];
   gameStore.currentWaveIndex = 0;
   gameStore.waveCount = 0;
-  gameStore.countdown = null;
+  gameStore.countdown = 0;
+  gameStore.countdownMax = 0;
 }

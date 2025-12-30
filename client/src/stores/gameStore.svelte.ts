@@ -1,16 +1,12 @@
-import type { UpgradeConfig } from "../../../server/src/rooms/schema/UpgradeConfig"
-import type { WallConfig } from "../../../server/src/rooms/schema/WallConfig"
-
 export type GameStore = {
   players: PlayerStore[],
   me: MyselfStore | null,
   waves: WaveConfigStore[],
   currentWaveIndex: number,
   waveCount: number,
-  countdown: number | null,
-  // towerConfigs: TowerConfigStore[],
-  // wallConfigs: WallConfigStore[],
-  // upgradeConfigs: UpgradeConfigStore[] 
+  wavePhase: "waiting" | "countdown" | "running",
+  countdown: number,
+  countdownMax: number
 }
 export type PlayerStore = {
   sessionId: string,
@@ -19,11 +15,10 @@ export type PlayerStore = {
   isDefeated: boolean,
   isDisconnected: boolean,
   isReady: boolean,
-  // viewers: Record<string, boolean>,
   lives: number,
   kills: number,
   damage: number,
-  mazeTime: number,
+  mazeDuration: number,
   incomeBonus: number
 }
 export type MyselfStore = {
@@ -33,7 +28,6 @@ export type MyselfStore = {
   rank: number | null,
   isDefeated: boolean,
   isReady: boolean,
-  // viewers: Record<string, boolean>,
   viewers: string[],
   lives: number,
   gold: number,
@@ -69,8 +63,7 @@ export type WallConfigStore = {
 }
 export type UpgradeConfigStore = {
   id: string,
-  price: number,
-  // multiplier: number;
+  price: number
 }
 
 export const gameStore: GameStore = $state({
@@ -79,10 +72,9 @@ export const gameStore: GameStore = $state({
   waves: [],
   currentWaveIndex: 0,
   waveCount: 0,
-  countdown: null,
-  // towerConfigs: [],
-  // wallConfigs: [],
-  // upgradeConfigs: [] 
+  wavePhase: 'waiting',
+  countdown: 0,
+  countdownMax: 0
 });
 export const shopStore: ShopStore = $state({
   towers: [],

@@ -9,6 +9,7 @@ export class LobbyRoom extends Room<LobbyState> {
   countdownDefault: number = 4;
   countdownRemaining: number = 4;
   countdownInterval: any;
+  // TODO : inclure les countdown dans le state du lobby plutot que broadcast les décomptes
 
   onCreate(options: any) {
     this.state = new LobbyState();

@@ -7,23 +7,26 @@ import { SetupService } from "../services/SetupService";
 import { PathfindingService } from "../services/PathfindingService";
 import { BuildService } from "../services/BuildService";
 import { Encoder } from "@colyseus/schema";
+import { WaveService } from "../services/WaveService";
 
 export class GameRoom extends Room<GameState> {
   private setupService: SetupService;
   private pathfindingService: PathfindingService;
   private buildService: BuildService;
+  private waveService: WaveService;
 
   onCreate(options: any) {
     Encoder.BUFFER_SIZE = 48 * 1024; // 16 KB
     console.log(`🚀 Creation la game room ${this.roomId} !`);
     this.state = new GameState();
-    this.setPrivate();
-
     this.setupService = new SetupService(); 
-    this.setupService.setupGame(this.state);
-
     this.pathfindingService = new PathfindingService();
     this.buildService = new BuildService();
+    this.waveService = new WaveService(this);
+
+    this.setPrivate();
+    this.setupService.setupGame(this.state);
+
 
     this.onMessage("loaded", (client: Client) => {
       const player = this.state.players.get(client.sessionId);
@@ -32,6 +35,7 @@ export class GameRoom extends Room<GameState> {
       player.hasLoaded = true;
       if (this._allPlayersLoaded()) {
         this.broadcast("begin");
+        this.waveService.startFirstWave();
       }
     });
 
@@ -106,12 +110,10 @@ export class GameRoom extends Room<GameState> {
     });
 
     this.onMessage("grant_vision", (client: Client, data: { targetId: string }) => {
-      console.log("dans le grant view avec l'id", data.targetId)
       const player = this.state.players.get(client.sessionId);
       if (!player || !data.targetId) return;
 
       player.viewers.set(data.targetId, true);
-      console.log("dans le grant view les viewers", player.viewers)
     });
 
     this.onMessage("remove_vision", (client: Client, data: { targetId: string }) => {
@@ -125,14 +127,15 @@ export class GameRoom extends Room<GameState> {
       const player = this.state.players.get(client.sessionId);
       if (!player) return;
 
+      if (this.state.wavePhase === "running") return;
       player.isReady = true;
 
       // Vérifier si tous les joueurs sont prêts
-      const allReady = Array.from(this.state.players.values())
-        .every(p => p.isReady && !p.isDefeated && !p.isDisconnected);
+      const allReady = Array.from(this.state.players.values()).every(p => p.isReady && !p.isDefeated && !p.isDisconnected);
 
-      if (allReady) {
-        this._startNextWave();
+      if (allReady && this.state.wavePhase === "countdown") {
+        // this._startNextWave();
+        this.waveService.startWave();
       }
     });
 
@@ -177,14 +180,14 @@ export class GameRoom extends Room<GameState> {
     return Array.from(this.state.players.values()).every(p => p.hasLoaded === true);
   }
 
-  _startNextWave(): void {
-    this.state.players.forEach(p => {
-      p.isReady = false;
-    });
-    this.state.currentWaveIndex = (this.state.currentWaveIndex + 1) % this.state.waves.length;
-    this.state.waveCount++;
-    this.broadcast("wave_start");
-  }
+  // _startNextWave(): void {
+  //   this.state.players.forEach(p => {
+  //     p.isReady = false;
+  //   });
+  //   this.state.currentWaveIndex = (this.state.currentWaveIndex + 1) % this.state.waves.length;
+  //   this.state.waveCount++;
+  //   this.broadcast("wave_start");
+  // }
 
   // Exemple de logique de simulation dans GameRoom
   private updateEnemies(deltaTime: number) {

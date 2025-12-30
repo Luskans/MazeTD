@@ -28,7 +28,7 @@ export class PlayerState extends Schema {
   @type('number') maxPopulation: number = 10;
   @type('number') kills: number = 0;
   @type('number') damage: number = 0;
-  @type('number') mazeTime: number = 0;
+  @type('number') mazeDuration: number = 0;
 
   @type({ map: UpgradeState }) upgrades = new MapSchema<UpgradeState>();
   @type({ map: TowerState }) towers = new MapSchema<TowerState>();

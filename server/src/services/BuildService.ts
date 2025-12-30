@@ -7,6 +7,7 @@ import { GameState } from "../rooms/schema/GameState";
 import { PlayerState } from "../rooms/schema/PlayerState";
 import { TowerState } from "../rooms/schema/TowerState";
 import { WallState } from "../rooms/schema/WallState";
+import { UpgradeState } from "../rooms/schema/UpgradeState";
 
 export class BuildService {
 
@@ -106,5 +107,17 @@ export class BuildService {
     upgrade.nextValue = upgrade.currentValue + upgradeData.upgradeValue;
     upgrade.nextCost = Math.round(upgrade.currentCost * upgradeConfig.upgradeMultiplier / 100);
     upgrade.nextCost = upgrade.currentCost + Math.round(upgradeData.price * upgradeConfig.upgradeMultiplier / 100);
+
+    this.applyUpgrade(state, player, upgrade);
+  }
+
+  private applyUpgrade(state: GameState, player: PlayerState, upgrade: UpgradeState) {
+    if (upgrade.dataId === "income") {
+      player.income = Math.round(MAP_DATA.baseIncome + ((MAP_DATA.baseIncome + state.waveCount) * upgrade.currentValue) / 100);
+    } else if (upgrade.dataId === "population") {
+      player.maxPopulation = MAP_DATA.baseMaxPopulation + upgrade.currentValue;
+    } else {
+      return;
+    }
   }
 }

@@ -13,6 +13,9 @@ export class GameState extends Schema {
   @type(GridState) grid = new GridState();
   @type(ShopState) shop = new ShopState();
   @type([WaveConfig]) waves = new ArraySchema<WaveConfig>();
-  @type("number") currentWaveIndex: number = 1;
-  @type("number") waveCount: number = 1;
+  @type("number") currentWaveIndex: number = 0;
+  @type("number") waveCount: number = 0;
+  @type("string") wavePhase: "waiting" | "countdown" | "running" = "waiting";
+  @type("number") countdown: number = 0;
+  @type("number") countdownMax: number = 0;
 }

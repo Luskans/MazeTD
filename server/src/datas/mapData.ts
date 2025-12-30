@@ -14,6 +14,7 @@ export const MAP_DATA = {
   baseMaxPopulation:20,
   upgradePopulation: 5,
   waveCount: 6,
+  waveTimer: 30,
   minRocks: 10,
   maxRocks: 33,
   minAreaRadius: 64,
