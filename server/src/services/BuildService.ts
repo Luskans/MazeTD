@@ -12,11 +12,11 @@ export class BuildService {
 
   public validatePayment(state: GameState, player: PlayerState, buildingId: string, buildingType: string): number | null {
     let config: "towersConfig" | "upgradesConfig" | "wallsConfig";
-    if (buildingType == "tower") {
+    if (buildingType === "tower") {
       config = "towersConfig";
-    } else if (buildingType == "wall") {
+    } else if (buildingType === "wall") {
       config = "wallsConfig";
-    } else if (buildingType == "upgrade") {
+    } else if (buildingType === "upgrade") {
       config = "upgradesConfig";
     } else {
       return null;
@@ -28,7 +28,14 @@ export class BuildService {
       return null;
     }
 
-    const buildingPrice = shopConfig.price;
+    // const buildingPrice = shopConfig.price;
+    let buildingPrice;
+    if (buildingType === "upgrade") {
+      const upgrade = player.upgrades.get(buildingId);
+      buildingPrice = upgrade.currentCost;
+    } else {
+      buildingPrice = shopConfig.price;
+    }
 
     if (player.gold < buildingPrice) return null;
 
@@ -82,5 +89,22 @@ export class BuildService {
 
     player.walls.set(newWall.id, newWall);
     player.population++;
+  }
+
+  public buyUpgrade(state: GameState, player: PlayerState, buildingId: string): void {
+    const upgrade = player.upgrades.get(buildingId);
+    const upgradeConfig = state.shop.upgradesConfig.get(buildingId);
+    const upgradeData = UPGRADES_DATA[buildingId];
+    if (!upgrade || !upgradeConfig || !upgradeData) {
+      console.error(`Upgrade all introuvable pour ${buildingId}.`);
+      return
+    }
+
+    upgrade.level++;
+    upgrade.currentValue += upgradeData.upgradeValue;
+    upgrade.currentCost = upgrade.nextCost;
+    upgrade.nextValue = upgrade.currentValue + upgradeData.upgradeValue;
+    upgrade.nextCost = Math.round(upgrade.currentCost * upgradeConfig.upgradeMultiplier / 100);
+    upgrade.nextCost = upgrade.currentCost + Math.round(upgradeData.price * upgradeConfig.upgradeMultiplier / 100);
   }
 }

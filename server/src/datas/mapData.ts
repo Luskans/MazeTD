@@ -34,6 +34,6 @@ export const MAP_DATA = {
 
   minPriceMultiplier: 100,
   maxPriceMultiplier: 1000,
-  minUpgradeMultiplier: 100,
+  minUpgradeMultiplier: 110,
   maxUpgradeMultiplier: 200,
 };

@@ -268,16 +268,18 @@ export class SetupService {
     for (let upgradeData of Object.values(UPGRADES_DATA)) {
       const upgradeConfig = state.shop.upgradesConfig.get(upgradeData.id);
       const upgrade = new UpgradeState();
-      upgrade.id = generateId();
+      // upgrade.id = generateId();
+      // upgrade.dataId = upgradeData.id
       upgrade.dataId = upgradeData.id
       upgrade.level = 1;
       upgrade.currentCost = upgradeConfig.price;
       upgrade.currentValue = upgradeData.baseValue;
       // upgrade.nextCost = Math.round(upgrade.currentCost * upgradeConfig.upgradeMultiplier);
       // upgrade.nextValue = Math.round(upgrade.currentValue + upgradeData.upgradeValue);
-      upgrade.nextCost = Math.round(upgrade.currentCost * upgradeConfig.upgradeMultiplier / 100);
+      upgrade.nextCost = upgrade.currentCost + Math.round(upgradeData.price * upgradeConfig.upgradeMultiplier / 100);
+      // upgrade.nextCost = Math.round(upgrade.currentCost * upgradeConfig.upgradeMultiplier / 100);
       upgrade.nextValue = upgrade.currentValue + upgradeData.upgradeValue;
-      player.upgrades.set(upgrade.id, upgrade);
+      player.upgrades.set(upgrade.dataId, upgrade);
     }
   }
 

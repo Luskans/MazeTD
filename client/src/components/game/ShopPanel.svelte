@@ -24,10 +24,10 @@
   }
 
   function handleUpgradeClick(upgrade: any) {
-    (window as any).phaserGame.events.emit('choose_upgrade', { 
+    (window as any).phaserGame.events.emit('choose_upgrade', {
       buildingId: upgrade.id, 
       buildingType: upgrade.type, 
-      buildingSize: upgrade.size 
+      // buildingSize: upgrade.size 
     });
   }
 
@@ -98,11 +98,9 @@
         nextCost: upgrade.nextCost,
         data: UPGRADES_DATA[upgrade.id]
       }))
-      // .filter(u => u.data)
-      .filter((u): u is NonNullable<typeof u> => u !== null);
+      .filter(u => u.data)
+      // .filter((u): u is NonNullable<typeof u> => u !== null);
   });
-  console.log("les upgrades dans gamestore me", gameStore.me?.upgrades)
-  console.log("upgrades config changé", upgradesWithConfig)
 </script>
 
 <div class="shop-panel">
@@ -127,7 +125,7 @@
           type="walls"
           data={wall.data}
           price={wall.price}
-          onclick={() => handleWallClick(wall)} 
+          onclick={() => handleWallClick(wall.data)} 
         />
       {/each}
     </div>
@@ -145,7 +143,7 @@
           value={upgrade.value}
           nextCost={upgrade.nextCost}
           nextValue={upgrade.nextValue}
-          onclick={() => handleUpgradeClick(upgrade)} 
+          onclick={() => handleUpgradeClick(upgrade.data)} 
         />
       {/each}
     </div>

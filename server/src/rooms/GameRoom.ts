@@ -95,16 +95,31 @@ export class GameRoom extends Room<GameState> {
 
       // 3. Placement et mise à jour du chemin
       if (data.buildingType == "tower") {
-        this.buildService.createTower(player, data.x, data.y, data.buildingId, paymentCost)
+        this.buildService.createTower(player, data.x, data.y, data.buildingId, paymentCost);
 
       } else if (data.buildingType == "wall") {
-        this.buildService.createWall(player, data.x, data.y, data.buildingId)
+        this.buildService.createWall(player, data.x, data.y, data.buildingId);
       }
       
       // 4. Recalculer et STOCKER le nouveau chemin dans l'état Colyseus
       this.pathfindingService.calculateAndSetPath(this.state, player); 
       
       console.log(`Building placé par ${client.sessionId} nommé ${player.username} en ${data.x},${data.y}`);
+    });
+
+    this.onMessage("buy_upgrade", (client: Client, data: { buildingId: string, buildingType: string }) => {
+      console.log("buy upgrade, datas recu :", data)
+      const player = this.state.players.get(client.sessionId);
+      if (!player) return;
+
+      const paymentCost = this.buildService.validatePayment(this.state, player, data.buildingId, data.buildingType);
+      if (paymentCost === null) {
+        client.send("not_enough_gold", "You don't have enough gold.");
+        return;
+      }
+
+      this.buildService.buyUpgrade(this.state, player, data.buildingId);
+      console.log(`Upgrade achetée par ${client.sessionId} nommé ${player.username}.`);
     });
 
     this.onMessage("destroy_rock", (client: Client, data: { rockId: string }) => {

@@ -8,6 +8,7 @@ import { BuildService } from "../services/BuildService";
 import { WaveService } from "../services/WaveService";
 import { PathfindingService } from "../../../server/src/services/PathfindingService";
 import { getGameRoom } from "../colyseus/gameRoomService";
+import { UpgradeService } from "../services/UpgradeService";
 
 export class GameScene extends Phaser.Scene {
   private room!: Room<GameState>;
@@ -15,6 +16,7 @@ export class GameScene extends Phaser.Scene {
   private cameraService!: CameraService;
   private pathRenderer!: PathRenderer;
   private buildService!: BuildService;
+  private upgradeService!: UpgradeService;
   private waveService!: WaveService;
   private pathfindingService!: PathfindingService;
 
@@ -37,6 +39,7 @@ export class GameScene extends Phaser.Scene {
     this.pathRenderer = new PathRenderer(this);
     this.pathfindingService = new PathfindingService();
     this.buildService = new BuildService(this, this.room, this.setupService, this.pathfindingService);
+    this.upgradeService = new UpgradeService(this, this.room);
     this.waveService = new WaveService(this);
     
     // VARIABLES THAT BE SOMEWHERE ELSE
@@ -70,9 +73,6 @@ export class GameScene extends Phaser.Scene {
       );
       //@ts-ignore
       console.log("Chemin changé, nouvelle state de la game : ", this.room.state.toJSON())
-    });
-    $(player).listen("gold", () => {
-      console.log("les golds dans la scene", player.gold)
     });
     $(player).towers.onAdd((towerState: any, key: string) => {
       this.buildService.addBuildingSprite(towerState, "tower");
