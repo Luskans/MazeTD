@@ -25,39 +25,6 @@ export class GameRoom extends Room<GameState> {
     this.pathfindingService = new PathfindingService();
     this.buildService = new BuildService();
 
-
-
-    // // ✅ IMPORTANT : Créer les players à partir des customers du lobby
-    // if (options.customers && Array.isArray(options.customers)) {
-    //   console.log(`📋 Initializing ${options.customers.length} players from lobby`);
-      
-    //   for (const customer of options.customers) {
-    //     const player = new PlayerState();
-    //     // player.sessionId = customer.sessionId;
-    //     player.uid = customer.uid;
-    //     player.username = customer.username;
-    //     player.elo = customer.elo;
-    //     player.hasLoaded = false;
-    //     player.isDefeated = false;
-    //     player.isDisconnected = false;
-        
-    //     // Ajouter le player au state
-    //     this.state.players.set(customer.sessionId, player);
-        
-    //     // Setup du player
-    //     this.setupService.setupPlayer(this.state, player);
-    //     this.pathfindingService.calculateAndSetPath(this.state, player);
-        
-    //     console.log(`✅ Player ${player.username} (${customer.sessionId}) initialized`);
-    //   }
-    // }
-
-    console.log(" les players créées après on create", this.state.players)
-
-
-
-
-
     this.onMessage("loaded", (client: Client) => {
       const player = this.state.players.get(client.sessionId);
       if (!player) return;
@@ -108,7 +75,6 @@ export class GameRoom extends Room<GameState> {
     });
 
     this.onMessage("buy_upgrade", (client: Client, data: { buildingId: string, buildingType: string }) => {
-      console.log("buy upgrade, datas recu :", data)
       const player = this.state.players.get(client.sessionId);
       if (!player) return;
 
@@ -122,14 +88,21 @@ export class GameRoom extends Room<GameState> {
       console.log(`Upgrade achetée par ${client.sessionId} nommé ${player.username}.`);
     });
 
-    this.onMessage("destroy_rock", (client: Client, data: { rockId: string }) => {
+    this.onMessage("destroy_rock", (client: Client, data: { buildingId: string, buildingType: string, rockId: string }) => {
       const player = this.state.players.get(client.sessionId);
       if (!player) return;
+
+      const paymentCost = this.buildService.validatePayment(this.state, player, data.buildingId, data.buildingType);
+      if (paymentCost === null) {
+        client.send("not_enough_gold", "You don't have enough gold.");
+        return;
+      }
 
       if (player.rocks.has(data.rockId)) {
         player.rocks.delete(data.rockId); 
         this.pathfindingService.calculateAndSetPath(this.state, player); 
       }
+      this.buildService.buyUpgrade(this.state, player, data.buildingId);
     });
 
     this.onMessage("grant_vision", (client: Client, data: { targetId: string }) => {

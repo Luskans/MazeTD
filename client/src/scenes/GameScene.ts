@@ -39,7 +39,7 @@ export class GameScene extends Phaser.Scene {
     this.pathRenderer = new PathRenderer(this);
     this.pathfindingService = new PathfindingService();
     this.buildService = new BuildService(this, this.room, this.setupService, this.pathfindingService);
-    this.upgradeService = new UpgradeService(this, this.room);
+    this.upgradeService = new UpgradeService(this, this.room, this.setupService);
     this.waveService = new WaveService(this);
     
     // VARIABLES THAT BE SOMEWHERE ELSE

@@ -11,10 +11,10 @@ export class BuildService {
   private pathfindingService: PathfindingService;
   private setupService: SetupService;
 
+  private isPreparing = false;
   private previewContainer: Phaser.GameObjects.Container;
   private ghostSprite: Phaser.GameObjects.Sprite;
   private gridRect: Phaser.GameObjects.Rectangle;
-  private isPreparing = false;
   private currentBuildingId: string | null = null;
   private currentBuildingType: string | null = null;
   private currentBuildingSize: number | null = null;

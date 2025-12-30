@@ -60,7 +60,7 @@ export class SetupService {
 
         if (!overlap) {
           rocks.push({ x, y });
-          let rock = new RockState();
+          const rock = new RockState();
           rock.id = crypto.randomUUID();
           rock.gridX = x;
           rock.gridY = y;
@@ -286,6 +286,7 @@ export class SetupService {
   private setupPlayerGrid(state: GameState, player: PlayerState) {
     for (const rock of state.grid.rocks) {
       player.rocks.set(rock.id, new RockState({
+        id: rock.id,
         gridX: rock.gridX,
         gridY: rock.gridY
       }));
