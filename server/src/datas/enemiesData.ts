@@ -1,29 +1,169 @@
-export const ENEMIES_DATA = [
-  {
-    name: "slime",
+export const ENEMIES_DATA: Record<string, any> = {
+  slime: {
+    id: "slime",
+    name: "Slime",
     type: "normal",
-    hp: 50,
-    speed: 20,
-    armor: 5,
-    count: 20,
-    distance: 5
+    description: "Une simple gelée, facile à tuer.",
+    environment: "ground",
+    count: 15,
+    lives: 1,
+    stats: {
+      hp: 50,
+      hpInfo: 1,
+      speed: 15,
+      speedInfo: 2,
+      proximity: 20,
+      proximityInfo: 4
+    },
+    tough: {
+      enabled: false,
+      flat: 1,
+      percentage: 10,
+      info: 1
+    },
+    regenerative: {
+      enabled: false,
+      regeneration: 10,
+      info: 1
+    },
+    armored: {
+      enabled: false,
+      armor: 10,
+      info: 1
+    },
+    agile: {
+      enabled: false,
+      percentage: 10,
+      info: 1
+    },
+    saboteur: {
+      enabled: false,
+      radius: 10,
+      info: 1
+    },
+    invisible: {
+      enabled: false,
+      radius: 10,
+      info: 1
+    },
+    thief: {
+      enabled: false
+    },
+    duplicative: {
+      enabled: false,
+      count: 1,
+      info: 1
+    }
   },
-  {
-    name: "orc",
+  orc: {
+    id: "orc",
+    name: "Orc",
     type: "elite",
-    hp: 100,
-    speed: 30,
-    armor: 15,
+    description: "Un orc en armure qui réduit les dégats subit de 20%.",
+    environment: "ground",
     count: 8,
-    distance: 10
+    lives: 2,
+    stats: {
+      hp: 200,
+      hpInfo: 1,
+      speed: 15,
+      speedInfo: 2,
+      proximity: 20,
+      proximityInfo: 4
+    },
+    tough: {
+      enabled: false,
+      flat: 1,
+      percentage: 10,
+      info: 1
+    },
+    regenerative: {
+      enabled: false,
+      regeneration: 10,
+      info: 1
+    },
+    armored: {
+      enabled: true,
+      armor: 20,
+      info: 3
+    },
+    agile: {
+      enabled: false,
+      percentage: 10,
+      info: 1
+    },
+    saboteur: {
+      enabled: false,
+      radius: 10,
+      info: 1
+    },
+    invisible: {
+      enabled: false,
+      radius: 10,
+      info: 1
+    },
+    thief: {
+      enabled: false
+    },
+    duplicative: {
+      enabled: false,
+      count: 1,
+      info: 1
+    }
   },
-  {
-    name: "golem",
+  lime: {
+    id: "golem",
+    name: "Golem",
     type: "boss",
-    hp: 200,
-    speed: 15,
-    armor: 50,
+    description: "Un énorme golem très résistant. Il ignore 10 dégats brut.",
+    environment: "ground",
     count: 2,
-    distance: 20
-  },
-];
+    lives: 5,
+    stats: {
+      hp: 200,
+      hpInfo: 1,
+      speed: 15,
+      speedInfo: 2,
+      proximity: 20,
+      proximityInfo: 4
+    },
+    tough: {
+      enabled: true,
+      flat: 10,
+      info: 5
+    },
+    regenerative: {
+      enabled: false,
+      regeneration: 10,
+      info: 1
+    },
+    armored: {
+      enabled: false,
+      armor: 10,
+      info: 1
+    },
+    agile: {
+      enabled: false,
+      percentage: 10,
+      info: 1
+    },
+    saboteur: {
+      enabled: false,
+      radius: 10,
+      info: 1
+    },
+    invisible: {
+      enabled: false,
+      radius: 10,
+      info: 1
+    },
+    thief: {
+      enabled: false
+    },
+    duplicative: {
+      enabled: false,
+      count: 1,
+      info: 1
+    }
+  }
+};

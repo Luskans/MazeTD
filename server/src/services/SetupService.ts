@@ -209,15 +209,20 @@ export class SetupService {
 
       const wave = new WaveConfig();
       wave.index = i;
-      wave.enemyId = randomEnemy.name;
+      wave.enemyId = randomEnemy.id;
 
       state.waves.push(wave);
     }
   }
 
-  private getRandomEnemy(enemies: Array<any>) {
-    const randomIndex = Math.floor(Math.random() * enemies.length);
-    return enemies[randomIndex];
+  private getRandomEnemy(enemies: Record<string, any>) {
+    const keys = Object.keys(ENEMIES_DATA);
+    const randomKey = keys[Math.floor(Math.random() * keys.length)];
+    return enemies[randomKey];
+
+    // const randomEnemy = ENEMIES_DATA[randomKey];
+    // const randomIndex = Math.floor(Math.random() * enemies.length);
+    // return enemies[randomIndex];
   }
 
   private generateShop(state: GameState) {

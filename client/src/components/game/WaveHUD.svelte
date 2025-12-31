@@ -60,6 +60,7 @@
     border-radius: 0 16px 16px 0;
     border-left: none;
     margin-left: -20px;
+    padding-left: 18px;
     overflow: hidden;
   }
   .wave-progress {

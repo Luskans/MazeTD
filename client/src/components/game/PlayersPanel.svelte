@@ -54,7 +54,7 @@
     </div>
     <div class="hud-item">
       <img src="/icons/settings.png" alt="Time made by enemies during the wave" class="hud-icon" />
-      <p class="hud-text">{player.mazeTime}</p>
+      <p class="hud-text">{player.mazeDuration}</p>
     </div>
     <div class="hud-item">
       <img src="/icons/settings.png" alt="Gold bonus for this wave" class="hud-icon" />

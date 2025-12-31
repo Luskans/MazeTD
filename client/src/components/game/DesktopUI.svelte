@@ -50,11 +50,11 @@
   </Panel>
 {/if}
 
-<!-- {#if activePanel === "waves" && $gameRoom}
-  <Panel title={activePanel} onClose={closePanel}>
-    <WavesPanel game={$gameRoom.state} />
+{#if activePanel === "waves"}
+  <Panel title={activePanel} onClose={() => activePanel = null}>
+    <WavesPanel />
   </Panel>
-{/if} -->
+{/if}
 
 {#if activePanel === "settings"}
   <Panel title={activePanel} onClose={() => activePanel = null}>
