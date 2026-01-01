@@ -12,7 +12,7 @@
 
   function handleMouseMove(e: MouseEvent) {
     // mousePos = { x: e.clientX + 15, y: e.clientY + 15 };
-    mousePos = { x: e.clientX - 85, y: e.clientY };
+    mousePos = { x: e.clientX - 85, y: e.clientY - 100 };
   }
 
   // const colorMap: Record<string, string> = {
@@ -39,7 +39,7 @@
 
 <svelte:window onmousemove={handleMouseMove} />
 
-{#snippet statBar(label: string, info: number)}
+{#snippet statBar(label: string, info: number, value?: number)}
   <!-- {@const score = indiceToScore(info)} -->
   <div class="stat-row">
     <span class="stat-label">{label} :</span>
@@ -48,6 +48,7 @@
         <span class="segment" class:active={i < info}></span>
       {/each}
     </div>
+    <span class="stat-value">{value}</span>
   </div>
 {/snippet}
 
@@ -55,13 +56,13 @@
   <h4>{data.name}</h4>
   <div class="tags">
     {#if level}<p class="level">Level: <span class="value">{level}</span></p>{/if}
-    {#if data.targeting?.mode}<span class="tag grey">{data.targeting.mode}</span>{/if}
-    {#if data.targeting?.canTargetGround}<span class="tag grey">ground</span>{/if}
-    {#if data.targeting?.canTargetAir}<span class="tag grey">air</span>{/if}
+    {#if data.targeting?.mode}<span class="tag">{data.targeting.mode}</span>{/if}
+    {#if data.targeting?.canTargetGround}<span class="tag">ground</span>{/if}
+    {#if data.targeting?.canTargetAir}<span class="tag">air</span>{/if}
   </div>
   <hr />
   <div class="descriptions">
-    <p class="description">{data.description || 'A building.'}</p>
+    {#if data.type === 'tower'}<p class="description">{data.description}</p>{/if}
     {#if data.description2}<p class="description">{data.description2}</p>{/if}
   </div>
   <div class="stats">
@@ -78,8 +79,20 @@
     {#if data.splash?.enabled}{@render statBar("Splash", data.splash.info)}{/if}
     {#if data.chain?.enabled}{@render statBar("Chain", data.chain.info)}{/if}
     {#if data.pierce?.enabled}{@render statBar("Pierce", data.pierce.info)}{/if}
+
+    {#if data.stats?.hpInfo}{@render statBar("Health", data.stats.hpInfo, data.stats.hp)}{/if}
+    {#if data.stats?.speedInfo}{@render statBar("Speed", data.stats.speedInfo, data.stats.speed)}{/if}
+    {#if data.stats?.proximityInfo}{@render statBar("Proximity", data.stats.proximityInfo, data.stats.proximity)}{/if}
+    {#if data.tough?.enabled}<p class="stat">Tough : Reduces damage taken by <span class="value">{data.tough.flat}</span> flat</p>{/if}
+    {#if data.regenerative?.enabled}<p class="stat">Regenerative : Regenerate <span class="value">{data.regenerative.flat}</span> health per second</p>{/if}
+    {#if data.armored?.enabled}<p class="stat">Regenerative : Reduces damage taken by <span class="value">{data.armored.percentage}</span>%</p>{/if}
+    {#if data.agile?.enabled}<p class="stat">Agile : <span class="value">{data.agile.percentage}</span>% chance to dodge attacks</p>{/if}
+    {#if data.saboteur?.enabled}<p class="stat">Saboteur : Cannot be attacked by totems within a <span class="value">{data.saboteur.radius}</span> cells radius</p>{/if}
+    {#if data.invisible?.enabled}<p class="stat">Invisible : Cannot be attacked by totems outside a <span class="value">{data.invisible.radius}</span> cells radius</p>{/if}
+    {#if data.thief?.enabled}<p class="stat">Thief : Steals your gold when it passes through a gold cell</p>{/if}
+    {#if data.duplicative?.enabled}<p class="stat">Duplicative : Duplicate itself when killed up to <span class="value">{data.duplicative.count}</span> times</p>{/if}
   </div>
-  {#if value || value === 0}<p class="stat">Current value : <span class="value">+{value}</span></p>{/if}
+  {#if value || value === 0}<p class="upgrade">Current value : <span class="value">+{value}</span></p>{/if}
   <!-- {#if cost}<p class="stat">Current price: <span class="value">{cost}</span></p>{/if}
   {#if nextValue}<p class="stat">Next value: <span class="value">{nextValue}</span></p>{/if}
   {#if nextCost}<p class="stat">Next cost: <span class="value">{nextCost}</span></p>{/if} -->
@@ -132,6 +145,10 @@
   }
   .stat {
     color: var(--white);
+    font-size: 10px;
+  }
+  .upgrade {
+    color: var(--white);
     font-size: 12px;
   }
   .tags {
@@ -144,22 +161,20 @@
     color: var(--text);
     padding: 0 4px 1px 4px;
     border-radius: 7px;
+    background: var(--grey);
   }
   .value {
     font-weight: bold;
   }
-  .grey {
-    background: var(--grey);
-  }
   .stat-row {
     display: grid;
-    grid-template-columns: 70px 156px;
+    grid-template-columns: 70px 80px 30px;
     align-items: center;
     gap: 8px;
     margin-bottom: 4px;
     font-size: 10px;
   }
-  .stat-label {
+  .stat-label, .stat-value {
     color: var(--white);
   }
   .bar-container {

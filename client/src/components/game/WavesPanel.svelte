@@ -28,6 +28,6 @@
   .waves-panel {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 8px;
   }
 </style>

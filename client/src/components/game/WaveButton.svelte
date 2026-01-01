@@ -20,7 +20,38 @@
   onblur={() => isHovered = false}
 >
   <button class:active={isActive} >
-    <div class="header">
+    <div class="left">
+      <p class="name">{data.name}</p>
+      <div class="count-image">
+        <span class="count">{data.count}</span>
+        <div class="image-card">
+          <img src="/assets/enemies/{data.id}.png" alt={data.name} class="image" />
+        </div>
+      </div>
+    </div>
+    <div class="right">
+      <div class="tags">
+        <span class="tag">{data.environment}</span>
+        {#if data.tough.enabled}<span class="tag">{data.tough.name}</span>{/if}
+        {#if data.regenerative.enabled}<span class="tag">{data.regenerative.name}</span>{/if}
+        {#if data.armored.enabled}<span class="tag">{data.armored.name}</span>{/if}
+        {#if data.agile.enabled}<span class="tag">{data.agile.name}</span>{/if}
+        {#if data.saboteur.enabled}<span class="tag">{data.saboteur.name}</span>{/if}
+        {#if data.invisible.enabled}<span class="tag">{data.invisible.name}</span>{/if}
+        {#if data.thief.enabled}<span class="tag">{data.thief.name}</span>{/if}
+        {#if data.duplicative.enabled}<span class="tag">{data.duplicative.name}</span>{/if}
+      </div>
+      <p class="description">{data.description}</p>
+    </div>
+  </button>
+</div>
+
+
+
+
+
+
+    <!-- <div class="header">
       <p class="header-text">{data.name}</p>
     </div>
     <div class="body">
@@ -34,7 +65,7 @@
       </div>
     </div>
   </button>
-</div>
+</div> -->
 
 {#if isHovered}
   <Tooltip data={data} />
@@ -42,19 +73,45 @@
 
 <style>
   button {
-    position: relative;
     display: flex;
-    flex-direction: column;
     border: 2px solid var(--primary);
     border-radius: 0 8px 8px 8px;
     overflow: hidden;
     cursor: pointer;
     background: var(--primary);
     transition: transform 0.2s, box-shadow 0.2s;
-    width: 100%;
+    width: 280px;
+    height: 100%;
   }
   button:hover {
     box-shadow: 0 0 6px 2px var(--secondary-light);
+  }
+  .left {
+    display: flex;
+    flex-direction: column;
+  }
+  .name {
+    background: var(--primary-dark);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 6px 0;
+    border-radius: 0 0 8px 0;
+    font-size: 12px;
+    font-weight: bold;
+    color: var(--white);
+  }
+  .count-image {
+    display: flex;
+    align-items: center;
+  }
+  .count {
+    font-size: 14px;
+    font-weight: bold;
+    color: var(--white);
+    width: 36px;
+    padding-left: 12px;
+    justify-self: right;
   }
   .image-card {
     display: flex;
@@ -67,19 +124,37 @@
     max-width: 48px;
     max-height: 48px;
   }
-  .header {
-    background: var(--primary-dark);
+  .right {
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    gap: 8px;
+    padding: 6px 12px;
+  }
+  .tags {
+    display: flex;
     align-items: center;
-    padding: 6px 0;
+    gap: 4px;
   }
-  .header-text {
+  .tag {
     font-size: 10px;
-    color: var(--white);
+    color: var(--text);
+    padding: 0 4px 1px 4px;
+    border-radius: 7px;
+    background: var(--grey);
   }
-  button.active:hover {
+  .description {
+    color: var(--grey);
+    font-size: 12px;
+    font-style: italic;
+    text-align: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  button.active {
+    border: 3px solid var(--secondary-light);
+  }
+  /* button.active:hover {
     box-shadow: 0 0 6px 2px var(--danger);
     cursor: default;
-  }
+  } */
 </style>

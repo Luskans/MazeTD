@@ -41,10 +41,14 @@ export class LoadingScene extends Phaser.Scene {
     });
 
     // Assets
-    this.load.image("enemy", "assets/enemy.png");
-    this.load.image("basic", "assets/basic.png");
+    this.load.image("slime", "assets/enemies/slime.png");
+    this.load.image("orc", "assets/enemies/orc.png");
+    this.load.image("golem", "assets/enemies/golem.png");
+    this.load.image("basic", "assets/buildings/basic.png");
+    this.load.image("earth_shock", "assets/buildings/earth_shock.png");
+    this.load.image('small_wall', 'assets/buildings/small_wall.png');
+    this.load.image('big_wall', 'assets/buildings/big_wall.png');
     this.load.image("towerBroken", "assets/towerBroken.png");
-    this.load.image('small_wall', 'assets/small_wall.png');
     this.load.image('grass', 'assets/grass.png');
   }
 

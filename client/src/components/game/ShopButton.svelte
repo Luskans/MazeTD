@@ -58,6 +58,7 @@
     background: var(--primary);
     transition: transform 0.2s, box-shadow 0.2s;
     width: 100%;
+    height: 100%;
   }
   button:hover {
     box-shadow: 0 0 6px 2px var(--secondary-light);

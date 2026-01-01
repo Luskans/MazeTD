@@ -17,40 +17,48 @@ export const ENEMIES_DATA: Record<string, any> = {
     },
     tough: {
       enabled: false,
+      name: 'tough',
       flat: 1,
       percentage: 10,
       info: 1
     },
     regenerative: {
       enabled: false,
+      name: 'regenerative',
       regeneration: 10,
       info: 1
     },
     armored: {
       enabled: false,
+      name: 'armored',
       armor: 10,
       info: 1
     },
     agile: {
       enabled: false,
+      name: 'agile',
       percentage: 10,
       info: 1
     },
     saboteur: {
       enabled: false,
+      name: 'saboteur',
       radius: 10,
       info: 1
     },
     invisible: {
       enabled: false,
+      name: 'invisible',
       radius: 10,
       info: 1
     },
     thief: {
-      enabled: false
+      enabled: true,
+      name: 'thief'
     },
     duplicative: {
       enabled: false,
+      name: 'duplicative',
       count: 1,
       info: 1
     }
@@ -73,45 +81,53 @@ export const ENEMIES_DATA: Record<string, any> = {
     },
     tough: {
       enabled: false,
+      name: 'tough',
       flat: 1,
       percentage: 10,
       info: 1
     },
     regenerative: {
       enabled: false,
+      name: 'regenerative',
       regeneration: 10,
       info: 1
     },
     armored: {
       enabled: true,
+      name: 'armored',
       armor: 20,
       info: 3
     },
     agile: {
       enabled: false,
+      name: 'agile',
       percentage: 10,
       info: 1
     },
     saboteur: {
       enabled: false,
+      name: 'saboteur',
       radius: 10,
       info: 1
     },
     invisible: {
       enabled: false,
+      name: 'invisible',
       radius: 10,
       info: 1
     },
     thief: {
-      enabled: false
+      enabled: false,
+      name: 'thief'
     },
     duplicative: {
       enabled: false,
+      name: 'duplicative',
       count: 1,
       info: 1
     }
   },
-  lime: {
+  golem: {
     id: "golem",
     name: "Golem",
     type: "boss",
@@ -129,39 +145,47 @@ export const ENEMIES_DATA: Record<string, any> = {
     },
     tough: {
       enabled: true,
+      name: 'tough',
       flat: 10,
       info: 5
     },
     regenerative: {
       enabled: false,
+      name: 'regenerative',
       regeneration: 10,
       info: 1
     },
     armored: {
       enabled: false,
+      name: 'armored',
       armor: 10,
       info: 1
     },
     agile: {
       enabled: false,
+      name: 'agile',
       percentage: 10,
       info: 1
     },
     saboteur: {
       enabled: false,
+      name: 'saboteur',
       radius: 10,
       info: 1
     },
     invisible: {
       enabled: false,
+      name: 'invisible',
       radius: 10,
       info: 1
     },
     thief: {
-      enabled: false
+      enabled: false,
+      name: 'thief'
     },
     duplicative: {
       enabled: false,
+      name: 'duplicative',
       count: 1,
       info: 1
     }
