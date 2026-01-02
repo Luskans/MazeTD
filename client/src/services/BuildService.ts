@@ -9,7 +9,7 @@ export class BuildService {
   private scene: Phaser.Scene;
   private room: Room<GameState>;
   private pathfindingService: PathfindingService;
-  private setupService: SetupService;
+  private playerOffset: {x: number, y: number};
 
   private isPreparing = false;
   private previewContainer: Phaser.GameObjects.Container;
@@ -18,22 +18,13 @@ export class BuildService {
   private currentBuildingId: string | null = null;
   private currentBuildingType: string | null = null;
   private currentBuildingSize: number | null = null;
-  private offsetX: number;
-  private offsetY: number;
   private buildingsSprites: Map<string, Phaser.GameObjects.Sprite> = new Map();
 
-  constructor(scene: Phaser.Scene, room: Room<GameState>, setupService: SetupService, pathfindingService: PathfindingService) {
+  constructor(scene: Phaser.Scene, room: Room<GameState>, playerOffset: {x: number, y: number}, pathfindingService: PathfindingService) {
     this.scene = scene;
     this.room = room;
-    // this.offsetX = offsetX;
-    // this.offsetY = offsetY;
-    this.setupService = setupService;
+    this.playerOffset = playerOffset;
     this.pathfindingService = pathfindingService;
-
-    const playerIndex = Array.from(this.room.state.players.keys()).indexOf(this.room.sessionId);
-    const playerOffset = this.setupService.getPlayerOffsets(playerIndex);
-    this.offsetX = playerOffset.x;
-    this.offsetY = playerOffset.y;
 
     this.previewContainer = scene.add.container(0, 0).setVisible(false).setDepth(100);
     this.gridRect = scene.add.rectangle(0, 0, 64, 64, 0x00ff00, 0.4);
@@ -68,15 +59,15 @@ export class BuildService {
     if (!this.isPreparing) return;
 
     // 1. Aligner sur la grille (Snap to grid 32px)
-    const relativeX = pointer.worldX - this.offsetX;
-    const relativeY = pointer.worldY - this.offsetY;
+    const relativeX = pointer.worldX - this.playerOffset.x;
+    const relativeY = pointer.worldY - this.playerOffset.y;
 
     const gridX = Math.floor(relativeX / 32);
     const gridY = Math.floor(relativeY / 32);
 
     // 2. Repositionner le container (en pixels absolus)
-    this.previewContainer.x = (gridX * 32) + this.offsetX;
-    this.previewContainer.y = (gridY * 32) + this.offsetY;
+    this.previewContainer.x = (gridX * 32) + this.playerOffset.x;
+    this.previewContainer.y = (gridY * 32) + this.playerOffset.y;
 
     // 3. Vérifier la validité (Côté client pour le feedback visuel immédiat)
     const isValid = this.checkLocalValidity(gridX, gridY);
@@ -143,8 +134,9 @@ export class BuildService {
 
     // N'oubliez pas de vérifier les murs déjà posés !
     for (const wall of player.walls.values()) {
-      const wallSize = wall.typeId === 'small_wall' ? 1 : 2;
-      if (hasCollision(wall.gridX, wall.gridY, wallSize)) return false;
+      // const wallSize = wall.typeId === 'small_wall' ? 1 : 2;
+      // if (hasCollision(wall.gridX, wall.gridY, wallSize)) return false;
+      if (hasCollision(wall.gridX, wall.gridY, wall.size)) return false;
     }
 
     return true;
@@ -155,8 +147,8 @@ export class BuildService {
 
     const player = this.room.state.players.get(this.room.sessionId);
     // const gridSize = this.getGridSize(this.currentBuildingId);
-    const gridX = Math.floor((pointer.worldX - this.offsetX) / 32);
-    const gridY = Math.floor((pointer.worldY - this.offsetY) / 32);
+    const gridX = Math.floor((pointer.worldX - this.playerOffset.x) / 32);
+    const gridY = Math.floor((pointer.worldY - this.playerOffset.y) / 32);
 
     if (!this.checkLocalValidity(gridX, gridY)) return;
 
@@ -188,8 +180,8 @@ export class BuildService {
 
   public addBuildingSprite(buildingState: TowerState | WallState, type: "tower" | "wall") {
     // 1. Calculer la position en pixels
-    const x = (buildingState.gridX * 32) + this.offsetX;
-    const y = (buildingState.gridY * 32) + this.offsetY;
+    const x = (buildingState.gridX * 32) + this.playerOffset.x;
+    const y = (buildingState.gridY * 32) + this.playerOffset.y;
 
     // 2. Déterminer la texture
     // const texture = type === "tower" ? buildingState.typeId : buildingState.id;

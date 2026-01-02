@@ -70,7 +70,8 @@ export class PathfindingService {
     }
 
     for (const wall of player.walls.values()) {
-      let size = wall.size === 32 ? 1 : 2;
+      // let size = wall.size === 32 ? 1 : 2;
+      let size = wall.size === 1 ? 1 : 2;
       for (let x = 0; x < size; x++) {
         for (let y = 0; y < size; y++) {
           if (wall.gridY + y < rows && wall.gridX + x < cols) {

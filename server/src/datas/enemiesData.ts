@@ -10,9 +10,9 @@ export const ENEMIES_DATA: Record<string, any> = {
     stats: {
       hp: 50,
       hpInfo: 1,
-      speed: 15,
+      speed: 3,
       speedInfo: 2,
-      proximity: 20,
+      proximity: 800,
       proximityInfo: 4
     },
     tough: {
@@ -74,10 +74,10 @@ export const ENEMIES_DATA: Record<string, any> = {
     stats: {
       hp: 200,
       hpInfo: 1,
-      speed: 15,
+      speed: 2,
       speedInfo: 2,
-      proximity: 20,
-      proximityInfo: 4
+      proximity: 1200,
+      proximityInfo: 2
     },
     tough: {
       enabled: false,
@@ -136,12 +136,12 @@ export const ENEMIES_DATA: Record<string, any> = {
     count: 2,
     lives: 5,
     stats: {
-      hp: 200,
+      hp: 1000,
       hpInfo: 1,
-      speed: 15,
+      speed: 2,
       speedInfo: 2,
-      proximity: 20,
-      proximityInfo: 4
+      proximity: 1500,
+      proximityInfo: 1
     },
     tough: {
       enabled: true,

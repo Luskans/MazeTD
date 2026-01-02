@@ -8,21 +8,31 @@ import { PathfindingService } from "../services/PathfindingService";
 import { BuildService } from "../services/BuildService";
 import { Encoder } from "@colyseus/schema";
 import { WaveService } from "../services/WaveService";
+import { EnemyService } from "../services/EnemyService";
+import { CombatService } from "../services/CombatService";
+import { EventEmitter } from "stream";
+import { TypedEventEmitter } from "../services/EventBus";
 
 export class GameRoom extends Room<GameState> {
+  private eventBus: TypedEventEmitter;
   private setupService: SetupService;
   private pathfindingService: PathfindingService;
   private buildService: BuildService;
   private waveService: WaveService;
+  private enemyService: EnemyService;
+  private combatService: CombatService;
 
   onCreate(options: any) {
     Encoder.BUFFER_SIZE = 48 * 1024; // 16 KB
     console.log(`🚀 Creation la game room ${this.roomId} !`);
     this.state = new GameState();
+    this.eventBus = new EventEmitter();
     this.setupService = new SetupService(); 
     this.pathfindingService = new PathfindingService();
     this.buildService = new BuildService();
-    this.waveService = new WaveService(this);
+    this.enemyService = new EnemyService(this, this.eventBus);
+    this.waveService = new WaveService(this, this.eventBus);
+    this.combatService = new CombatService(this);
 
     this.setPrivate();
     this.setupService.setupGame(this.state);
@@ -139,11 +149,11 @@ export class GameRoom extends Room<GameState> {
       }
     });
 
-    this.setSimulationInterval((deltaTime) => {
-        // this.updateEnemies(deltaTime);
-        // Ici, Colyseus va automatiquement checker si des variables 
-        // comme player.gold ont changé et envoyer le patch aux clients.
-    });
+    this.setSimulationInterval((deltaTime: number) => {
+        this.enemyService.update(deltaTime);
+        // this.combatService.update(deltaTime);
+        // this.waveService.update(deltaTime);
+    }, 50);
   }
 
   onJoin(client: Client, options: any) {
@@ -175,6 +185,10 @@ export class GameRoom extends Room<GameState> {
     }
   }
 
+  // update(deltaTime: number) {
+  //     this.enemyService.update(deltaTime);
+  // }
+
   _allPlayersLoaded(): boolean {
     if (this.state.players.size === 0) return false;
     return Array.from(this.state.players.values()).every(p => p.hasLoaded === true);
@@ -190,25 +204,25 @@ export class GameRoom extends Room<GameState> {
   // }
 
   // Exemple de logique de simulation dans GameRoom
-  private updateEnemies(deltaTime: number) {
-    for (const player of this.state.players.values()) {
-      const path = player.currentPath;
-      if (path.length === 0) continue; // Pas de chemin défini
+  // private updateEnemies(deltaTime: number) {
+  //   for (const player of this.state.players.values()) {
+  //     const path = player.currentPath;
+  //     if (path.length === 0) continue; // Pas de chemin défini
 
-      for (const enemy of player.enemies.values()) {
-        const targetNode = path[enemy.pathIndex];
+  //     for (const enemy of player.enemies.values()) {
+  //       const targetNode = path[enemy.pathIndex];
         
-        // Logique de mouvement : se déplacer de la position actuelle de l'ennemi
-        // vers la coordonnée (targetNode.gridX, targetNode.gridY).
+  //       // Logique de mouvement : se déplacer de la position actuelle de l'ennemi
+  //       // vers la coordonnée (targetNode.gridX, targetNode.gridY).
 
-        // Si l'ennemi a atteint la cible :
-        // if (distance(enemy.x, enemy.y, targetNode.gridX, targetNode.gridY) < threshold) {
-        //     enemy.pathIndex++;
-        //     if (enemy.pathIndex >= path.length) {
-        //         // Ennemi a atteint la fin ! Infliger des dégâts et retirer l'ennemi.
-        //     }
-        // }
-      }
-    }
-  }
+  //       // Si l'ennemi a atteint la cible :
+  //       // if (distance(enemy.x, enemy.y, targetNode.gridX, targetNode.gridY) < threshold) {
+  //       //     enemy.pathIndex++;
+  //       //     if (enemy.pathIndex >= path.length) {
+  //       //         // Ennemi a atteint la fin ! Infliger des dégâts et retirer l'ennemi.
+  //       //     }
+  //       // }
+  //     }
+  //   }
+  // }
 }

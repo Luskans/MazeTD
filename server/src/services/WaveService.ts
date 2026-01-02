@@ -1,10 +1,10 @@
-import { Room } from "colyseus";
+import { Delayed, Room } from "colyseus";
 import { GameState } from "../rooms/schema/GameState";
 import { MAP_DATA } from "../datas/mapData";
 import { PlayerState } from "../rooms/schema/PlayerState";
 import { WaveConfig } from "../rooms/schema/WaveConfig";
 import { ENEMIES_DATA } from "../datas/enemiesData";
-import { EnemyState } from "../rooms/schema/EnemyState";
+import { TypedEventEmitter } from "./EventBus";
 
 type RankedPlayer = {
   player: PlayerState;
@@ -14,14 +14,26 @@ type RankedPlayer = {
 
 export class WaveService {
   private room: Room<GameState>;
-  private countdownTimer?: NodeJS.Timeout;
+  private eventBus: TypedEventEmitter;
+  private countdownTimer?: Delayed;
+  private totalEnemiesActive = 0;
 
-  constructor(room: Room<GameState>) {
+  constructor(room: Room<GameState>, eventBus: TypedEventEmitter) {
     this.room = room;
+    this.eventBus = eventBus;
+    this.eventBus.on('ENEMY_SPAWNED', () => {
+        this.totalEnemiesActive++;
+    });
+    this.eventBus.on('ENEMY_REMOVED', () => {
+      this.totalEnemiesActive--;
+      if (this.totalEnemiesActive <= 0 && this.room.state.wavePhase === "running") {
+          this.endWave();
+      }
+    });
   }
 
   public startFirstWave() {
-    this.startCountdown(60);
+    this.startCountdown(5); // TODO: 60
   }
 
   private startCountdown(seconds = MAP_DATA.waveTimer) {
@@ -30,11 +42,10 @@ export class WaveService {
     state.countdown = seconds;
     state.countdownMax = seconds;
 
-    this.countdownTimer = setInterval(() => {
+    this.countdownTimer = this.room.clock.setInterval(() => {
       state.countdown--;
-
       if (state.countdown <= 0) {
-        clearInterval(this.countdownTimer);
+        this.countdownTimer.clear();
         this.startWave();
       }
     }, 1000);
@@ -47,7 +58,8 @@ export class WaveService {
 
     const wave = state.waves[state.currentWaveIndex];
 
-    for (const player of state.players.values().filter(p => !p.isDefeated)) {
+    for (const player of state.players.values()) {
+      if (player.isDefeated) continue;
       this.spawnWaveForPlayer(player, wave);
     }
   }
@@ -58,39 +70,23 @@ export class WaveService {
       console.log(`Enemy with id ${wave.enemyId} not found in datas.`);
       return;
     }
-    for (let i = 0; i < enemyData.count; i++) {
-      const enemy = new EnemyState(/* ... */);
-      // player.enemies.set(enemy.id, enemy);
-    }
-  }
+    let spawned = 0;
 
-  private onEnemyKilled(player: PlayerState, enemy: EnemyState) {
-    player.kills++;
-    // player.enemies.delete(enemy.id);
-    // this.checkWaveEnd();
-  }
+    const spawn = () => {
+      if (spawned >= enemyData.count) return;
 
-  private onEnemyReachedEnd(player: PlayerState, enemy: EnemyState) {
-    // player.lives--;
-    player.enemies.delete(enemy.id);
-    this.checkWaveEnd();
-  }
+      this.eventBus.emit('ENEMY_SPAWNED', player, enemyData);
+      spawned++;
 
-  private checkWaveEnd() {
-    const state = this.room.state;
+      this.room.clock.setTimeout(() => spawn(), enemyData.stats.proximity);
+    };
 
-    const enemiesLeft = Array.from(state.players.values())
-      .some(p => p.enemies.size > 0);
-
-    if (!enemiesLeft) {
-      this.endWave();
-    }
+    spawn();
   }
 
   private endWave() {
     const state = this.room.state;
     const players = Array.from(state.players.values()).filter(p => !p.isDefeated);
-    // state.wavePhase = "countdown";
 
     this.computeWaveStats(players);
 
@@ -105,14 +101,6 @@ export class WaveService {
   }
 
   private computeWaveStats(players: PlayerState[]) {
-    // for (const player of this.room.state.players.values()) {
-    //   player.gold += player.income + player.incomeBonus;
-    //   player.incomeBonus = 0;
-    //   // reset wave stats if needed
-    // }
-    // const state = this.room.state;
-    // const players = Array.from(state.players.values()).filter(p => !p.isDefeated);
-
     const damageRanking = this.computeRanking(players, p => p.damage);
     this.assignIncomeBonus(damageRanking, players.length);
 
@@ -120,11 +108,6 @@ export class WaveService {
     this.assignIncomeBonus(mazeRanking, players.length);
   }
 
-  // private computeRanking<T>(players: PlayerState[], valueGetter: (p: PlayerState) => number): PlayerState[] {
-  //   return [...players].sort((a, b) => {
-  //     return valueGetter(b) - valueGetter(a);
-  //   });
-  // }
   private computeRanking(players: PlayerState[], valueGetter: (p: PlayerState) => number): RankedPlayer[] {
     const sorted = [...players].sort((a, b) => {
       return valueGetter(b) - valueGetter(a);
@@ -149,12 +132,6 @@ export class WaveService {
     return ranked;
   }
 
-  // private assignIncomeBonus(rankedPlayers: PlayerState[], maxBonus: number) {
-  //   rankedPlayers.forEach((player, index) => {
-  //     const bonus = Math.max(maxBonus - index, 0);
-  //     player.incomeBonus += bonus;
-  //   });
-  // }
   private assignIncomeBonus(rankedPlayers: RankedPlayer[], maxBonus: number) {
     rankedPlayers.forEach(({ player, rank }) => {
       const bonus = Math.max(maxBonus - rank + 1, 0);
@@ -165,13 +142,15 @@ export class WaveService {
   private calculateIncome(players: PlayerState[]) {
     const state = this.room.state;
     players.forEach((player, index) => {
-      const incomeUpgrade = player.upgrades.get('income').currentValue;
+      // const incomeUpgrade = player.upgrades.get('income').currentValue;
+      const incomeUpgrade = player.upgrades.get('income');
       if (!incomeUpgrade) {
         console.log(`Income upgrade not found for ${player.username} with id ${player.sessionId}`);
         return;
       }
-      player.income = Math.round(MAP_DATA.baseIncome + ((MAP_DATA.baseIncome + state.waveCount) * incomeUpgrade) / 100);
+      player.income = Math.round(MAP_DATA.baseIncome + ((MAP_DATA.baseIncome + state.waveCount) * incomeUpgrade.currentValue) / 100);
       player.gold += player.income + player.incomeBonus;
+      console.log(`Player ${player.sessionId} receive ${player.income} of income for wave ${this.room.state.waveCount} and ${player.incomeBonus} of bonus`)
     });
   }
 

@@ -1,9 +1,9 @@
 export interface StatsType {
   hp: number,
   hpInfo: number,
-  speed: number,
+  speed: number,      // cells per second
   speedInfo: number,
-  proximity: number,
+  proximity: number,      // interval in ms
   proximityInfo: number
 }
 export interface ToughType {

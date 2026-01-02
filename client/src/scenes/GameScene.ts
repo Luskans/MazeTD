@@ -9,6 +9,10 @@ import { WaveService } from "../services/WaveService";
 import { PathfindingService } from "../../../server/src/services/PathfindingService";
 import { getGameRoom } from "../colyseus/gameRoomService";
 import { UpgradeService } from "../services/UpgradeService";
+import type { EnemyState } from "../../../server/src/rooms/schema/EnemyState";
+import { EnemyService } from "../services/EnemyService";
+import type { TowerState } from "../../../server/src/rooms/schema/TowerState";
+import type { WallState } from "../../../server/src/rooms/schema/WallState";
 
 export class GameScene extends Phaser.Scene {
   private room!: Room<GameState>;
@@ -19,6 +23,11 @@ export class GameScene extends Phaser.Scene {
   private upgradeService!: UpgradeService;
   private waveService!: WaveService;
   private pathfindingService!: PathfindingService;
+  private enemyService!: EnemyService;
+
+  private player!: PlayerState;
+  private playerIndex!: number;
+  private playerOffset!: {x: number, y: number};
 
   constructor() {
     super("GameScene");
@@ -32,60 +41,96 @@ export class GameScene extends Phaser.Scene {
 
   create() {
     const $ = getStateCallbacks(this.room);
+    // VARIABLES THAT BE SOMEWHERE ELSE
+    this.setupService = new SetupService(this, this.room);
+    this.player = this.room.state.players.get(this.room.sessionId)
+    this.playerIndex = Array.from(this.room.state.players.keys()).indexOf(this.room.sessionId);
+    this.playerOffset = this.setupService.getPlayerOffset(this.playerIndex);
+    console.log(`Player number ${this.playerIndex} named ${this.player.username} with ID ${this.player.sessionId} connected.`)
 
     // INIT SERVICES
-    this.setupService = new SetupService(this, this.room);
-    this.cameraService = new CameraService(this, this.room, this.setupService);
+    this.cameraService = new CameraService(this, this.room, this.playerOffset);
     this.pathRenderer = new PathRenderer(this);
     this.pathfindingService = new PathfindingService();
-    this.buildService = new BuildService(this, this.room, this.setupService, this.pathfindingService);
-    this.upgradeService = new UpgradeService(this, this.room, this.setupService);
+    this.buildService = new BuildService(this, this.room, this.playerOffset, this.pathfindingService);
+    this.upgradeService = new UpgradeService(this, this.room, this.playerOffset);
     this.waveService = new WaveService(this);
-    
-    // VARIABLES THAT BE SOMEWHERE ELSE
-    const player = this.room.state.players.get(this.room.sessionId)
-    const playerIndex = Array.from(this.room.state.players.keys()).indexOf(this.room.sessionId);
-    const playerOffset = this.setupService.getPlayerOffsets(playerIndex);
-    console.log(`Player number ${playerIndex} named ${player.username} with ID ${player.sessionId} connected.`)
+    this.enemyService = new EnemyService(this, this.room, this.playerOffset);
 
-    // FIRST DRAWS (not here ?)
-    this.setupService.createPlayersGrid(this.room);
-    this.pathRenderer.drawPath(
-      Array.from(player.currentPath.values()),
-      playerOffset.x,
-      playerOffset.y
-    );
-
-    // CENTER CAMERA ON PLAYER ZONE
-    // this.cameras.main.centerOn(player.tower.position.x, player.tower.position.y);
-    this.cameraService.handleFocus(playerIndex);
+    this.setupService.createPlayersGrid(this.room);   // draw the grid
+    // this.pathRenderer.drawPath(
+    //   Array.from(this.player.currentPath.values()),
+    //   this.playerOffset.x,
+    //   this.playerOffset.y
+    // );
+    this.cameraService.handleFocus(this.playerIndex);   // center camera on player grid
 
     // LISTEN CHANGES AND EVENTS
+    $(this.room.state).players.onAdd((player: PlayerState, sessionId: string) => {
+
+      $(player).listen("pathVersion", () => {
+        this.pathRenderer.drawPath(Array.from(player.currentPath.values()), this.playerOffset.x, this.playerOffset.y);
+        //@ts-ignore
+        console.log("Chemin changé, nouvelle state de la game : ", this.room.state.toJSON())
+      });
+
+      $(player).towers.onAdd((tower: TowerState, towerId: string) => {
+        this.buildService.addBuildingSprite(tower, "tower");
+      });
+
+      $(player).towers.onRemove((tower: TowerState, towerId: string) => {
+        this.buildService.removeBuildingSprite(towerId);
+      });
+
+      $(player).walls.onAdd((wall: WallState, wallId: string) => {
+        this.buildService.addBuildingSprite(wall, "wall");
+      });
+
+      $(player).walls.onRemove((wall: WallState, wallId: string) => {
+        this.buildService.removeBuildingSprite(wallId);
+      });
+
+      $(player).enemies.onAdd((enemy: EnemyState, enemyId: string) => {
+        this.enemyService.createEnemySprite(enemy, enemyId);
+
+        $(enemy).listen("gridX", (value) => {
+            this.enemyService.updateTargetPosition(enemyId, value, enemy.gridY);
+        });
+
+        $(enemy).listen("gridY", (value) => {
+            this.enemyService.updateTargetPosition(enemyId, enemy.gridX, value);
+        });
+      });
+
+      $(player).enemies.onRemove((enemy: EnemyState, enemyId: string) => {
+        this.enemyService.destroyEnemySprite(enemyId);
+      });
+    });
+
     $(this.room.state).players.onRemove((p: PlayerState, id: string) => {
-      // updatePlayersUI(); // modifier affichage liste des joueurs
-      // waveService(); // enlever la vague sur ce joueur
+
     });
-    $(player).listen("pathVersion", () => {
-      this.pathRenderer.drawPath(
-        Array.from(player.currentPath.values()),
-        playerOffset.x,
-        playerOffset.y
-      );
-      //@ts-ignore
-      console.log("Chemin changé, nouvelle state de la game : ", this.room.state.toJSON())
-    });
-    $(player).towers.onAdd((towerState: any, key: string) => {
-      this.buildService.addBuildingSprite(towerState, "tower");
-    });
-    $(player).walls.onAdd((wallState: any, key: string) => {
-      this.buildService.addBuildingSprite(wallState, "wall");
-    });
-    $(player).towers.onRemove((towerState: any, key: string) => {
-      this.buildService.removeBuildingSprite(key);
-    });
-    $(player).walls.onRemove((wallState: any, key: string) => {
-      this.buildService.removeBuildingSprite(key);
-    });
+    // $(player).listen("pathVersion", () => {
+    //   this.pathRenderer.drawPath(
+    //     Array.from(player.currentPath.values()),
+    //     playerOffset.x,
+    //     playerOffset.y
+    //   );
+    //   //@ts-ignore
+    //   console.log("Chemin changé, nouvelle state de la game : ", this.room.state.toJSON())
+    // });
+    // $(player).towers.onAdd((towerState: any, key: string) => {
+    //   this.buildService.addBuildingSprite(towerState, "tower");
+    // });
+    // $(player).walls.onAdd((wallState: any, key: string) => {
+    //   this.buildService.addBuildingSprite(wallState, "wall");
+    // });
+    // $(player).towers.onRemove((towerState: any, key: string) => {
+    //   this.buildService.removeBuildingSprite(key);
+    // });
+    // $(player).walls.onRemove((wallState: any, key: string) => {
+    //   this.buildService.removeBuildingSprite(key);
+    // });
     this.room.onMessage("not_enough_population", () => {
       console.log("popolutation max atteinte")
     });
@@ -106,6 +151,7 @@ export class GameScene extends Phaser.Scene {
   update(time: number, delta: number) {
     if (this.cameraService) {
       this.cameraService.update(time, delta);
+      this.enemyService.update(time, delta);
     }
   }
 

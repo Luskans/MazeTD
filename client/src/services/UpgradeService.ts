@@ -9,26 +9,19 @@ import type { RockState } from "../../../server/src/rooms/schema/RockState";
 export class UpgradeService {
   private scene: Phaser.Scene;
   private room: Room<GameState>;
-  private setupService: SetupService;
+  private playerOffset: {x: number, y: number}
 
   private isPreparing = false;
   private currentBuildingId: string | null = null;
   private currentBuildingType: string | null = null;
   private hoveredRockId: string | null = null;
   private highlightedSprite: Phaser.GameObjects.Sprite | null = null;
-  private offsetX: number;
-  private offsetY: number;
   private gridRect: Phaser.GameObjects.Rectangle;
 
-  constructor(scene: Phaser.Scene, room: Room<GameState>, setupService: SetupService) {
+  constructor(scene: Phaser.Scene, room: Room<GameState>, playerOffset: {x: number, y: number}) {
     this.scene = scene;
     this.room = room;
-    this.setupService = setupService;
-
-    const playerIndex = Array.from(this.room.state.players.keys()).indexOf(this.room.sessionId);
-    const playerOffset = this.setupService.getPlayerOffsets(playerIndex);
-    this.offsetX = playerOffset.x;
-    this.offsetY = playerOffset.y;
+    this.playerOffset = playerOffset;
 
     this.gridRect = scene.add.rectangle(0, 0, 32, 32, 0x00ff00, 0.4);
     this.gridRect.setOrigin(0, 0).setDepth(4);
@@ -80,14 +73,14 @@ export class UpgradeService {
     const player = this.room.state.players.get(this.room.sessionId);
     if (!player) return;
 
-    const relativeX = pointer.worldX - this.offsetX;
-    const relativeY = pointer.worldY - this.offsetY;
+    const relativeX = pointer.worldX - this.playerOffset.x;
+    const relativeY = pointer.worldY - this.playerOffset.y;
 
     const gridX = Math.floor(relativeX / 32);
     const gridY = Math.floor(relativeY / 32);
 
-    this.gridRect.x = (gridX * 32) + this.offsetX;
-    this.gridRect.y = (gridY * 32) + this.offsetY;
+    this.gridRect.x = (gridX * 32) + this.playerOffset.x;
+    this.gridRect.y = (gridY * 32) + this.playerOffset.y;
 
     // const gridX = Math.floor(pointer.worldX / 32);
     // const gridY = Math.floor(pointer.worldY / 32);

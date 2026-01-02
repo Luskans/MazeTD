@@ -11,12 +11,6 @@ export class SetupService {
       this.room = room;
   }
 
-  //   // CORRECTION CAMÉRA : Centrer UNE SEULE FOIS après que toutes les zones sont créées.
-  //   // Centre la caméra sur le centre du monde total.
-  //   // this.scene.cameras.main.centerOn(totalWidth / 2, totalHeight / 2);
-  //   // this.scene.cameras.main.setZoom(0.7);
-
-
   private getGridPixelSize() {
     const w = this.room.state.grid.col  * MAP_DATA.cellSize;
     const h = this.room.state.grid.row * MAP_DATA.cellSize;
@@ -40,7 +34,7 @@ export class SetupService {
     return { x, y };
   }
 
-  public getPlayerOffsets(index: number) {
+  public getPlayerOffset(index: number) {
     const { width: gridW, height: gridH } = this.getGridPixelSize();
     const pos = this.computeGridPosition2x4(index, gridW, gridH);
     const x = pos.x + MAP_DATA.outsideSize;
