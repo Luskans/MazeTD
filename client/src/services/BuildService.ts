@@ -4,12 +4,12 @@ import type { WallState } from "../../../server/src/rooms/schema/WallState";
 import { PathfindingService } from "../../../server/src/services/PathfindingService";
 import type { GameState } from "../../../server/src/rooms/schema/GameState";
 import type { SetupService } from "./SetupService";
+import { getPlayerOffset } from "./utils";
 
 export class BuildService {
   private scene: Phaser.Scene;
   private room: Room<GameState>;
   private pathfindingService: PathfindingService;
-  private playerOffset: {x: number, y: number};
 
   private isPreparing = false;
   private previewContainer: Phaser.GameObjects.Container;
@@ -20,10 +20,9 @@ export class BuildService {
   private currentBuildingSize: number | null = null;
   private buildingsSprites: Map<string, Phaser.GameObjects.Sprite> = new Map();
 
-  constructor(scene: Phaser.Scene, room: Room<GameState>, playerOffset: {x: number, y: number}, pathfindingService: PathfindingService) {
+  constructor(scene: Phaser.Scene, room: Room<GameState>, pathfindingService: PathfindingService) {
     this.scene = scene;
     this.room = room;
-    this.playerOffset = playerOffset;
     this.pathfindingService = pathfindingService;
 
     this.previewContainer = scene.add.container(0, 0).setVisible(false).setDepth(100);
@@ -57,17 +56,18 @@ export class BuildService {
 
   private updatePreview(pointer: Phaser.Input.Pointer) {
     if (!this.isPreparing) return;
+    const playerOffset = getPlayerOffset(this.room);
 
     // 1. Aligner sur la grille (Snap to grid 32px)
-    const relativeX = pointer.worldX - this.playerOffset.x;
-    const relativeY = pointer.worldY - this.playerOffset.y;
+    const relativeX = pointer.worldX - playerOffset.x;
+    const relativeY = pointer.worldY - playerOffset.y;
 
     const gridX = Math.floor(relativeX / 32);
     const gridY = Math.floor(relativeY / 32);
 
     // 2. Repositionner le container (en pixels absolus)
-    this.previewContainer.x = (gridX * 32) + this.playerOffset.x;
-    this.previewContainer.y = (gridY * 32) + this.playerOffset.y;
+    this.previewContainer.x = (gridX * 32) + playerOffset.x;
+    this.previewContainer.y = (gridY * 32) + playerOffset.y;
 
     // 3. Vérifier la validité (Côté client pour le feedback visuel immédiat)
     const isValid = this.checkLocalValidity(gridX, gridY);
@@ -144,15 +144,17 @@ export class BuildService {
 
   private placeBuilding(pointer: Phaser.Input.Pointer) {
     if (!this.isPreparing || pointer.rightButtonDown()) return;
+    const playerOffset = getPlayerOffset(this.room)
 
     const player = this.room.state.players.get(this.room.sessionId);
     // const gridSize = this.getGridSize(this.currentBuildingId);
-    const gridX = Math.floor((pointer.worldX - this.playerOffset.x) / 32);
-    const gridY = Math.floor((pointer.worldY - this.playerOffset.y) / 32);
+    const gridX = Math.floor((pointer.worldX - playerOffset.x) / 32);
+    const gridY = Math.floor((pointer.worldY - playerOffset.y) / 32);
 
     if (!this.checkLocalValidity(gridX, gridY)) return;
 
-    const isPathPossible = this.pathfindingService.validatePlacement(this.room.state, player, gridX, gridY, this.currentBuildingSize as number);
+    const isDuringWave = this.room.state.wavePhase === 'running';
+    const isPathPossible = this.pathfindingService.validatePlacement(this.room.state, player, gridX, gridY, this.currentBuildingSize as number, isDuringWave);
 
     if (!isPathPossible) {
       console.log('Construction impossible : chemin bloqué.')
@@ -178,16 +180,20 @@ export class BuildService {
     this.previewContainer.setVisible(false);
   }
 
-  public addBuildingSprite(buildingState: TowerState | WallState, type: "tower" | "wall") {
+  public addBuildingSprite(buildingState: TowerState | WallState, type: "tower" | "wall", playerOffset: {x: number, y: number}) {
     // 1. Calculer la position en pixels
-    const x = (buildingState.gridX * 32) + this.playerOffset.x;
-    const y = (buildingState.gridY * 32) + this.playerOffset.y;
+    const x = (buildingState.gridX * 32) + playerOffset.x;
+    const y = (buildingState.gridY * 32) + playerOffset.y;
 
     // 2. Déterminer la texture
     // const texture = type === "tower" ? buildingState.typeId : buildingState.id;
 
     // 3. Créer le sprite
     const sprite = this.scene.add.sprite(x, y, buildingState.dataId).setOrigin(0, 0);
+    if (buildingState.placingPending) {
+        sprite.setAlpha(0.5);
+        sprite.setTint(0xFFF3A0);
+    }
     sprite.setDepth(10);
 
     // 4. Stocker la référence pour plus tard (en utilisant l'ID unique de Colyseus)
@@ -199,6 +205,18 @@ export class BuildService {
     if (sprite) {
       sprite.destroy();
       this.buildingsSprites.delete(id);
+    }
+  }
+
+  public updateBuildingSprite(id: string, action: "placing" | "selling") {
+    const sprite = this.buildingsSprites.get(id);
+    if (!sprite) return;
+    if (action === "placing") {
+      sprite.setAlpha(1);
+      sprite.clearTint();
+    } else if (action === "selling") {
+      sprite.setAlpha(0.5);
+      sprite.setTint(0xF8BBD0);
     }
   }
 

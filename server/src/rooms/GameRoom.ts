@@ -29,7 +29,7 @@ export class GameRoom extends Room<GameState> {
     this.eventBus = new EventEmitter();
     this.setupService = new SetupService(); 
     this.pathfindingService = new PathfindingService();
-    this.buildService = new BuildService();
+    this.buildService = new BuildService(this);
     this.enemyService = new EnemyService(this, this.eventBus);
     this.waveService = new WaveService(this, this.eventBus);
     this.combatService = new CombatService(this);
@@ -43,6 +43,7 @@ export class GameRoom extends Room<GameState> {
       if (!player) return;
 
       player.hasLoaded = true;
+
       if (this._allPlayersLoaded()) {
         this.broadcast("begin");
         this.waveService.startFirstWave();
@@ -52,6 +53,8 @@ export class GameRoom extends Room<GameState> {
     this.onMessage("place_building", (client: Client, data: { buildingId: string, x: number, y: number, buildingSize: number, buildingType: string }) => {
       const player = this.state.players.get(client.sessionId);
       if (!player) return;
+      const isDuringWave = this.state.wavePhase === "running";
+      console.log(" la wave est en running ?", isDuringWave);
 
       // 0. Vérification de la population
       const isPopulationValid = this.buildService.validatePopulation(player);
@@ -68,7 +71,7 @@ export class GameRoom extends Room<GameState> {
       }
 
       // 2. Validation du Pathfinding
-      const isPathValid = this.pathfindingService.validatePlacement(this.state, player, data.x, data.y, data.buildingSize);
+      const isPathValid = this.pathfindingService.validatePlacement(this.state, player, data.x, data.y, data.buildingSize, isDuringWave);
       if (!isPathValid) {
         client.send("path_blocked", "You can't build here : path blocked.");
         return;
@@ -76,14 +79,14 @@ export class GameRoom extends Room<GameState> {
 
       // 3. Placement et mise à jour du chemin
       if (data.buildingType == "tower") {
-        this.buildService.createTower(player, data.x, data.y, data.buildingId, paymentCost);
+        this.buildService.createTower(player, data.x, data.y, data.buildingId, paymentCost, isDuringWave);
 
       } else if (data.buildingType == "wall") {
-        this.buildService.createWall(player, data.x, data.y, data.buildingId);
+        this.buildService.createWall(player, data.x, data.y, data.buildingId, isDuringWave);
       }
       
       // 4. Recalculer et STOCKER le nouveau chemin dans l'état Colyseus
-      this.pathfindingService.calculateAndSetPath(this.state, player); 
+      this.pathfindingService.calculateAndSetPath(this.state, player, isDuringWave); 
       
       console.log(`Building placé par ${client.sessionId} nommé ${player.username} en ${data.x},${data.y}`);
     });
@@ -105,6 +108,7 @@ export class GameRoom extends Room<GameState> {
     this.onMessage("destroy_rock", (client: Client, data: { buildingId: string, buildingType: string, rockId: string }) => {
       const player = this.state.players.get(client.sessionId);
       if (!player) return;
+      const isDuringWave = this.state.wavePhase === 'running';
 
       const paymentCost = this.buildService.validatePayment(this.state, player, data.buildingId, data.buildingType);
       if (paymentCost === null) {
@@ -114,7 +118,7 @@ export class GameRoom extends Room<GameState> {
 
       if (player.rocks.has(data.rockId)) {
         player.rocks.delete(data.rockId); 
-        this.pathfindingService.calculateAndSetPath(this.state, player); 
+        this.pathfindingService.calculateAndSetPath(this.state, player, isDuringWave); 
       }
       this.buildService.buyUpgrade(this.state, player, data.buildingId);
     });
@@ -158,6 +162,7 @@ export class GameRoom extends Room<GameState> {
 
   onJoin(client: Client, options: any) {
     console.log(`🔌 Client ${client.sessionId} joining with options:`, options);
+    const isDuringWave = this.state.wavePhase === "running";
 
     const player = new PlayerState();
     player.sessionId = client.sessionId;
@@ -170,7 +175,7 @@ export class GameRoom extends Room<GameState> {
     this.state.players.set(client.sessionId, player);
 
     this.setupService.setupPlayer(this.state, player);
-    this.pathfindingService.calculateAndSetPath(this.state, player);
+    this.pathfindingService.calculateAndSetPath(this.state, player, isDuringWave);
 
     console.log(`✅ Player ${player.username} joined successfully`);
   }
@@ -185,44 +190,8 @@ export class GameRoom extends Room<GameState> {
     }
   }
 
-  // update(deltaTime: number) {
-  //     this.enemyService.update(deltaTime);
-  // }
-
   _allPlayersLoaded(): boolean {
     if (this.state.players.size === 0) return false;
     return Array.from(this.state.players.values()).every(p => p.hasLoaded === true);
   }
-
-  // _startNextWave(): void {
-  //   this.state.players.forEach(p => {
-  //     p.isReady = false;
-  //   });
-  //   this.state.currentWaveIndex = (this.state.currentWaveIndex + 1) % this.state.waves.length;
-  //   this.state.waveCount++;
-  //   this.broadcast("wave_start");
-  // }
-
-  // Exemple de logique de simulation dans GameRoom
-  // private updateEnemies(deltaTime: number) {
-  //   for (const player of this.state.players.values()) {
-  //     const path = player.currentPath;
-  //     if (path.length === 0) continue; // Pas de chemin défini
-
-  //     for (const enemy of player.enemies.values()) {
-  //       const targetNode = path[enemy.pathIndex];
-        
-  //       // Logique de mouvement : se déplacer de la position actuelle de l'ennemi
-  //       // vers la coordonnée (targetNode.gridX, targetNode.gridY).
-
-  //       // Si l'ennemi a atteint la cible :
-  //       // if (distance(enemy.x, enemy.y, targetNode.gridX, targetNode.gridY) < threshold) {
-  //       //     enemy.pathIndex++;
-  //       //     if (enemy.pathIndex >= path.length) {
-  //       //         // Ennemi a atteint la fin ! Infliger des dégâts et retirer l'ennemi.
-  //       //     }
-  //       // }
-  //     }
-  //   }
-  // }
 }

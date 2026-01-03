@@ -6,12 +6,10 @@ export class EnemyService {
   private scene: Phaser.Scene;
   private room: Room<GameState>;
   private enemySprites: Map<string, Phaser.GameObjects.Sprite> = new Map();
-  private playerOffset: {x: number, y: number};
 
-  constructor(scene: Phaser.Scene, room: Room<GameState>, playerOffset: {x: number, y: number}) {
+  constructor(scene: Phaser.Scene, room: Room<GameState>) {
       this.scene = scene;
       this.room = room;
-      this.playerOffset = playerOffset;
   }
 
   // createEnemySprite(enemy: EnemyState, enemyId: string) {
@@ -38,9 +36,9 @@ export class EnemyService {
   //     });
   // }
 
-  createEnemySprite(enemy: EnemyState, enemyId: string) {
-    const x = (enemy.gridX * 32) + this.playerOffset.x;
-    const y = (enemy.gridY * 32) + this.playerOffset.y;
+  createEnemySprite(enemy: EnemyState, enemyId: string, playerOffset: {x: number, y: number}) {
+    const x = (enemy.gridX * 32) + playerOffset.x;
+    const y = (enemy.gridY * 32) + playerOffset.y;
     const sprite = this.scene.add.sprite(x + 16, y + 16, enemy.dataId);
     sprite.setDisplaySize(32, 32);
     sprite.setData('targetX', x);
@@ -49,9 +47,9 @@ export class EnemyService {
   }
 
   // Cette fonction sera appelée par la Scene à chaque changement
-  updateTargetPosition(enemyId: string, gridX: number, gridY: number) {
-    const x = (gridX * 32) + this.playerOffset.x;
-    const y = (gridY * 32) + this.playerOffset.y;
+  updateTargetPosition(enemyId: string, gridX: number, gridY: number, playerOffset: {x: number, y: number}) {
+    const x = (gridX * 32) + playerOffset.x;
+    const y = (gridY * 32) + playerOffset.y;
     const sprite = this.enemySprites.get(enemyId);
     if (sprite) {
       sprite.setData('targetX', x + 16);

@@ -135,5 +135,4 @@ export class EnemyService {
     this.eventBus.emit('ENEMY_REMOVED');
 
   }
-
 }

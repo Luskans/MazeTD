@@ -6,5 +6,6 @@ export class WallState extends Schema {
   @type("number") gridX: number;
   @type("number") gridY: number;
   @type("number") size: number; // 1=32x32, 2=64x64
-  // @type("number") cost: number;
+  @type("boolean") placingPending: boolean;
+  @type("boolean") sellingPending: boolean;
 }

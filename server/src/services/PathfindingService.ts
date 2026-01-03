@@ -21,7 +21,6 @@ export class PathfindingService {
         }
       }
     }
-
     return gridMap;
   }
 
@@ -40,7 +39,6 @@ export class PathfindingService {
       startX = endX;
       startY = endY;
     }
-
     return true;
   }
 
@@ -60,22 +58,24 @@ export class PathfindingService {
     }
 
     for (const tower of player.towers.values()) {
-      for (let x = 0; x < 2; x++) {
-        for (let y = 0; y < 2; y++) {
-          if (tower.gridY + y < rows && tower.gridX + x < cols) {
-            gridMap[tower.gridY + y][tower.gridX + x] = BLOCKED;
+      if (!tower.sellingPending) {
+        for (let x = 0; x < 2; x++) {
+          for (let y = 0; y < 2; y++) {
+            if (tower.gridY + y < rows && tower.gridX + x < cols) {
+              gridMap[tower.gridY + y][tower.gridX + x] = BLOCKED;
+            }
           }
         }
       }
     }
 
     for (const wall of player.walls.values()) {
-      // let size = wall.size === 32 ? 1 : 2;
-      let size = wall.size === 1 ? 1 : 2;
-      for (let x = 0; x < size; x++) {
-        for (let y = 0; y < size; y++) {
-          if (wall.gridY + y < rows && wall.gridX + x < cols) {
-            gridMap[wall.gridY + y][wall.gridX + x] = BLOCKED;
+      if (!wall.sellingPending) {
+        for (let x = 0; x < wall.size; x++) {
+          for (let y = 0; y < wall.size; y++) {
+            if (wall.gridY + y < rows && wall.gridX + x < cols) {
+              gridMap[wall.gridY + y][wall.gridX + x] = BLOCKED;
+            }
           }
         }
       }
@@ -91,7 +91,6 @@ export class PathfindingService {
         }
       }
     }
-
     return gridMap;
   }
 
@@ -512,7 +511,7 @@ export class PathfindingService {
   //   return optimizedPath;
   // }
 
-  public calculateAndSetPath(state: GameState, player: PlayerState, newObstacle?: { gridX: number, gridY: number, gridSize: number }): PathNodeState[] | null {
+  public calculateAndSetPath(state: GameState, player: PlayerState, isDuringWave: boolean, newObstacle?: { gridX: number, gridY: number, gridSize: number }): PathNodeState[] | null {
     const gridMap = this.buildPlayerGrid(state, player, newObstacle);
     const checkpoints = Array.from(player.checkpoints.values());
     if (checkpoints.length === 0) return null;
@@ -570,12 +569,23 @@ export class PathfindingService {
     // const optimizedPath = this.simplifyPath(cleanedPath);
     // const optimizedPath = this.simplifyPath(fullPath);
     if (!newObstacle) { 
-      player.currentPath.clear();
-      player.currentPath.push(...fullPath);
-      player.pathVersion++;
+      if (isDuringWave) {
+        player.pendingPath.clear();
+        player.pendingPath.push(...fullPath);
+        player.pendingPathVersion++;
+      } else {
+        player.currentPath.clear();
+        player.currentPath.push(...fullPath);
+        player.currentPathVersion++;
+        player.pendingPath.clear();
+        player.pendingPath.push(...fullPath);
+        player.pendingPathVersion++;
+      }
+      // player.currentPath.clear();
+      // player.currentPath.push(...fullPath);
+      // player.pathVersion++;
       // player.currentPath.push(...optimizedPath);
     }
-
     return fullPath;
     // return optimizedPath;
 }
@@ -583,8 +593,8 @@ export class PathfindingService {
   /**
    * Vérifie si l'ajout d'une structure bloque le chemin pour un joueur.
    */
-  public validatePlacement(state: GameState, player: PlayerState, gridX: number, gridY: number, gridSize: number): boolean {
-    const path = this.calculateAndSetPath(state, player, { gridX, gridY, gridSize });
+  public validatePlacement(state: GameState, player: PlayerState, gridX: number, gridY: number, gridSize: number, isDuringWave: boolean): boolean {
+    const path = this.calculateAndSetPath(state, player, isDuringWave, { gridX, gridY, gridSize });
     return path !== null;
   }
 }

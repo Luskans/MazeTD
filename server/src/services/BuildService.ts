@@ -1,4 +1,4 @@
-import { generateId } from "colyseus";
+import { Client, generateId, Room } from "colyseus";
 import { MAP_DATA } from "../datas/mapData";
 import { TOWERS_DATA } from "../datas/towersData";
 import { UPGRADES_DATA } from "../datas/upgradesData";
@@ -10,6 +10,15 @@ import { WallState } from "../rooms/schema/WallState";
 import { UpgradeState } from "../rooms/schema/UpgradeState";
 
 export class BuildService {
+  private room: Room<GameState>;
+
+  constructor(room: Room<GameState>) {
+    this.room = room;
+  }
+
+  public validatePopulation(player: PlayerState): boolean {
+    return player.population < player.maxPopulation;
+  }
 
   public validatePayment(state: GameState, player: PlayerState, buildingId: string, buildingType: string): number | null {
     let config: "towersConfig" | "upgradesConfig" | "wallsConfig";
@@ -29,7 +38,6 @@ export class BuildService {
       return null;
     }
 
-    // const buildingPrice = shopConfig.price;
     let buildingPrice;
     if (buildingType === "upgrade") {
       const upgrade = player.upgrades.get(buildingId);
@@ -44,12 +52,7 @@ export class BuildService {
     return buildingPrice;
   }
 
-  public validatePopulation(player: PlayerState): boolean {
-    return player.population < player.maxPopulation;
-  }
-
-  public createTower(player: PlayerState, x: number, y: number, buildingId: string, paymentCost: number): void {
-    // const data = TOWERS_DATA.find(tower => tower.id === buildingId);
+  public createTower(player: PlayerState, x: number, y: number, buildingId: string, paymentCost: number, isDuringWave: boolean): void {
     const data = TOWERS_DATA[buildingId];
     if (!data) {
       console.error(`Tour introuvable pour ${buildingId}.`);
@@ -65,15 +68,16 @@ export class BuildService {
       damage: data.damage * 1,
       attackSpeed: data.attackSpeed * 1,
       range: data.range,
-      totalCost: paymentCost
+      totalCost: paymentCost,
+      placingPending: isDuringWave,
+      sellingPending: false
     });
 
     player.towers.set(newTower.id, newTower);
     player.population++;
   }
 
-  public createWall(player: PlayerState, x: number, y: number, buildingId: string): void {
-    // const data = WALLS_DATA.find(wall => wall.id === buildingId);
+  public createWall(player: PlayerState, x: number, y: number, buildingId: string, isDuringWave: boolean): void {
     const data = WALLS_DATA[buildingId];
     if (!data) {
       console.error(`Mur introuvable pour ${buildingId}.`);
@@ -85,7 +89,9 @@ export class BuildService {
       dataId: data.id,
       gridX: x,
       gridY: y,
-      size: data.size
+      size: data.size,
+      placingPending: isDuringWave,
+      sellingPending: false
     });
 
     player.walls.set(newWall.id, newWall);

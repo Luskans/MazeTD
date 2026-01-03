@@ -7,22 +7,20 @@ export class CameraService {
   private room: Room<GameState>;
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private isReady: boolean = false;
-  private playerOffset: {x: number, y: number};
 
   private cameraSpeed = 1500; 
   private zoomSpeed = 0.05; 
   private minZoom = 0.5;
   private maxZoom = 2.0;
 
-  constructor(scene: Phaser.Scene, room: Room<GameState>, playerOffset: {x: number, y: number}) {
+  constructor(scene: Phaser.Scene, room: Room<GameState>) {
     this.scene = scene;
     this.room = room;
     this.cursors = scene.input.keyboard!.createCursorKeys();
-    this.playerOffset = playerOffset
     
     // Écouteurs
     scene.input.on('wheel', this.handleWheel, this);
-    this.scene.game.events.on('focus_on_player', this.handleFocus, this);
+    // this.scene.game.events.on('focus_on_player', this.handleFocus, this);
     
     this.isReady = true;
   }
@@ -71,12 +69,20 @@ export class CameraService {
     }
   }
 
-  public handleFocus(playerIndex: number): void {
+  // public handleFocus(playerIndex: number): void {
+  //   const camera = this.scene.cameras.main;
+  //   const halfGridWidth = Math.round(this.room.state.grid.col * 16);
+  //   const halfGridHeight = Math.round(this.room.state.grid.row * 16);
+  //   const centerOffsetX = halfGridWidth + this.playerOffset.x;
+  //   const centerOffsetY = halfGridHeight + this.playerOffset.y;
+  //   camera.pan(centerOffsetX, centerOffsetY, 600, 'Cubic.easeInOut');
+  // }
+  public handleFocus(playerOffset: {x: number, y: number}): void {
     const camera = this.scene.cameras.main;
     const halfGridWidth = Math.round(this.room.state.grid.col * 16);
     const halfGridHeight = Math.round(this.room.state.grid.row * 16);
-    const centerOffsetX = halfGridWidth + this.playerOffset.x;
-    const centerOffsetY = halfGridHeight + this.playerOffset.y;
+    const centerOffsetX = halfGridWidth + playerOffset.x;
+    const centerOffsetY = halfGridHeight + playerOffset.y;
     camera.pan(centerOffsetX, centerOffsetY, 600, 'Cubic.easeInOut');
   }
 }

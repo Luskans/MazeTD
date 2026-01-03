@@ -5,11 +5,11 @@ import { PathfindingService } from "../../../server/src/services/PathfindingServ
 import type { GameState } from "../../../server/src/rooms/schema/GameState";
 import type { SetupService } from "./SetupService";
 import type { RockState } from "../../../server/src/rooms/schema/RockState";
+import { getPlayerOffset } from "./utils";
 
 export class UpgradeService {
   private scene: Phaser.Scene;
   private room: Room<GameState>;
-  private playerOffset: {x: number, y: number}
 
   private isPreparing = false;
   private currentBuildingId: string | null = null;
@@ -18,10 +18,9 @@ export class UpgradeService {
   private highlightedSprite: Phaser.GameObjects.Sprite | null = null;
   private gridRect: Phaser.GameObjects.Rectangle;
 
-  constructor(scene: Phaser.Scene, room: Room<GameState>, playerOffset: {x: number, y: number}) {
+  constructor(scene: Phaser.Scene, room: Room<GameState>) {
     this.scene = scene;
     this.room = room;
-    this.playerOffset = playerOffset;
 
     this.gridRect = scene.add.rectangle(0, 0, 32, 32, 0x00ff00, 0.4);
     this.gridRect.setOrigin(0, 0).setDepth(4);
@@ -72,15 +71,16 @@ export class UpgradeService {
 
     const player = this.room.state.players.get(this.room.sessionId);
     if (!player) return;
+    const playerOffset = getPlayerOffset(this.room);
 
-    const relativeX = pointer.worldX - this.playerOffset.x;
-    const relativeY = pointer.worldY - this.playerOffset.y;
+    const relativeX = pointer.worldX - playerOffset.x;
+    const relativeY = pointer.worldY - playerOffset.y;
 
     const gridX = Math.floor(relativeX / 32);
     const gridY = Math.floor(relativeY / 32);
 
-    this.gridRect.x = (gridX * 32) + this.playerOffset.x;
-    this.gridRect.y = (gridY * 32) + this.playerOffset.y;
+    this.gridRect.x = (gridX * 32) + playerOffset.x;
+    this.gridRect.y = (gridY * 32) + playerOffset.y;
 
     // const gridX = Math.floor(pointer.worldX / 32);
     // const gridY = Math.floor(pointer.worldY / 32);

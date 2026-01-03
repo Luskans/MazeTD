@@ -33,7 +33,7 @@ export class WaveService {
   }
 
   public startFirstWave() {
-    this.startCountdown(5); // TODO: 60
+    this.startCountdown(10); // TODO: 60
   }
 
   private startCountdown(seconds = MAP_DATA.waveTimer) {
@@ -60,6 +60,7 @@ export class WaveService {
 
     for (const player of state.players.values()) {
       if (player.isDefeated) continue;
+      // this.updatePlayerPendings(player);
       this.spawnWaveForPlayer(player, wave);
     }
   }
@@ -89,6 +90,7 @@ export class WaveService {
     const players = Array.from(state.players.values()).filter(p => !p.isDefeated);
 
     this.computeWaveStats(players);
+    this.updatePlayerPendings(players);
 
     state.currentWaveIndex++;
     if (state.currentWaveIndex === MAP_DATA.waveCount - 1) {
@@ -162,6 +164,27 @@ export class WaveService {
       p.kills = 0;
       p.mazeDuration = 0;
       p.incomeBonus = 0;
+    });
+  }
+
+  private updatePlayerPendings(players: PlayerState[]) {
+    players.forEach((player, index) => {
+      player.towers.forEach((t, towerId) => {
+        if (t.placingPending) t.placingPending = false;
+        if (t.sellingPending) player.towers.delete(towerId);
+      });
+      player.walls.forEach((w, wallId) => {
+        if (w.placingPending) w.placingPending = false;
+        if (w.sellingPending) player.walls.delete(wallId);
+      });
+
+      if (player.pendingPath.length > 0) {
+        player.currentPath.clear();
+        player.currentPath.push(...player.pendingPath);
+        player.currentPathVersion++;
+        // player.currentPath = player.pendingPath;
+        // player.pendingPath = null;
+      }
     });
   }
 }

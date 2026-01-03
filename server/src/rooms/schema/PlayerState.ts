@@ -38,6 +38,8 @@ export class PlayerState extends Schema {
   @type({ map: AreaState }) areas = new MapSchema<AreaState>();
   
   @type([PathNodeState]) currentPath = new ArraySchema<PathNodeState>();
-  @type('number') pathVersion: number = 0; // Evite l'écoute sur chaque changements de currentPath
+  @type([PathNodeState]) pendingPath = new ArraySchema<PathNodeState>();
+  @type('number') currentPathVersion: number = 0; // Evite l'écoute sur chaque changements de currentPath
+  @type('number') pendingPathVersion: number = 0; // Evite l'écoute sur chaque changements de currentPath
   @type({ map: EnemyState }) enemies = new MapSchema<EnemyState>();
 }

@@ -25,10 +25,6 @@ export class GameScene extends Phaser.Scene {
   private pathfindingService!: PathfindingService;
   private enemyService!: EnemyService;
 
-  private player!: PlayerState;
-  private playerIndex!: number;
-  private playerOffset!: {x: number, y: number};
-
   constructor() {
     super("GameScene");
   }
@@ -43,19 +39,19 @@ export class GameScene extends Phaser.Scene {
     const $ = getStateCallbacks(this.room);
     // VARIABLES THAT BE SOMEWHERE ELSE
     this.setupService = new SetupService(this, this.room);
-    this.player = this.room.state.players.get(this.room.sessionId)
-    this.playerIndex = Array.from(this.room.state.players.keys()).indexOf(this.room.sessionId);
-    this.playerOffset = this.setupService.getPlayerOffset(this.playerIndex);
-    console.log(`Player number ${this.playerIndex} named ${this.player.username} with ID ${this.player.sessionId} connected.`)
+    const player = this.room.state.players.get(this.room.sessionId)
+    const playerIndex = Array.from(this.room.state.players.keys()).indexOf(this.room.sessionId);
+    const playerOffset = this.setupService.getPlayerOffset(playerIndex);
+    console.log(`Player number ${playerIndex} named ${player.username} with ID ${player.sessionId} connected.`)
 
     // INIT SERVICES
-    this.cameraService = new CameraService(this, this.room, this.playerOffset);
-    this.pathRenderer = new PathRenderer(this);
+    this.cameraService = new CameraService(this, this.room);
+    this.pathRenderer = new PathRenderer(this, this.room);
     this.pathfindingService = new PathfindingService();
-    this.buildService = new BuildService(this, this.room, this.playerOffset, this.pathfindingService);
-    this.upgradeService = new UpgradeService(this, this.room, this.playerOffset);
+    this.buildService = new BuildService(this, this.room, this.pathfindingService);
+    this.upgradeService = new UpgradeService(this, this.room);
     this.waveService = new WaveService(this);
-    this.enemyService = new EnemyService(this, this.room, this.playerOffset);
+    this.enemyService = new EnemyService(this, this.room);
 
     this.setupService.createPlayersGrid(this.room);   // draw the grid
     // this.pathRenderer.drawPath(
@@ -63,19 +59,40 @@ export class GameScene extends Phaser.Scene {
     //   this.playerOffset.x,
     //   this.playerOffset.y
     // );
-    this.cameraService.handleFocus(this.playerIndex);   // center camera on player grid
+    // this.cameraService.handleFocus(playerIndex);   // center camera on player grid
+    this.cameraService.handleFocus(playerOffset);
 
     // LISTEN CHANGES AND EVENTS
     $(this.room.state).players.onAdd((player: PlayerState, sessionId: string) => {
+      const playerIndex = Array.from(this.room.state.players.keys()).indexOf(sessionId);
+      const playerOffset = this.setupService.getPlayerOffset(playerIndex);
 
-      $(player).listen("pathVersion", () => {
-        this.pathRenderer.drawPath(Array.from(player.currentPath.values()), this.playerOffset.x, this.playerOffset.y);
+      $(player).listen("currentPathVersion", () => {
+        this.pathRenderer.drawPath(Array.from(player.currentPath.values()), playerOffset, "current");
         //@ts-ignore
-        console.log("Chemin changé, nouvelle state de la game : ", this.room.state.toJSON())
+        console.log("Current Chemin changé, nouvelle state de la game : ", this.room.state.toJSON())
+      });
+
+      $(player).listen("pendingPathVersion", () => {
+        this.pathRenderer.drawPath(Array.from(player.pendingPath.values()), playerOffset, "pending");
+        //@ts-ignore
+        console.log("Pending Chemin changé, nouvelle state de la game : ", this.room.state.toJSON())
       });
 
       $(player).towers.onAdd((tower: TowerState, towerId: string) => {
-        this.buildService.addBuildingSprite(tower, "tower");
+        this.buildService.addBuildingSprite(tower, "tower", playerOffset);
+
+        $(tower).listen("placingPending", (pending) => {
+          if (!pending) {
+            this.buildService.updateBuildingSprite(tower.id, "placing");
+          }
+        });
+
+        $(tower).listen("sellingPending", (pending) => {
+          if (pending) {
+            this.buildService.updateBuildingSprite(tower.id, "selling");
+          }
+        });
       });
 
       $(player).towers.onRemove((tower: TowerState, towerId: string) => {
@@ -83,7 +100,19 @@ export class GameScene extends Phaser.Scene {
       });
 
       $(player).walls.onAdd((wall: WallState, wallId: string) => {
-        this.buildService.addBuildingSprite(wall, "wall");
+        this.buildService.addBuildingSprite(wall, "wall", playerOffset);
+
+        $(wall).listen("placingPending", (pending) => {
+          if (!pending) {
+            this.buildService.updateBuildingSprite(wall.id, "placing");
+          }
+        });
+
+        $(wall).listen("sellingPending", (pending) => {
+          if (pending) {
+            this.buildService.updateBuildingSprite(wall.id, "selling");
+          }
+        });
       });
 
       $(player).walls.onRemove((wall: WallState, wallId: string) => {
@@ -91,14 +120,14 @@ export class GameScene extends Phaser.Scene {
       });
 
       $(player).enemies.onAdd((enemy: EnemyState, enemyId: string) => {
-        this.enemyService.createEnemySprite(enemy, enemyId);
+        this.enemyService.createEnemySprite(enemy, enemyId, playerOffset);
 
         $(enemy).listen("gridX", (value) => {
-            this.enemyService.updateTargetPosition(enemyId, value, enemy.gridY);
+            this.enemyService.updateTargetPosition(enemyId, value, enemy.gridY, playerOffset);
         });
 
         $(enemy).listen("gridY", (value) => {
-            this.enemyService.updateTargetPosition(enemyId, enemy.gridX, value);
+            this.enemyService.updateTargetPosition(enemyId, enemy.gridX, value, playerOffset);
         });
       });
 
@@ -143,16 +172,19 @@ export class GameScene extends Phaser.Scene {
     this.game.events.on('choose-building', (data: any) => {
       console.log("Création de :", data.buildingId);
     });
+    this.game.events.on('focus_on_player', (playerIndex: number) => {
+      const playerOffset = this.setupService.getPlayerOffset(playerIndex);
+      this.cameraService.handleFocus(playerOffset);
+    });
+
 
     // CLEAN WHEN CHANGE SCENE
     this.events.once('shutdown', () => this.destroy());
   }
 
   update(time: number, delta: number) {
-    if (this.cameraService) {
-      this.cameraService.update(time, delta);
-      this.enemyService.update(time, delta);
-    }
+    this.cameraService.update(time, delta);
+    this.enemyService.update(time, delta);
   }
 
   private destroy() {
