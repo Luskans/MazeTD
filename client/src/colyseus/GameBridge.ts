@@ -4,9 +4,12 @@ import { network } from "./Network";
 import { addChatMessage, addSystemMessage, chat, clearChat } from "../stores/chatStore.svelte";
 import type { GameState } from "../../../server/src/rooms/schema/GameState";
 import { PlayerState } from "../../../server/src/rooms/schema/PlayerState";
-import { gameStore, shopStore, type MyselfStore, type PlayerStore, type TowerConfigStore, type UpgradeConfigStore, type UpgradeStore, type WallConfigStore, type WaveConfigStore } from "../stores/gameStore.svelte";
+import { gameStore, type MyselfStore, type PlayerStore, type UpgradeStore, type WaveConfigStore } from "../stores/gameStore.svelte";
 import type { WaveConfig } from "../../../server/src/rooms/schema/WaveConfig";
 import type { UpgradeState } from "../../../server/src/rooms/schema/UpgradeState";
+import { buildingStore, type WallStore } from "../stores/buildingStore.svelte";
+import type { TowerState } from "../../../server/src/rooms/schema/TowerState";
+import { shopStore, type TowerConfigStore, type UpgradeConfigStore, type WallConfigStore } from "../stores/shopStore.svelte";
 
 let cleanupFns: (() => void)[] = [];
 
@@ -54,10 +57,13 @@ export function connectGame(room: Room<GameState>) {
   // );
   cleanupFns.push(
     $(room.state).listen("players", (players) => {
-      $(players).onAdd((player, id) => {
+      $(players).onAdd((player, sessionId) => {
+        setupBuildingListeners(player, sessionId, $);
         $(player).onChange(() => updateStore(room));
         $(player.viewers).onChange(() => updateStore(room));
         $(player.upgrades).onChange(() => updateStore(room));
+        // $(player.towers).onChange(() => updateTowers(room));
+        // $(player.walls).onChange(() => updateWalls(room));
         
         updateStore(room);
       });
@@ -123,7 +129,7 @@ export function connectGame(room: Room<GameState>) {
   );
 
   cleanupFns.push(
-    $(room.state).listen("currenWaveIndex", () => { gameStore.currentWaveIndex = room.state.currentWaveIndex; })
+    $(room.state).listen("currentWaveIndex", () => { gameStore.currentWaveIndex = room.state.currentWaveIndex; })
   );
 
   cleanupFns.push(
@@ -141,14 +147,6 @@ export function connectGame(room: Room<GameState>) {
   cleanupFns.push(
     $(room.state).listen("countdownMax", () => { gameStore.countdownMax = room.state.countdownMax; })
   );
-
-  // cleanupFns.push(
-  //   room.onMessage("wave_countdown", (sec: number) => { gameStore.countdown = sec; })
-  // );
-
-  // cleanupFns.push(
-  //   room.onMessage("wave_start", () => { gameStore.countdown = null; })
-  // );
 
   cleanupFns.push(
     room.onMessage("chat", (msg: any) => { addChatMessage(msg.from ?? "anonymous", msg.text); })
@@ -227,6 +225,55 @@ const updateUpgrades = (upgrades: MapSchema<UpgradeState>): UpgradeStore[] => {
 
   return result;
 }
+
+const setupBuildingListeners = (player: PlayerState, sessionId: string, $: any) => {
+  $(player.towers).onAdd((tower: TowerState, towerId: string) => {
+    buildingStore.towers[towerId] = {
+      id: tower.id,
+      dataId: tower.dataId,
+      ownerId: sessionId,
+      level: tower.level,
+      damage: tower.damage,
+      attackSpeed: tower.attackSpeed,
+      range: tower.range,
+      direction: tower.direction,
+      totalCost: tower.totalCost
+    };
+
+    $(tower).onChange(() => {
+      if (buildingStore.towers[towerId]) {
+        buildingStore.towers[towerId].level = tower.level;
+        buildingStore.towers[towerId].damage = tower.damage;
+        buildingStore.towers[towerId].attackSpeed = tower.attackSpeed;
+        buildingStore.towers[towerId].range = tower.range;
+        buildingStore.towers[towerId].direction = tower.direction;
+        buildingStore.towers[towerId].totalCost = tower.totalCost;
+      }
+    });
+  });
+
+  $(player.towers).onRemove((tower: TowerState, towerId: string) => {
+    delete buildingStore.towers[towerId];
+  });
+
+  $(player.walls).onAdd((wall: WallStore, wallId: string) => {
+    buildingStore.walls[wallId] = {
+      id: wall.id,
+      dataId: wall.dataId,
+      ownerId: sessionId,
+    };
+
+    // $(wall).onChange(() => {
+    //   if (buildingStore.walls[wallId]) {
+    //     buildingStore.walls[wallId].level = wall.level;
+    //   }
+    // });
+  });
+
+  $(player.walls).onRemove((wall: WallStore, wallId: string) => {
+    delete buildingStore.walls[wallId];
+  });
+};
 
 export function sendChatMessage() {
   const text = chat.input.trim();

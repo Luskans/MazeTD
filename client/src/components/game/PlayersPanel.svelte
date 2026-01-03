@@ -25,7 +25,7 @@
   <div class="player-line">
     <ViewButton playerIndex={index}/>
     
-    {#if !(player.sessionId === gameStore.me?.sessionId)}
+    {#if !(player.sessionId === gameStore.me?.sessionId) && (!player.isDisconnected)}
     <ViewCheckbox player={player} />
     {:else}
     <span></span>
@@ -42,7 +42,7 @@
     </div>
     <div class="hud-item">
       <img src="/icons/heart.png" alt="Player life" class="hud-icon" />
-      <p class="hud-text" class:danger={player.lives <= 10}>{player.isDefeated ? "Lost" : player.lives}</p>
+      <p class="hud-text" class:danger={player.lives <= 10 || player.isDefeated}>{player.isDefeated ? "Lost" : player.lives}</p>
     </div>
     <div class="hud-item">
       <img src="/icons/waves.png" alt="Enemies killed during the wave" class="hud-icon" />

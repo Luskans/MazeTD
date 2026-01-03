@@ -20,7 +20,6 @@ export class EnemyService {
   }
 
   spawnEnemy(player: PlayerState, enemyData: EnemyType) {
-    console.log("spawn event received for player", player.sessionId)
     const enemy = new EnemyState();
     enemy.id = crypto.randomUUID();
     enemy.dataId = enemyData.id;

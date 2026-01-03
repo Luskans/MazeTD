@@ -3,8 +3,9 @@
   import { TOWERS_DATA } from '../../../../server/src/datas/towersData';
   import { WALLS_DATA } from '../../../../server/src/datas/wallsData';
   import { UPGRADES_DATA } from '../../../../server/src/datas/upgradesData';
-  import { gameStore, shopStore } from '../../stores/gameStore.svelte';
+  import { gameStore } from '../../stores/gameStore.svelte';
   import { WallConfig } from '../../../../server/src/rooms/schema/WallConfig';
+    import { shopStore } from '../../stores/shopStore.svelte';
 
   function handleTowerClick(tower: any) {
     console.log("data", tower);

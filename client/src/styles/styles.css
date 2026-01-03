@@ -22,13 +22,8 @@
   --secondary-light:#d3a66f;
   --secondary-dark:#976b48;
   --grey:#afb1b3;
-  --grey-dark:#898989;
+  --grey-dark:#616161;
   --white:#f6f9ff;
-  --very-low:#d36f6f;
-  --low:#ffb153;
-  --medium:#ffe06f;
-  --high:#87d1e0;
-  --very-high:#8ce78d;
 }
 .custom {
   --toastBackground: var(--panel);

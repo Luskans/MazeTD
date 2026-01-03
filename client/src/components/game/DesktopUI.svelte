@@ -7,6 +7,7 @@
   import SettingsPanel from './SettingsPanel.svelte';
   import ActionBar from './ActionBar.svelte';
   import { gameStore } from '../../stores/gameStore.svelte';
+  import BuildingInfo from './BuildingInfo.svelte';
   
   let activePanel = $state<"players" | "shop" | "waves" | "settings" | null>(null);
 
@@ -64,6 +65,8 @@
     <SettingsPanel />
   </Panel>
 {/if}
+
+<BuildingInfo />
 
 <style>
   .wave-hud {

@@ -68,19 +68,19 @@ export class GameScene extends Phaser.Scene {
       const playerOffset = this.setupService.getPlayerOffset(playerIndex);
 
       $(player).listen("currentPathVersion", () => {
-        this.pathRenderer.drawPath(Array.from(player.currentPath.values()), playerOffset, "current");
+        this.pathRenderer.drawPath(Array.from(player.currentPath.values()), playerOffset, "current", sessionId);
         //@ts-ignore
         console.log("Current Chemin changé, nouvelle state de la game : ", this.room.state.toJSON())
       });
 
       $(player).listen("pendingPathVersion", () => {
-        this.pathRenderer.drawPath(Array.from(player.pendingPath.values()), playerOffset, "pending");
+        this.pathRenderer.drawPath(Array.from(player.pendingPath.values()), playerOffset, "pending", sessionId);
         //@ts-ignore
         console.log("Pending Chemin changé, nouvelle state de la game : ", this.room.state.toJSON())
       });
 
       $(player).towers.onAdd((tower: TowerState, towerId: string) => {
-        this.buildService.addBuildingSprite(tower, "tower", playerOffset);
+        this.buildService.addBuildingSprite(tower, "tower", playerOffset, player);
 
         $(tower).listen("placingPending", (pending) => {
           if (!pending) {
@@ -100,7 +100,7 @@ export class GameScene extends Phaser.Scene {
       });
 
       $(player).walls.onAdd((wall: WallState, wallId: string) => {
-        this.buildService.addBuildingSprite(wall, "wall", playerOffset);
+        this.buildService.addBuildingSprite(wall, "wall", playerOffset, player);
 
         $(wall).listen("placingPending", (pending) => {
           if (!pending) {
@@ -137,7 +137,8 @@ export class GameScene extends Phaser.Scene {
     });
 
     $(this.room.state).players.onRemove((p: PlayerState, id: string) => {
-
+      this.pathRenderer.cleanupPath(`${p.sessionId}_current`);
+      this.pathRenderer.cleanupPath(`${p.sessionId}_pending`);
     });
     // $(player).listen("pathVersion", () => {
     //   this.pathRenderer.drawPath(

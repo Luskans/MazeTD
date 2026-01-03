@@ -13,5 +13,6 @@ export class TowerState extends Schema {
   @type("number") attackSpeed: number;
   @type("number") range: number;
 
+  @type("number") direction: number;
   @type("number") totalCost: number;
 }
