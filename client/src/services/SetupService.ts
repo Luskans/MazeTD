@@ -2,6 +2,7 @@ import type { GameState } from "../../../server/src/rooms/schema/GameState";
 import { MAP_DATA } from "../../../server/src/datas/mapData";
 import type { Room } from "colyseus.js";
 import { getRandom } from "../../../server/src/services/utils";
+import { WaterPostPipeline } from "../shaders/WaterPostPipeline";
 
 const TILE = {
   TOP_LEFT: 64, TOP_START: 65, TOP_END: 68, TOP_RIGHT: 69,
@@ -24,6 +25,7 @@ const TILE = {
 export class SetupService {
   private scene: Phaser.Scene;
   private room: Room<GameState>;
+  private rockSprites: Map<string, Phaser.GameObjects.Sprite> = new Map();
 
   constructor(scene: Phaser.Scene, room: Room<GameState>) {
       this.scene = scene;
@@ -235,17 +237,168 @@ export class SetupService {
   //   });
   // }
 
-  public createPlayersGrid(room: Room<GameState>) {
+  // public createPlayersGrid(room: Room<GameState>) {
+  //   const { width: gridW, height: gridH } = this.getGridPixelSize();
+  //   const players = Array.from(room.state.players.values());
+
+  //   // 0. Créer l'océan
+  //   this.scene.add.tileSprite(
+  //       0, 0, 
+  //       8000, 
+  //       8000, 
+  //       'water'
+  //   ).setDepth(0);
+
+  //   players.forEach((player, index) => {
+  //     const pos = this.computeGridPosition2x4(index, gridW, gridH);
+
+  //     // On définit la taille de notre "île" (Grille + 2 cases de marge pour herbe/falaise)
+  //     const landMargin = 1;
+  //     const islandCols = room.state.grid.col + (landMargin * 2);
+  //     const islandRows = room.state.grid.row + (landMargin * 2);
+
+  //     // 1. Créer la Tilemap dynamique
+  //     const map = this.scene.make.tilemap({
+  //       tileWidth: 32,
+  //       tileHeight: 32,
+  //       width: islandCols,
+  //       height: islandRows,
+  //     });
+
+  //     const tileset = map.addTilesetImage('tileset_all', 'tileset_all');
+      
+  //     // On positionne la tilemap pour que la grille logique tombe au bon endroit
+  //     const startX = pos.x + MAP_DATA.outsideSize;
+  //     const startY = pos.y + MAP_DATA.outsideSize;
+  //     const islandStartX = pos.x + MAP_DATA.outsideSize - (landMargin * 32);
+  //     const islandStartY = pos.y + MAP_DATA.outsideSize - (landMargin * 32);
+  //     const layer0 = map.createBlankLayer(`player_layer0_${index}`, tileset!, islandStartX, islandStartY);
+  //     const layer1 = map.createBlankLayer(`player_layer1_${index}`, tileset!, islandStartX, islandStartY);
+  //     if (!layer0 || !layer1) return;
+
+  //     // 2. On rempli le layer 0 avec les rocks
+  //     // for (const r of room.state.grid.rocks) {
+  //     //   layer0.putTileAt(TILE.WATER, r.gridX + landMargin, r.gridY + landMargin);
+  //     //   layer0.putTileAt(TILE.WATER, r.gridX + 1 + landMargin, r.gridY + landMargin);
+  //     //   layer0.putTileAt(TILE.WATER, r.gridX + landMargin, r.gridY + 1 + landMargin);
+  //     //   layer0.putTileAt(TILE.WATER, r.gridX + 1 + landMargin, r.gridY + 1 + landMargin);
+  //     // }
+
+  //     for (let x = 0; x < islandCols; x++) {
+  //       for (let y = 0; y < islandRows; y++) {
+          
+  //         // 2. Remplissage du layer 0
+  //         const isLeft = x === 0;
+  //         const isRight = x === islandCols - 1;
+  //         const isTop = y === 0;
+  //         const isBottom = y === islandRows - 1;
+
+  //         const isRock = layer0.getTileAt(x, y)?.index === TILE.WATER
+  //         const left = layer0.getTileAt(x - 1, y)?.index !== TILE.WATER;
+  //         const right = layer0.getTileAt(x + 1, y)?.index !== TILE.WATER;
+  //         const top = layer0.getTileAt(x, y - 1)?.index !== TILE.WATER;
+  //         const bot = layer0.getTileAt(x, y + 1)?.index !== TILE.WATER;
+  //         const topLeft = layer0.getTileAt(x - 1, y - 1)?.index !== TILE.WATER;
+  //         const topRight = layer0.getTileAt(x + 1, y - 1)?.index !== TILE.WATER;
+  //         const botLeft = layer0.getTileAt(x - 1, y + 1)?.index !== TILE.WATER;
+  //         const botRight = layer0.getTileAt(x + 1, y + 1)?.index !== TILE.WATER;
+
+  //         const leftIsFlower = layer0.getTileAt(x - 1, y)?.index >= TILE.FLOWER_START && layer0.getTileAt(x - 1, y)?.index <= TILE.FLOWER_END;
+  //         const topIsFlower = layer0.getTileAt(x, y - 1)?.index >= TILE.FLOWER_START && layer0.getTileAt(x, y - 1)?.index >= TILE.FLOWER_START;
+  //         const flowerChance = leftIsFlower || topIsFlower ? 0.5 : 0.04;
+
+  //         const leftIsSlab = layer0.getTileAt(x - 1, y)?.index >= TILE.SLAB_START && layer0.getTileAt(x - 1, y)?.index <= TILE.SLAB_END;
+  //         const topIsSlab = layer0.getTileAt(x, y - 1)?.index >= TILE.SLAB_START && layer0.getTileAt(x, y - 1)?.index >= TILE.SLAB_START;
+  //         const slabChance = leftIsSlab || topIsSlab ? 0.2 : 0.01;
+
+  //         if (isRock) {
+  //           // if (left && top) layer1.putTileAt(TILE.ROCK_TOP_LEFT, x, y);
+  //           // else if (right && top) layer1.putTileAt(TILE.ROCK_TOP_RIGHT, x, y);
+  //           // else if (left && bot) layer1.putTileAt(TILE.ROCK_BOT_LEFT, x, y);
+  //           // else if (right && bot) layer1.putTileAt(TILE.ROCK_BOT_RIGHT, x, y);
+
+  //           // else if (top && botLeft) layer1.putTileAt(TILE.TOP_C_BOT_LEFT, x, y);
+  //           // else if (top && botRight) layer1.putTileAt(TILE.TOP_C_BOT_RIGHT, x, y);
+
+  //           // else if (left && topRight) layer1.putTileAt(TILE.LEFT_C_TOP_RIGHT, x, y);
+  //           // else if (left && botRight) layer1.putTileAt(TILE.LEFT_C_BOT_RIGHT, x, y);
+
+  //           // else if (right && topLeft) layer1.putTileAt(TILE.RIGHT_C_TOP_LEFT, x, y);
+  //           // else if (right && botLeft) layer1.putTileAt(TILE.RIGHT_C_BOT_LEFT, x, y);
+
+  //           // else if (bot && topLeft) layer1.putTileAt(TILE.BOT_C_TOP_LEFT, x, y);
+  //           // else if (bot && topRight) layer1.putTileAt(TILE.BOT_C_TOP_RIGHT, x, y);
+
+  //           // else if (topLeft && !top && !bot && !left && !right) layer1.putTileAt(TILE.C_TOP_LEFT, x, y);
+  //           // else if (topRight && !top && !bot && !left && !right) layer1.putTileAt(TILE.C_TOP_RIGHT, x, y);
+  //           // else if (botLeft && !top && !bot && !left && !right) layer1.putTileAt(TILE.C_BOT_LEFT, x, y);
+  //           // else if (botRight && !top && !bot && !left && !right) layer1.putTileAt(TILE.C_BOT_RIGHT, x, y);
+
+  //           // else if (top) layer1.putTileAt(TILE.ROCK_TOP, x, y);
+  //           // else if (bot) layer1.putTileAt(TILE.ROCK_BOT, x, y);
+  //           // else if (left) layer1.putTileAt(TILE.ROCK_LEFT, x, y);
+  //           // else if (right) layer1.putTileAt(TILE.ROCK_RIGHT, x, y);
+  //           // else continue;
+
+  //           const values = [32, 33, 40, 41, 48, 49];
+  //           const randomValue = values[Math.floor(Math.random() * values.length)];
+  //           layer0.putTileAt(randomValue, x, y);
+
+  //         } else {
+  //           if (isLeft && isTop) {
+  //             layer0.putTileAt(TILE.GRASS_TOP_LEFT, x, y);
+  //             layer1.putTileAt(TILE.TOP_LEFT, x, y);
+  //           } else if (isRight && isTop) {
+  //             layer0.putTileAt(TILE.GRASS_TOP_RIGHT, x, y);
+  //             layer1.putTileAt(TILE.TOP_RIGHT, x, y);
+  //           } else if (isLeft && isBottom) {
+  //             layer1.putTileAt(TILE.BOT_LEFT, x, y);
+  //           } else if (isRight && isBottom) {
+  //             layer1.putTileAt(TILE.BOT_RIGHT, x, y);
+  //           } else if (isTop) {
+  //             layer0.putTileAt(getRandom(TILE.GRASS_START, TILE.GRASS_END), x, y);
+  //             layer1.putTileAt(getRandom(TILE.TOP_START, TILE.TOP_END), x, y);
+  //           } else if (isBottom) {
+  //             layer0.putTileAt(getRandom(TILE.GRASS_START, TILE.GRASS_END), x, y);
+  //             layer1.putTileAt(getRandom(TILE.BOT_START, TILE.BOT_END), x, y);
+  //           } else if (isLeft) {
+  //             layer0.putTileAt(getRandom(TILE.GRASS_START, TILE.GRASS_END), x, y);
+  //             layer1.putTileAt(getRandom(TILE.LEFT_START, TILE.LEFT_END), x, y);
+  //           } else if (isRight) {
+  //             layer0.putTileAt(getRandom(TILE.GRASS_START, TILE.GRASS_END), x, y);
+  //             layer1.putTileAt(getRandom(TILE.RIGHT_START, TILE.RIGHT_END), x, y);
+  //           } else {
+  //             const rand = Math.random();
+  //             // if (rand < slabChance) layer0.putTileAt(getRandom(TILE.SLAB_START, TILE.SLAB_END), x, y);
+  //              if (rand < flowerChance) layer0.putTileAt(getRandom(TILE.FLOWER_START, TILE.FLOWER_END), x, y);
+  //             else layer0.putTileAt(getRandom(TILE.GRASS_START, TILE.GRASS_END), x, y);
+  //             if (rand > 0.98) layer1.putTileAt(getRandom(TILE.STONE_START, TILE.STONE_END), x, y);
+  //             else if (rand > 0.85) layer1.putTileAt(getRandom(TILE.WEED_START, TILE.WEED_END), x, y);
+  //           }
+  //         }
+  //       }
+  //     }
+  //     layer0.setDepth(1);
+  //     layer1.setDepth(2);
+
+  //     // // GRID OVERLAY
+  //     // const gridOverlay = this.scene.add.tileSprite(
+  //     //   startX + (room.state.grid.col * 16),
+  //     //   startY + (room.state.grid.row * 16),
+  //     //   room.state.grid.col * 32,
+  //     //   room.state.grid.row * 32,
+  //     //   'overlay'
+  //     // );
+  //     // gridOverlay.setDepth(2).setAlpha(0.8);
+  //   });
+  // }
+
+  public createPlayersGrid(room: Room<GameState>, ySortGroup: Phaser.GameObjects.Group) {
     const { width: gridW, height: gridH } = this.getGridPixelSize();
     const players = Array.from(room.state.players.values());
 
     // 0. Créer l'océan
-    this.scene.add.tileSprite(
-        0, 0, 
-        8000, 
-        8000, 
-        'water'
-    ).setDepth(0);
+    this.scene.add.tileSprite(0, 0, 8000, 8000, 'water').setDepth(0);
 
     players.forEach((player, index) => {
       const pos = this.computeGridPosition2x4(index, gridW, gridH);
@@ -253,7 +406,7 @@ export class SetupService {
       // On définit la taille de notre "île" (Grille + 2 cases de marge pour herbe/falaise)
       const landMargin = 1;
       const islandCols = room.state.grid.col + (landMargin * 2);
-      const islandRows = room.state.grid.row + (landMargin * 2);
+      const islandRows = room.state.grid.row + (landMargin * 3);
 
       // 1. Créer la Tilemap dynamique
       const map = this.scene.make.tilemap({
@@ -274,172 +427,76 @@ export class SetupService {
       const layer1 = map.createBlankLayer(`player_layer1_${index}`, tileset!, islandStartX, islandStartY);
       if (!layer0 || !layer1) return;
 
-      // 2. On rempli le layer 0 avec les rocks
-      for (const r of room.state.grid.rocks) {
-        // const x = startX + r.gridX * MAP_DATA.cellSize;
-        // const y = startY + r.gridY * MAP_DATA.cellSize;
-        layer0.putTileAt(TILE.WATER, r.gridX + landMargin, r.gridY + landMargin);
-        layer0.putTileAt(TILE.WATER, r.gridX + 1 + landMargin, r.gridY + landMargin);
-        layer0.putTileAt(TILE.WATER, r.gridX + landMargin, r.gridY + 1 + landMargin);
-        layer0.putTileAt(TILE.WATER, r.gridX + 1 + landMargin, r.gridY + 1 + landMargin);
-      }
-
       for (let x = 0; x < islandCols; x++) {
         for (let y = 0; y < islandRows; y++) {
           
-          // 2. Remplissage du layer 0
           const isLeft = x === 0;
           const isRight = x === islandCols - 1;
           const isTop = y === 0;
           const isBottom = y === islandRows - 1;
-
-          const isRock = layer0.getTileAt(x, y)?.index === TILE.WATER
-          const left = layer0.getTileAt(x - 1, y)?.index !== TILE.WATER;
-          const right = layer0.getTileAt(x + 1, y)?.index !== TILE.WATER;
-          const top = layer0.getTileAt(x, y - 1)?.index !== TILE.WATER;
-          const bot = layer0.getTileAt(x, y + 1)?.index !== TILE.WATER;
-          const topLeft = layer0.getTileAt(x - 1, y - 1)?.index !== TILE.WATER;
-          const topRight = layer0.getTileAt(x + 1, y - 1)?.index !== TILE.WATER;
-          const botLeft = layer0.getTileAt(x - 1, y + 1)?.index !== TILE.WATER;
-          const botRight = layer0.getTileAt(x + 1, y + 1)?.index !== TILE.WATER;
-
+          
           const leftIsFlower = layer0.getTileAt(x - 1, y)?.index >= TILE.FLOWER_START && layer0.getTileAt(x - 1, y)?.index <= TILE.FLOWER_END;
           const topIsFlower = layer0.getTileAt(x, y - 1)?.index >= TILE.FLOWER_START && layer0.getTileAt(x, y - 1)?.index >= TILE.FLOWER_START;
           const flowerChance = leftIsFlower || topIsFlower ? 0.5 : 0.04;
-
+          
           const leftIsSlab = layer0.getTileAt(x - 1, y)?.index >= TILE.SLAB_START && layer0.getTileAt(x - 1, y)?.index <= TILE.SLAB_END;
           const topIsSlab = layer0.getTileAt(x, y - 1)?.index >= TILE.SLAB_START && layer0.getTileAt(x, y - 1)?.index >= TILE.SLAB_START;
           const slabChance = leftIsSlab || topIsSlab ? 0.2 : 0.01;
+          
+          // 2. Remplissage du layer 0
+          const rand = Math.random();
+          if (rand < slabChance) layer0.putTileAt(getRandom(TILE.SLAB_START, TILE.SLAB_END), x, y);
+          else if (rand < flowerChance) layer0.putTileAt(getRandom(TILE.FLOWER_START, TILE.FLOWER_END), x, y);
+          else layer0.putTileAt(getRandom(TILE.GRASS_START, TILE.GRASS_END), x, y);
 
-          if (isRock) {
-            if (left && top) layer1.putTileAt(TILE.ROCK_TOP_LEFT, x, y);
-            else if (right && top) layer1.putTileAt(TILE.ROCK_TOP_RIGHT, x, y);
-            else if (left && bot) layer1.putTileAt(TILE.ROCK_BOT_LEFT, x, y);
-            else if (right && bot) layer1.putTileAt(TILE.ROCK_BOT_RIGHT, x, y);
-
-            else if (top && botLeft) layer1.putTileAt(TILE.TOP_C_BOT_LEFT, x, y);
-            else if (top && botRight) layer1.putTileAt(TILE.TOP_C_BOT_RIGHT, x, y);
-
-            else if (left && topRight) layer1.putTileAt(TILE.LEFT_C_TOP_RIGHT, x, y);
-            else if (left && botRight) layer1.putTileAt(TILE.LEFT_C_BOT_RIGHT, x, y);
-
-            else if (right && topLeft) layer1.putTileAt(TILE.RIGHT_C_TOP_LEFT, x, y);
-            else if (right && botLeft) layer1.putTileAt(TILE.RIGHT_C_BOT_LEFT, x, y);
-
-            else if (bot && topLeft) layer1.putTileAt(TILE.BOT_C_TOP_LEFT, x, y);
-            else if (bot && topRight) layer1.putTileAt(TILE.BOT_C_TOP_RIGHT, x, y);
-
-            else if (topLeft && !top && !bot && !left && !right) layer1.putTileAt(TILE.C_TOP_LEFT, x, y);
-            else if (topRight && !top && !bot && !left && !right) layer1.putTileAt(TILE.C_TOP_RIGHT, x, y);
-            else if (botLeft && !top && !bot && !left && !right) layer1.putTileAt(TILE.C_BOT_LEFT, x, y);
-            else if (botRight && !top && !bot && !left && !right) layer1.putTileAt(TILE.C_BOT_RIGHT, x, y);
-
-            else if (top) layer1.putTileAt(TILE.ROCK_TOP, x, y);
-            else if (bot) layer1.putTileAt(TILE.ROCK_BOT, x, y);
-            else if (left) layer1.putTileAt(TILE.ROCK_LEFT, x, y);
-            else if (right) layer1.putTileAt(TILE.ROCK_RIGHT, x, y);
+          // 3. Remplissage du layer 1
+          if (isLeft && isTop) layer1.putTileAt(TILE.TOP_LEFT, x, y);
+          else if (isRight && isTop) layer1.putTileAt(TILE.TOP_RIGHT, x, y);
+          else if (isLeft && isBottom) layer1.putTileAt(TILE.BOT_LEFT, x, y);
+          else if (isRight && isBottom) layer1.putTileAt(TILE.BOT_RIGHT, x, y);
+          else if (isTop) layer1.putTileAt(getRandom(TILE.TOP_START, TILE.TOP_END), x, y);
+          else if (isBottom) layer1.putTileAt(getRandom(TILE.BOT_START, TILE.BOT_END), x, y);
+          else if (isLeft) layer1.putTileAt(getRandom(TILE.LEFT_START, TILE.LEFT_END), x, y);
+          else if (isRight) layer1.putTileAt(getRandom(TILE.RIGHT_START, TILE.RIGHT_END), x, y);
+          else {
+            if (rand > 0.98) layer1.putTileAt(getRandom(TILE.STONE_START, TILE.STONE_END), x, y);
+            else if (rand > 0.85) layer1.putTileAt(getRandom(TILE.WEED_START, TILE.WEED_END), x, y);
             else continue;
-
-          } else {
-            if (isLeft && isTop) {
-              layer0.putTileAt(TILE.GRASS_TOP_LEFT, x, y);
-              layer1.putTileAt(TILE.TOP_LEFT, x, y);
-            } else if (isRight && isTop) {
-              layer0.putTileAt(TILE.GRASS_TOP_RIGHT, x, y);
-              layer1.putTileAt(TILE.TOP_RIGHT, x, y);
-            } else if (isLeft && isBottom) {
-              layer1.putTileAt(TILE.BOT_LEFT, x, y);
-            } else if (isRight && isBottom) {
-              layer1.putTileAt(TILE.BOT_RIGHT, x, y);
-            } else if (isTop) {
-              layer0.putTileAt(getRandom(TILE.GRASS_START, TILE.GRASS_END), x, y);
-              layer1.putTileAt(getRandom(TILE.TOP_START, TILE.TOP_END), x, y);
-            } else if (isBottom) {
-              layer0.putTileAt(getRandom(TILE.GRASS_START, TILE.GRASS_END), x, y);
-              layer1.putTileAt(getRandom(TILE.BOT_START, TILE.BOT_END), x, y);
-            } else if (isLeft) {
-              layer0.putTileAt(getRandom(TILE.GRASS_START, TILE.GRASS_END), x, y);
-              layer1.putTileAt(getRandom(TILE.LEFT_START, TILE.LEFT_END), x, y);
-            } else if (isRight) {
-              layer0.putTileAt(getRandom(TILE.GRASS_START, TILE.GRASS_END), x, y);
-              layer1.putTileAt(getRandom(TILE.RIGHT_START, TILE.RIGHT_END), x, y);
-            } else {
-              const rand = Math.random();
-              if (rand < slabChance) layer0.putTileAt(getRandom(TILE.SLAB_START, TILE.SLAB_END), x, y);
-              else if (rand < flowerChance) layer0.putTileAt(getRandom(TILE.FLOWER_START, TILE.FLOWER_END), x, y);
-              else layer0.putTileAt(getRandom(TILE.GRASS_START, TILE.GRASS_END), x, y);
-              if (rand > 0.98) layer1.putTileAt(getRandom(TILE.STONE_START, TILE.STONE_END), x, y);
-              else if (rand > 0.85) layer1.putTileAt(getRandom(TILE.WEED_START, TILE.WEED_END), x, y);
-            }
           }
         }
       }
       layer0.setDepth(1);
       layer1.setDepth(2);
-    
-              
-
-      //       }
-      //       } else if (!isRock && Math.random() < flowerChance) {
-      //         layer0.putTileAt(getRandom(TILE.FLOWER_START, TILE.FLOWER_END), x, y);
-      //       } else {
-      //         layer0.putTileAt(getRandom(TILE.GRASS_START, TILE.GRASS_END), x, y);
-      //       }
-      //     }
-          
-      //     } else if (isLeft && isTop) {
-      //       layer0.putTileAt(TILE.GRASS_TOP_LEFT, x, y);
-            
-      //     } else if (isRight && isTop) {
-      //       layer0.putTileAt(TILE.GRASS_TOP_RIGHT, x, y);
-      //     } else if (isLeft && isBottom) {
-      //       continue;
-      //     } else if (isRight && isBottom) {
-      //       continue;
-      //     } else if (!isRock && Math.random() < flowerChance) {
-      //       layer0.putTileAt(getRandom(TILE.FLOWER_START, TILE.FLOWER_END), x, y);
-      //     } else {
-      //       layer0.putTileAt(getRandom(TILE.GRASS_START, TILE.GRASS_END), x, y);
-      //     }
-
-      //     // 3. Remplissage du layer 1
-      //     if (isTop && isLeft) layer1.putTileAt(TILE.TOP_LEFT, x, y);
-      //     else if (isTop && isRight) layer1.putTileAt(TILE.TOP_RIGHT, x, y);
-      //     else if (isBottom && isLeft) layer1.putTileAt(TILE.BOT_LEFT, x, y);
-      //     else if (isBottom && isRight) layer1.putTileAt(TILE.BOT_RIGHT, x, y);
-      //     else if (isTop) layer1.putTileAt(getRandom(TILE.TOP_START, TILE.TOP_END), x, y);
-      //     else if (isBottom) layer1.putTileAt(getRandom(TILE.BOT_START, TILE.BOT_END), x, y);
-      //     else if (isLeft) layer1.putTileAt(getRandom(TILE.LEFT_START, TILE.LEFT_END), x, y);
-      //     else if (isRight) layer1.putTileAt(getRandom(TILE.RIGHT_START, TILE.RIGHT_END), x, y);
-      //     else {
-      //       const rand = Math.random();
-      //       if (rand > 0.95) layer1.putTileAt(getRandom(TILE.STONE_START, TILE.STONE_END), x, y);
-      //       else if (rand > 0.85) layer1.putTileAt(getRandom(TILE.WEED_START, TILE.WEED_END), x, y);
-      //       else continue;
-      //     }
-      //   }
-      // }
-
-      // layer0.setDepth(1);
-      // layer1.setDepth(2);
 
       // // GRID OVERLAY
-      // const gridOverlay = this.scene.add.tileSprite(
-      //   startX + (room.state.grid.col * 16),
-      //   startY + (room.state.grid.row * 16),
-      //   room.state.grid.col * 32,
-      //   room.state.grid.row * 32,
-      //   'overlay'
-      // );
-      // gridOverlay.setDepth(2).setAlpha(0.8);
+      const gridOverlay = this.scene.add.tileSprite(
+        startX + (room.state.grid.col * 16),
+        startY + (room.state.grid.row * 16),
+        room.state.grid.col * 32,
+        room.state.grid.row * 32,
+        'overlay'
+      );
+      gridOverlay.setDepth(2).setAlpha(0.8);
 
-      // // ROCKS
-      // for (const r of room.state.grid.rocks) {
-      //   const x = startX + r.gridX * MAP_DATA.cellSize;
-      //   const y = startY + r.gridY * MAP_DATA.cellSize;
-      //   this.scene.add.sprite(x + 32, y + 32, "rock").setDepth(2);
-      // }
-
+      // ROCK SPRITES
+      for (const r of room.state.grid.rocks) {
+        const x = startX + r.gridX * MAP_DATA.cellSize;
+        const y = startY + r.gridY * MAP_DATA.cellSize;
+        // const rand = getRandom(1, 4);
+        // const sprite = this.scene.add.sprite(x + 32, y + 20, `rock${rand}`).setDepth(3);
+        // this.rockSprites.set(r.id, sprite);
+        // this.scene.add.rectangle(
+        //     x + 32,
+        //     y + 32,
+        //     64,
+        //     64,
+        //     0x777777
+        //   ).setDepth(3);
+        const sprite = this.scene.add.sprite(x + 32, y + 32, `rock`).setDepth(3);
+        sprite.setOrigin(0.5, 0.5);
+        this.rockSprites.set(r.id, sprite);
+        ySortGroup.add(sprite);
+      }
     });
   }
 }

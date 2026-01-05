@@ -41,22 +41,36 @@ export class LoadingScene extends Phaser.Scene {
     });
 
     // Assets
+    this.load.image('rockk', 'assets/tilesets/rocks/rock.webp');
+    this.load.image('rock', 'assets/tilesets/rocks/rockk.webp');
+    this.load.image('rock1', 'assets/tilesets/rocks/rock1.webp');
+    this.load.image('rock2', 'assets/tilesets/rocks/rock2.webp');
+    this.load.image('rock3', 'assets/tilesets/rocks/rock3.webp');
+    this.load.image('rock4', 'assets/tilesets/rocks/rock4.webp');
+
     this.load.image('tileset_all', 'assets/tilesets/tileset_all.webp');
     this.load.image('tileset_grass', 'assets/tilesets/tileset_grass.png');
     this.load.image('tileset_tree', 'assets/tilesets/tileset_tree.png');
     this.load.image('tileset_wall', 'assets/tilesets/tileset_wall.png');
     this.load.image('tileset_object', 'assets/tilesets/tileset_object.png');
-    this.load.image('rock', 'assets/tilesets/rock.png');
+
     this.load.image('water', 'assets/tilesets/water.webp');
+    this.load.image('grass', 'assets/grass.png');
+
     this.load.image('overlay', 'assets/tilesets/overlay.webp');
     this.load.image("slime", "assets/enemies/slime.png");
     this.load.image("orc", "assets/enemies/orc.png");
     this.load.image("golem", "assets/enemies/golem.png");
-    this.load.image("basic", "assets/buildings/basic.png");
-    this.load.image("earth_shock", "assets/buildings/earth_shock.png");
-    this.load.image('small_wall', 'assets/buildings/small_wall.png');
-    this.load.image('big_wall', 'assets/buildings/big_wall.png');
 
+    this.load.image("basic", "assets/buildings/basic.webp");
+    // this.load.image("basic", "assets/buildings/basic.png");
+    this.load.image("earth_shock", "assets/buildings/earth_shock.png");
+    // this.load.image('small_wall', 'assets/buildings/small_wall.png');
+    // this.load.image('big_wall', 'assets/buildings/big_wall.png');
+    this.load.image('small_wall3', 'assets/buildings/small_wall.webp');
+    this.load.image('big_wall3', 'assets/buildings/big_wall.webp');
+    this.load.image('small_wall', 'assets/buildings/small_wall2.webp');
+    this.load.image('big_wall', 'assets/buildings/big_wall2.webp');
 
     this.load.image("towerBroken", "assets/towerBroken.png");
     this.load.image('grass', 'assets/grass.png');

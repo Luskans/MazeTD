@@ -30,13 +30,13 @@ export class BuildService {
     this.room = room;
     this.pathfindingService = pathfindingService;
 
-    this.previewContainer = scene.add.container(0, 0).setVisible(false).setDepth(100);
+    this.previewContainer = scene.add.container(0, 0).setVisible(false).setDepth(8000);
     this.gridRect = scene.add.rectangle(0, 0, 64, 64, 0x00ff00, 0.4);
     this.gridRect.setOrigin(0, 0);
     this.ghostSprite = scene.add.sprite(32, 32, "").setAlpha(0.6); // Centré dans le 64x64
     this.previewContainer.add([this.gridRect, this.ghostSprite]);
 
-    this.selectionGraphics = this.scene.add.graphics().setDepth(5);
+    this.selectionGraphics = this.scene.add.graphics().setDepth(8000);
 
     // Écouteurs
     this.scene.game.events.on('choose_tower', this.startPreparation, this);
@@ -74,7 +74,8 @@ export class BuildService {
     this.gridRect.setSize(pixelSize, pixelSize);
     this.ghostSprite.setTexture(event.buildingId);
     this.ghostSprite.setSize(pixelSize, pixelSize);
-    this.ghostSprite.setPosition(pixelSize / 2, pixelSize / 2);
+    // this.ghostSprite.setPosition(pixelSize / 2, pixelSize / 2);
+    this.ghostSprite.setPosition(pixelSize / 2, pixelSize / 4);
     this.previewContainer.setVisible(true);
   }
 
@@ -159,45 +160,36 @@ export class BuildService {
     this.previewContainer.setVisible(false);
   }
 
-  public addBuildingSprite(buildingState: TowerState | WallState, type: "tower" | "wall", playerOffset: {x: number, y: number}, player: PlayerState) {
+  public addBuildingSprite(buildingState: TowerState | WallState, type: "tower" | "wall", playerOffset: {x: number, y: number}, player: PlayerState, ySortGroup: Phaser.GameObjects.Group) {
     const x = (buildingState.gridX * 32) + playerOffset.x;
     const y = (buildingState.gridY * 32) + playerOffset.y;
+    const buildingSize = type === 'wall' ? (buildingState as WallState).size : 2;
 
-    const sprite = this.scene.add.sprite(x, y, buildingState.dataId).setOrigin(0, 0);
+    const sprite = this.scene.add.sprite(x + (buildingSize * 16), y + (buildingSize * 16), buildingState.dataId)
+    sprite.setOrigin(0.5, 0.666);
     sprite.setData('ownerId', player.sessionId);
     sprite.setInteractive();
-    // sprite.on('pointerdown', () => {
-    //   window.dispatchEvent(new CustomEvent('select-building', { 
-    //     detail: { 
-    //       id: buildingState.id, 
-    //       type: type,
-    //       // level: buildingState.level,
-    //       // price: buildingState.price,
-    //       // owner: buildingState.owner // important pour savoir si c'est à moi !
-    //     } 
-    //   }));
-    // });
+    sprite.setDepth(3);
     sprite.on('pointerdown', (pointer: Phaser.Input.Pointer, event: Phaser.Types.Input.EventData) => {
       if (pointer.leftButtonDown()) {
         // event.stopPropagation(); // Empêche d'autres clics
         this.selectBuilding(buildingState, player.sessionId, type, sprite);
       }
     });
-
     if (buildingState.placingPending) {
         sprite.setAlpha(0.5);
         sprite.setTint(0xFFF3A0);
     }
-    sprite.setDepth(10);
 
     this.buildingsSprites.set(buildingState.id, sprite);
+    ySortGroup.add(sprite);
   }
 
   public removeBuildingSprite(id: string) {
     const sprite = this.buildingsSprites.get(id);
     if (sprite) {
-      sprite.destroy();
       this.buildingsSprites.delete(id);
+      sprite.destroy();
     }
   }
 
@@ -219,9 +211,12 @@ export class BuildService {
     // Dessiner l'aura
     this.selectionGraphics.clear();
     this.selectionGraphics.lineStyle(2, 0x00ffff, 1);
-    const centerX = sprite.x + sprite.displayWidth / 2;
-    const centerY = sprite.y + sprite.displayHeight / 2;
-    this.selectionGraphics.strokeCircle(centerX, centerY, sprite.displayWidth * 0.8);
+    // const centerX = sprite.x + sprite.displayWidth / 2;
+    // const centerY = sprite.y + sprite.displayHeight / 2;
+    const centerX = sprite.x;
+    const centerY = sprite.y;
+    // this.selectionGraphics.strokeCircle(centerX, centerY, sprite.displayWidth * 0.8);
+    this.selectionGraphics.strokeCircle(centerX, centerY, sprite.displayWidth * 0.5);
     
     // Animation de pulsation
     this.scene.tweens.add({

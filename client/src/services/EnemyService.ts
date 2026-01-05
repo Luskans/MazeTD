@@ -36,14 +36,17 @@ export class EnemyService {
   //     });
   // }
 
-  createEnemySprite(enemy: EnemyState, enemyId: string, playerOffset: {x: number, y: number}) {
+  createEnemySprite(enemy: EnemyState, enemyId: string, playerOffset: {x: number, y: number}, ySortGroup: Phaser.GameObjects.Group) {
     const x = (enemy.gridX * 32) + playerOffset.x;
     const y = (enemy.gridY * 32) + playerOffset.y;
     const sprite = this.scene.add.sprite(x + 16, y + 16, enemy.dataId);
     sprite.setDisplaySize(32, 32);
+    sprite.setDepth(3);
+    sprite.setOrigin(0.5, 0.666);
     sprite.setData('targetX', x);
     sprite.setData('targetY', y);
     this.enemySprites.set(enemyId, sprite);
+    ySortGroup.add(sprite);
   }
 
   // Cette fonction sera appelée par la Scene à chaque changement

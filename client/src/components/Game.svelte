@@ -4,6 +4,7 @@
   import { GameScene } from '../scenes/GameScene';
   import GameUI from './GameUI.svelte';
   import { sceneStore } from '../stores/screenStore.svelte';
+    import { WaterPostPipeline } from '../shaders/WaterPostPipeline';
 
   let container: HTMLElement;
   let gameInstance = $state<Phaser.Game | null>(null);

@@ -24,6 +24,7 @@ export class GameScene extends Phaser.Scene {
   private waveService!: WaveService;
   private pathfindingService!: PathfindingService;
   private enemyService!: EnemyService;
+  private ySortGroup!: Phaser.GameObjects.Group;
 
   constructor() {
     super("GameScene");
@@ -53,7 +54,10 @@ export class GameScene extends Phaser.Scene {
     this.waveService = new WaveService(this);
     this.enemyService = new EnemyService(this, this.room);
 
-    this.setupService.createPlayersGrid(this.room);   // draw the grid
+    // GROUP OF ALL SPRITES TO Y SORT THEM
+    this.ySortGroup = this.add.group();
+
+    this.setupService.createPlayersGrid(this.room, this.ySortGroup);   // draw the grid
     // this.pathRenderer.drawPath(
     //   Array.from(this.player.currentPath.values()),
     //   this.playerOffset.x,
@@ -80,7 +84,7 @@ export class GameScene extends Phaser.Scene {
       });
 
       $(player).towers.onAdd((tower: TowerState, towerId: string) => {
-        this.buildService.addBuildingSprite(tower, "tower", playerOffset, player);
+        this.buildService.addBuildingSprite(tower, "tower", playerOffset, player, this.ySortGroup);
 
         $(tower).listen("placingPending", (pending) => {
           if (!pending) {
@@ -100,7 +104,7 @@ export class GameScene extends Phaser.Scene {
       });
 
       $(player).walls.onAdd((wall: WallState, wallId: string) => {
-        this.buildService.addBuildingSprite(wall, "wall", playerOffset, player);
+        this.buildService.addBuildingSprite(wall, "wall", playerOffset, player, this.ySortGroup);
 
         $(wall).listen("placingPending", (pending) => {
           if (!pending) {
@@ -120,7 +124,7 @@ export class GameScene extends Phaser.Scene {
       });
 
       $(player).enemies.onAdd((enemy: EnemyState, enemyId: string) => {
-        this.enemyService.createEnemySprite(enemy, enemyId, playerOffset);
+        this.enemyService.createEnemySprite(enemy, enemyId, playerOffset, this.ySortGroup);
 
         $(enemy).listen("gridX", (value) => {
             this.enemyService.updateTargetPosition(enemyId, value, enemy.gridY, playerOffset);
@@ -186,6 +190,9 @@ export class GameScene extends Phaser.Scene {
   update(time: number, delta: number) {
     this.cameraService.update(time, delta);
     this.enemyService.update(time, delta);
+    this.ySortGroup.getChildren().forEach((child: any) => {
+      child.setDepth(child.y);
+    });
   }
 
   private destroy() {
