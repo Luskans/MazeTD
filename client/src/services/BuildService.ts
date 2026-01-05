@@ -11,6 +11,7 @@ export class BuildService {
   private scene: Phaser.Scene;
   private room: Room<GameState>;
   private pathfindingService: PathfindingService;
+  private startClickPos = { x: 0, y: 0 };
 
   private isPreparing = false;
   private previewContainer: Phaser.GameObjects.Container;
@@ -43,11 +44,22 @@ export class BuildService {
     this.scene.input.on('pointermove', this.updatePreview, this);
     this.scene.input.on('pointerdown', this.placeBuilding, this);
     this.scene.input.keyboard!.on('keydown-ESC', this.cancelPreparation, this);
-    // this.scene.input.on('pointerdown', (p: any) => { if (p.rightButtonDown()) this.cancelPreparation(); });
     this.scene.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
       if (pointer.rightButtonDown()) {
-        this.cancelPreparation();
-        this.deselectBuilding();
+        this.startClickPos.x = pointer.x;
+        this.startClickPos.y = pointer.y;
+      }
+    });
+    this.scene.input.on('pointerup', (pointer: Phaser.Input.Pointer) => {
+      if (pointer.rightButtonReleased()) {
+        const distanceMoved = Phaser.Math.Distance.Between(
+          this.startClickPos.x, this.startClickPos.y,
+          pointer.x, pointer.y
+        );
+        if (distanceMoved < 10) {
+          this.cancelPreparation();
+          this.deselectBuilding();
+        }
       }
     });
   }
@@ -231,6 +243,7 @@ export class BuildService {
   }
 
   deselectBuilding() {
+    if (!this.selectedBuildingId) return;
     this.selectedBuildingId = null;
     this.selectionGraphics.clear();
     this.scene.tweens.killTweensOf(this.selectionGraphics);

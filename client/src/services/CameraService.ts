@@ -17,17 +17,35 @@ export class CameraService {
     this.scene = scene;
     this.room = room;
     this.cursors = scene.input.keyboard!.createCursorKeys();
+    this.setupLimits();
     
-    // Écouteurs
     scene.input.on('wheel', this.handleWheel, this);
-    // this.scene.game.events.on('focus_on_player', this.handleFocus, this);
+    scene.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
+      if (pointer.rightButtonDown()) {
+        const camera = this.scene.cameras.main;
+        camera.scrollX -= (pointer.x - pointer.prevPosition.x) / camera.zoom;
+        camera.scrollY -= (pointer.y - pointer.prevPosition.y) / camera.zoom;
+      }
+    });
     
     this.isReady = true;
   }
 
-  /**
-   * Gère le zoom via la molette de la souris.
-   */
+  private setupLimits() {
+    // On calcule la zone totale. Exemple si tes joueurs sont disposés sur l'axe X :
+    const playerCount = this.room.state.players.size || 1;
+    const gridPixelWidth = this.room.state.grid.col * 32;
+    const gridPixelHeight = this.room.state.grid.row * 32;
+    
+    // Supposons que SetupService place les joueurs avec un espacement (offset)
+    // Ici on définit une zone large qui englobe tout (à adapter selon ta disposition)
+    const totalWidth = gridPixelWidth * playerCount * 2; 
+    const totalHeight = gridPixelHeight * 2;
+
+    // On centre les limites autour de l'origine ou de tes offsets
+    this.scene.cameras.main.setBounds(-1000, -1000, totalWidth + 2000, totalHeight + 2000);
+  }
+
   private handleWheel(pointer: Phaser.Input.Pointer, gameObjects: Phaser.GameObjects.GameObject[], deltaX: number, deltaY: number, deltaZ: number) {
     const camera = this.scene.cameras.main;
     
@@ -35,33 +53,25 @@ export class CameraService {
     const zoomFactor = deltaY > 0 ? 1 / 1.1 : 1.1; 
     let newZoom = camera.zoom * zoomFactor;
 
-    // Clamper le zoom dans les limites min/max
     newZoom = Phaser.Math.Clamp(newZoom, this.minZoom, this.maxZoom);
-    camera.zoomTo(newZoom, 50); // Zoom doux en 50ms
+    camera.zoomTo(newZoom, 50);
   }
 
-  /**
-   * Doit être appelé dans la méthode update() de la scène.
-   * Gère le déplacement de la caméra avec les touches directionnelles.
-   */
   public update(time: number, delta: number): void {
     if (!this.isReady) return;
 
     const camera = this.scene.cameras.main;
-    const speed = this.cameraSpeed * (delta / 1000); // Vitesse ajustée au delta time
+    const speed = this.cameraSpeed * (delta / 1000);
     
-    // Réinitialiser la vitesse de la caméra
     camera.scrollX += 0;
     camera.scrollY += 0;
 
-    // Déplacement Horizontal
     if (this.cursors.left.isDown) {
       camera.scrollX -= speed;
     } else if (this.cursors.right.isDown) {
       camera.scrollX += speed;
     }
 
-    // Déplacement Vertical
     if (this.cursors.up.isDown) {
       camera.scrollY -= speed;
     } else if (this.cursors.down.isDown) {
@@ -69,14 +79,6 @@ export class CameraService {
     }
   }
 
-  // public handleFocus(playerIndex: number): void {
-  //   const camera = this.scene.cameras.main;
-  //   const halfGridWidth = Math.round(this.room.state.grid.col * 16);
-  //   const halfGridHeight = Math.round(this.room.state.grid.row * 16);
-  //   const centerOffsetX = halfGridWidth + this.playerOffset.x;
-  //   const centerOffsetY = halfGridHeight + this.playerOffset.y;
-  //   camera.pan(centerOffsetX, centerOffsetY, 600, 'Cubic.easeInOut');
-  // }
   public handleFocus(playerOffset: {x: number, y: number}): void {
     const camera = this.scene.cameras.main;
     const halfGridWidth = Math.round(this.room.state.grid.col * 16);

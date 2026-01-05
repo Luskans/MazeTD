@@ -41,6 +41,14 @@ export class LoadingScene extends Phaser.Scene {
     });
 
     // Assets
+    this.load.image('tileset_all', 'assets/tilesets/tileset_all.webp');
+    this.load.image('tileset_grass', 'assets/tilesets/tileset_grass.png');
+    this.load.image('tileset_tree', 'assets/tilesets/tileset_tree.png');
+    this.load.image('tileset_wall', 'assets/tilesets/tileset_wall.png');
+    this.load.image('tileset_object', 'assets/tilesets/tileset_object.png');
+    this.load.image('rock', 'assets/tilesets/rock.png');
+    this.load.image('water', 'assets/tilesets/water.webp');
+    this.load.image('overlay', 'assets/tilesets/overlay.webp');
     this.load.image("slime", "assets/enemies/slime.png");
     this.load.image("orc", "assets/enemies/orc.png");
     this.load.image("golem", "assets/enemies/golem.png");
@@ -48,6 +56,8 @@ export class LoadingScene extends Phaser.Scene {
     this.load.image("earth_shock", "assets/buildings/earth_shock.png");
     this.load.image('small_wall', 'assets/buildings/small_wall.png');
     this.load.image('big_wall', 'assets/buildings/big_wall.png');
+
+
     this.load.image("towerBroken", "assets/towerBroken.png");
     this.load.image('grass', 'assets/grass.png');
   }
