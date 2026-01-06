@@ -72,6 +72,8 @@ export class LoadingScene extends Phaser.Scene {
     this.load.image('small_wall', 'assets/buildings/small_wall2.webp');
     this.load.image('big_wall', 'assets/buildings/big_wall2.webp');
 
+    this.load.image("spark", "assets/particles/spark.png");
+    this.load.image("dot", "assets/particles/dot.png");
     this.load.image("towerBroken", "assets/towerBroken.png");
     this.load.image('grass', 'assets/grass.png');
   }

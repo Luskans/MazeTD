@@ -1,3 +1,5 @@
+const DIR = { RIGHT: 0, DOWN: 1, LEFT: 2, UP: 3 };
+
 export const TOWERS_DATA: Record<string, any> = {
   basic: {
     id: "basic",
@@ -22,8 +24,9 @@ export const TOWERS_DATA: Record<string, any> = {
     attack: {
       mode: "circle",
       dual: false,
+      quad: false,
       angle: 360,
-      direction: 0
+      direction: DIR.RIGHT
     },
     projectile: {
       type: "bullet",
@@ -74,8 +77,9 @@ export const TOWERS_DATA: Record<string, any> = {
     attack: {
       mode: "circle",
       dual: false,
+      quad: false,
       angle: 360,
-      direction: 0
+      direction: DIR.RIGHT
     },
     projectile: {
       enabled: false,
@@ -127,8 +131,9 @@ export const TOWERS_DATA: Record<string, any> = {
     attack: {
       mode: "cone",
       dual: false,
+      quad: false,
       angle: 90,
-      direction: 0
+      direction: DIR.RIGHT
     },
     projectile: {
       enabled: false,
@@ -180,8 +185,9 @@ export const TOWERS_DATA: Record<string, any> = {
     attack: {
       mode: "circle",
       dual: false,
+      quad: false,
       angle: 360,
-      direction: 0
+      direction: DIR.RIGHT
     },
     projectile: {
       enabled: true,
@@ -233,8 +239,9 @@ export const TOWERS_DATA: Record<string, any> = {
     attack: {
       mode: "line",
       dual: false,
+      quad: true,
       angle: 360,
-      direction: 0
+      direction: DIR.RIGHT
     },
     projectile: {
       enabled: true,
@@ -286,8 +293,9 @@ export const TOWERS_DATA: Record<string, any> = {
     attack: {
       mode: "circle",
       dual: false,
+      quad: false,
       angle: 360,
-      direction: 0
+      direction: DIR.RIGHT
     },
     projectile: {
       enabled: false,
@@ -337,10 +345,11 @@ export const TOWERS_DATA: Record<string, any> = {
       canTargetAir: true,
     },
     attack: {
-      mode: "circle",
-      dual: false,
-      angle: 360,
-      direction: 0
+      mode: "cone",
+      dual: true,
+      quad: false,
+      angle: 60,
+      direction: DIR.RIGHT
     },
     projectile: {
       enabled: false,

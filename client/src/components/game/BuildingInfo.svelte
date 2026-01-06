@@ -1,28 +1,13 @@
 <script lang="ts">
+  import { cubicIn } from "svelte/easing";
+  import { slide } from "svelte/transition";
   import { onMount } from 'svelte';
   import { gameStore } from '../../stores/gameStore.svelte';
-  import { buildingStore } from '../../stores/buildingStore.svelte';
-    import { TOWERS_DATA } from '../../../../server/src/datas/towersData';
-    import { WALLS_DATA } from '../../../../server/src/datas/wallsData';
-
-  // let selectedBuildingDetail: {isVisible: boolean, buildingId?: string, ownerId?: string, type?: string} | null = null;
-  // if (selectedBuildingDetail?.ownerId) const player = gameStore.players.get(ownerId);
-  // if (selectedBuildingDetail?.type) const category = player[type];
-  // if (selectedBuildingDetail?.buildingId) const building = category.get(buildingId);
-
-
-  // let detail = $state({ isVisible: false, buildingId: '', ownerId: '', type: '' });
-  // let player = $derived(gameStore.players.get(detail.ownerId));
-  // let building = $derived(
-  //   player && detail.buildingId && detail.type 
-  //     ? player[detail.type === 'tower' ? 'towers' : 'walls'].get(detail.buildingId)
-  //     : null
-  // );
-  // let isMine = $derived(detail.ownerId === gameStore.me?.sessionId);
+  import { buildingStore, type TowerStore } from '../../stores/buildingStore.svelte';
+  import { TOWERS_DATA } from '../../../../server/src/datas/towersData';
+  import { WALLS_DATA } from '../../../../server/src/datas/wallsData';
   
   let selection = $state({ isVisible: false, buildingId: '', type: '' });
-
-  // On récupère les données directement par l'ID
   let building = $derived(
     selection.type === 'tower' 
       ? buildingStore.towers[selection.buildingId] 
@@ -33,12 +18,11 @@
       ? TOWERS_DATA[building.dataId] 
       : WALLS_DATA[building.dataId]
   )
-
   let isMine = $derived(building?.ownerId === gameStore.me?.sessionId);
+  const notGold = $derived(gameStore.me!.gold < (building as TowerStore).level * 4);
 
   onMount(() => {
     const handleSelect = (e: any) => {
-      console.log("event recu dans building info", e.detail)
       selection = e.detail;
     };
     window.addEventListener('select-building', handleSelect);
@@ -49,37 +33,257 @@
     // On renvoie l'ordre à Phaser/Colyseus
     // Exemple : room.send("buildingAction", { id: selectedBuilding.id, action });
     console.log("Action sur le bâtiment :", action);
+    console.log("dans le composant info", buildingStore)
   }
 </script>
 
 {#if selection.isVisible}
-  <div class="ui-panel">
-    <h3>{data.name}</h3>
-    {#if building.level}<span>Lvl {building.level}</span>{/if}
-    
-    {#if isMine}
-    <div class="buttons">
-      <button onclick={() => handleAction('upgrade')}>Upgrade</button>
-      <button onclick={() => handleAction('rotate')}>Rotate</button>
-      <button class="sell" onclick={() => handleAction('sell')}>Sell</button>
+<div 
+  class="panel" 
+  onclick={(e) => e.stopPropagation()}
+  transition:slide={{ axis: "y", duration: 300, easing: cubicIn }}
+  tabindex="0"
+  role="dialog"
+  onkeydown={(e) => {
+    if (e.key === 'Enter' || e.key === ' ') selection.isVisible = false;
+  }}
+>
+  <div class="content">
+    <header>
+      <h3 class="header">{data.name}</h3>
+    </header>
+    <div class="infos">
+      {#if selection.type === "tower"}
+      <div class="info-line">
+        <div class="item">
+          <span class="value">{(building as TowerStore).level}</span>
+          <p class="text">level</p>
+        </div>
+        <div class="item">
+          <span class="value">{(building as TowerStore).totalDamage.toLocaleString('fr-FR')}</span>
+          <p class="text">total damage</p>
+        </div>
+      </div>
+      <div class="info-line">
+        <div class="item">
+          <span class="value">{(building as TowerStore).damage}</span>
+          <p class="text">damage</p>
+        </div>
+        <div class="item">
+          <span class="value">{(building as TowerStore).totalKills}</span>
+          <p class="text">total kills</p>
+        </div>
+      </div>
+      <div class="info-line">
+        <div class="item">
+          <span class="value">{(building as TowerStore).attackSpeed}</span>
+          <p class="text">attack speed</p>
+        </div>
+        <div class="item">
+          <span class="value">{(building as TowerStore).totalCost}</span>
+          <p class="text">total cost</p>
+        </div>
+      </div>
+      {:else}
+      <p class="text">{data.description}</p>
+      {/if}
     </div>
-    {/if}
-
-    <button class="close" onclick={() => selection.isVisible = false}>X</button>
   </div>
+  {#if isMine}
+  <div class="buttons">
+      {#if selection.type === "tower"}
+      <button 
+        onclick={() => handleAction('upgrade')}
+        disabled={notGold}
+        class:disabled={notGold}
+      >
+        <p class="shortcut">S</p>
+        <div class="image-card">
+          <img src="/icons/heart.png" alt="Upgrade" />
+        </div>
+        <div class="button-text">
+          <p class="title">Upgrade</p>
+          <p class="price" class:disabled={notGold}>{(building as TowerStore).level * 4} 🪙</p>
+        </div>
+      </button>
+      {/if}
+
+      <button onclick={() => handleAction('sell')}>
+        <p class="shortcut">S</p>
+        <div class="image-card">
+          <img src="/icons/heart.png" alt="Sell" />
+        </div>
+        <div class="button-text">
+          <p class="title">Sell</p>
+          {#if selection.type === "tower"}
+          <p class="price">+{Math.round((building as TowerStore).totalCost * data.sellPercentage / 100)} 🪙</p>
+          {:else}
+          <p class="price">+{Math.round(data.price * data.sellPercentage / 100)} 🪙</p>
+          {/if}
+        </div>
+      </button>
+
+      {#if selection.type === "tower"}
+      {#if data.attack.mode !== "circle"}
+      <button class="sell" onclick={() => handleAction('rotate')}>
+        <p class="shortcut">S</p>
+        <div class="image-card">
+          <img src="/icons/heart.png" alt="Rotate" />
+        </div>
+        <div class="button-text">
+          <p class="title">Rotate</p>
+        </div>
+      </button>
+      {/if}
+      {/if}
+  </div>
+  {/if}
+</div>
 {/if}
 
 <style>
-  .ui-panel {
+  .panel {
     position: absolute;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(0, 0, 0, 0.8);
-    color: white;
-    padding: 20px;
-    border-radius: 8px;
-    border: 2px solid #00ffff;
+    bottom: 0;
+    left: 0;
+    background: transparent;
+    z-index: 1;
+    max-height: 90vh;
+    /* min-width: 300px;  */
+    /* max-width: 600px; */
+    contain: layout;
+    display: flex;
+    gap: 8px;
   }
-  .sell { background: #ff4444; }
+  .content {
+    display: flex;
+    flex-direction: column;
+    /* min-width: 300px; */
+  }
+  header {
+    background: var(--secondary);
+    border: 3px solid var(--secondary-dark);
+    border-bottom: none;
+    border-radius: 8px 8px 0 0;
+    padding: 2px 24px;
+    width: fit-content;
+    align-self: center;
+    white-space: nowrap;
+  }
+  h3 {
+    color: var(--text);
+    margin: 0;
+    font-size: 16px;
+    font-weight: bold;
+  }
+  .infos {
+    background: var(--primary-light);
+    border: 3px solid var(--secondary-dark);
+    border-radius: 8px;
+    color: #3d2516;
+    padding: 16px;
+    /* max-height: 88vh;
+    overflow-y: auto;
+    overflow-x: hidden; */
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .info-line {
+    display: grid;
+    grid-template-columns: 96px 96px;
+    align-items: center;
+    gap: 8px;
+  }
+  .item {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  .text, .value {
+    white-space: nowrap;
+    text-wrap: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .value {
+    color: var(--white);
+    font-weight: bold;
+    font-size: 12px;
+  }
+  .text {
+    color: var(--grey);
+    font-size: 10px;
+  }
+  .buttons {
+    display: flex;
+    flex-direction: column;
+    justify-content: end;
+    gap: 8px;
+    padding-bottom: 12px;
+  }
+  button {
+    position: relative;
+    display: flex;
+    align-items: center;
+    /* gap: 8px; */
+    border-radius: 0 8px 8px 8px;
+    overflow: hidden;
+    cursor: pointer;
+    /* padding: 4px 8px; */
+    background: var(--secondary);
+    border: 3px solid var(--secondary-dark);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  button:hover {
+    box-shadow: 0 0 6px 2px var(--secondary-light);
+  }
+  .shortcut {
+    position: absolute;
+    top: 1px;
+    left: 4px;
+    color: var(--white);
+    font-size: 8px;
+    font-weight: bold;
+  }
+  .image-card {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 10px;
+    /* flex: 1;
+    padding: 12px; */
+  }
+  button img {
+    max-width: 12px;
+    max-height: 12px;
+  }
+  .button-text {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+  .title, .price {
+    font-size: 10px;
+    color: var(--text);
+  }
+  .title {
+    font-weight: bold;
+    text-align: left;
+    padding: 3px 8px 3px 0;
+  }
+  .price {
+    background-color: var(--secondary-dark);
+    text-align: end;
+    padding: 2px 8px;
+    color: var(--white);
+  }
+  button.disabled:hover {
+    box-shadow: 0 0 6px 2px var(--danger);
+    cursor: default;
+  }
+  .price.disabled {
+    color: var(--danger);
+  }
 </style>

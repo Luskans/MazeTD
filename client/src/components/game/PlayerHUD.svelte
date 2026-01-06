@@ -1,11 +1,5 @@
 <script lang="ts">
-  import { gameStore } from "../../stores/gameStore.svelte";
-  import Button from "./Button.svelte";
-
-  let { activePanel, onButtonClick } = $props<{
-    activePanel: "players" | "shop" | "waves" | "settings" | null,
-    onButtonClick: (panel: "players" | "shop" | "waves" | "settings") => void
-  }>();
+    import { gameStore } from "../../stores/gameStore.svelte";
 </script>
 
 {#if gameStore.me}
@@ -28,40 +22,8 @@
   </div>
 </div>
 {/if}
-<div class="buttons">
-  <Button 
-    image="players"
-    shortcut="Q"
-    active={activePanel === 'players'}
-    onclick={() => onButtonClick('players')} 
-  />
-  <Button 
-    image="shop"
-    shortcut="W"
-    active={activePanel === 'shop'}
-    onclick={() => onButtonClick('shop')}
-  />
-  <Button 
-    image="waves"
-    shortcut="E"
-    active={activePanel === 'waves'}
-    onclick={() => onButtonClick('waves')} 
-  />
-  <Button 
-    image="settings"
-    shortcut=""
-    active={activePanel === 'settings'}
-    onclick={() => onButtonClick('settings')} 
-  />
-</div>
 
 <style>
-  .buttons {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-  }
   .hud-resources {
     display: flex;
     flex-direction: column;

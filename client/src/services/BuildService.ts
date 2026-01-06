@@ -6,6 +6,7 @@ import type { GameState } from "../../../server/src/rooms/schema/GameState";
 import type { SetupService } from "./SetupService";
 import { getPlayerOffset } from "./utils";
 import type { PlayerState } from "../../../server/src/rooms/schema/PlayerState";
+import { TOWERS_DATA } from "../../../server/src/datas/towersData";
 
 export class BuildService {
   private scene: Phaser.Scene;
@@ -24,6 +25,7 @@ export class BuildService {
 
   private selectionGraphics: Phaser.GameObjects.Graphics;
   private selectedBuildingId: string | null = null;
+  private rangeParticles: Phaser.GameObjects.Particles.ParticleEmitter | null = null;
 
   constructor(scene: Phaser.Scene, room: Room<GameState>, pathfindingService: PathfindingService) {
     this.scene = scene;
@@ -205,35 +207,173 @@ export class BuildService {
     }
   }
 
+  // selectBuilding(buildingState: TowerState | WallState, ownerId: string, type: "tower" | "wall", sprite: Phaser.GameObjects.Sprite) {
+  //   this.selectedBuildingId = buildingState.id;
+    
+  //   // Dessiner l'aura
+  //   this.selectionGraphics.clear();
+  //   this.selectionGraphics.lineStyle(2, 0x00ffff, 1);
+  //   // const centerX = sprite.x + sprite.displayWidth / 2;
+  //   // const centerY = sprite.y + sprite.displayHeight / 2;
+  //   const centerX = sprite.x;
+  //   const centerY = sprite.y;
+  //   this.selectionGraphics.strokeCircle(centerX, centerY, sprite.displayWidth * 0.5);
+    
+  //   // Animation de pulsation
+  //   this.scene.tweens.add({
+  //     targets: this.selectionGraphics,
+  //     alpha: 0.5,
+  //     duration: 800,
+  //     yoyo: true,
+  //     repeat: -1
+  //   });
+
+  //   window.dispatchEvent(new CustomEvent('select-building', { 
+  //     detail: { 
+  //       isVisible: true,
+  //       buildingId: buildingState.id,
+  //       type: type,
+  //       ownerId: ownerId
+  //     } 
+  //   }));
+  // }
   selectBuilding(buildingState: TowerState | WallState, ownerId: string, type: "tower" | "wall", sprite: Phaser.GameObjects.Sprite) {
     this.selectedBuildingId = buildingState.id;
+
+    if (this.rangeParticles) {
+      this.rangeParticles.destroy();
+      this.rangeParticles = null;
+    }
     
-    // Dessiner l'aura
     this.selectionGraphics.clear();
-    this.selectionGraphics.lineStyle(2, 0x00ffff, 1);
-    // const centerX = sprite.x + sprite.displayWidth / 2;
-    // const centerY = sprite.y + sprite.displayHeight / 2;
+    this.scene.tweens.killTweensOf(this.selectionGraphics);
+    this.selectionGraphics.setAlpha(1);
+
+    // Récupérer les données de stats (depuis ton TOWERS_DATA)
+    const towerData = TOWERS_DATA[buildingState.dataId];
+    const fillColor = 0xffffff;
+    const fillAlpha = 0.1;
+    const lineThickness = 2;
+    
+    // Position centrale au sol de la tour (le pied du sprite)
     const centerX = sprite.x;
     const centerY = sprite.y;
-    // this.selectionGraphics.strokeCircle(centerX, centerY, sprite.displayWidth * 0.8);
-    this.selectionGraphics.strokeCircle(centerX, centerY, sprite.displayWidth * 0.5);
-    
-    // Animation de pulsation
-    this.scene.tweens.add({
-      targets: this.selectionGraphics,
-      alpha: 0.5,
-      duration: 800,
-      yoyo: true,
-      repeat: -1
-    });
+    this.selectionGraphics.lineStyle(lineThickness, fillColor, 0.3);
+    this.selectionGraphics.fillStyle(fillColor, fillAlpha);
 
+    if (type === "tower" && towerData) {  
+      const range = (buildingState as TowerState).range;
+      const baseAngle = (towerData.attack.direction || 0) * (Math.PI / 2); // 0, 90, 180, 270 degrés
+      const coneAngleRad = Phaser.Math.DegToRad(towerData.attack.angle || 90);
+
+      switch (towerData.attack.mode) {
+        
+        case 'circle':
+          this.selectionGraphics.fillCircle(centerX, centerY, range);
+          this.selectionGraphics.strokeCircle(centerX, centerY, range);
+          break;
+
+        case 'cone':
+          const drawCone = (rotation: number) => {
+            const start = rotation - (coneAngleRad / 2);
+            const end = rotation + (coneAngleRad / 2);
+            this.selectionGraphics.beginPath();
+            this.selectionGraphics.moveTo(centerX, centerY);
+            this.selectionGraphics.arc(centerX, centerY, range, start, end);
+            this.selectionGraphics.closePath();
+            this.selectionGraphics.fillPath();
+            this.selectionGraphics.strokePath();
+          };
+
+          drawCone(baseAngle);
+          if (towerData.attack.dual) {
+            drawCone(baseAngle + Math.PI); // Direction opposée (+180°)
+          }
+          break;
+
+        // case 'line':
+        //   const lineWidth = 64;
+        //   const drawLine = (rotation: number) => {
+        //     // On utilise la rotation du canvas pour dessiner des rectangles inclinés facilement
+        //     this.selectionGraphics.save();
+        //     this.selectionGraphics.translate(centerX, centerY);
+        //     this.selectionGraphics.rotate(rotation);
+            
+        //     // On dessine le rectangle (x décalé de la moitié de la largeur, y commence à 0 vers le range)
+        //     this.selectionGraphics.fillRect(-lineWidth / 2, 0, lineWidth, range);
+        //     this.selectionGraphics.strokeRect(-lineWidth / 2, 0, lineWidth, range);
+            
+        //     this.selectionGraphics.restore();
+        //   };
+
+        //   drawLine(baseAngle);
+        //   if (towerData.dual) drawLine(baseAngle + Math.PI);
+        //   if (towerData.quad) {
+        //     drawLine(baseAngle + Math.PI / 2);  // +90°
+        //     drawLine(baseAngle - Math.PI / 2);  // -90°
+        //   }
+        //   break;
+        case 'line':
+          const lineWidth = 64;
+          const drawLine = (rotation: number) => {
+            // On calcule la direction du vecteur
+            const vec = new Phaser.Math.Vector2().setToPolar(rotation, range);
+            const perpVec = new Phaser.Math.Vector2().setToPolar(rotation + Math.PI / 2, lineWidth / 2);
+
+            // Calcul des 4 coins du rectangle de la ligne
+            const p1 = { x: centerX + perpVec.x, y: centerY + perpVec.y };
+            const p2 = { x: centerX - perpVec.x, y: centerY - perpVec.y };
+            const p3 = { x: p2.x + vec.x, y: p2.y + vec.y };
+            const p4 = { x: p1.x + vec.x, y: p1.y + vec.y };
+
+            this.selectionGraphics.fillPoints([p1, p2, p3, p4], true);
+            this.selectionGraphics.strokePoints([p1, p2, p3, p4], true);
+          };
+          
+          drawLine(baseAngle);
+          if (towerData.attack.dual) drawLine(baseAngle + Math.PI);
+          if (towerData.attack.quad) {
+            drawLine(baseAngle + Math.PI);
+            drawLine(baseAngle + Math.PI / 2);
+            drawLine(baseAngle - Math.PI / 2);
+          }
+          break;
+      }
+
+      const colors = [0x00ffff, 0xff00ff];
+      this.rangeParticles = this.scene.add.particles(centerX, centerY, 'dot', {
+        speed: { min: 10, max: 20 },
+        scale: { start: 0.13, end: 0 },
+        alpha: { start: 1, end: 0 },
+        lifespan: 2500,
+        tint: colors,
+        frequency: 20,
+        blendMode: 'ADD',
+        emitZone: { 
+          // type: 'random',
+          type: 'edge', 
+          source: new Phaser.Geom.Circle(0, 0, range),
+          quantity: 100,
+        }
+      }).setDepth(this.selectionGraphics.depth);
+
+      // this.scene.tweens.add({
+      //   targets: this.selectionGraphics,
+      //   alpha: 0.4,
+      //   duration: 1000,
+      //   yoyo: true,
+      //   repeat: -1
+      // });
+
+    } else {
+      // Pour les murs ou bâtiments sans range : simple cercle de sélection autour du sprite
+      this.selectionGraphics.lineStyle(2, 0xffffff, 0.8);
+      this.selectionGraphics.strokeCircle(centerX, centerY, sprite.displayWidth * 0.6);
+    }
+
+    // Envoi de l'événement UI
     window.dispatchEvent(new CustomEvent('select-building', { 
-      detail: { 
-        isVisible: true,
-        buildingId: buildingState.id,
-        type: type,
-        ownerId: ownerId
-      } 
+      detail: { isVisible: true, buildingId: buildingState.id, type: type, ownerId: ownerId } 
     }));
   }
 
@@ -243,6 +383,10 @@ export class BuildService {
     this.selectionGraphics.clear();
     this.scene.tweens.killTweensOf(this.selectionGraphics);
     this.selectionGraphics.alpha = 1;
+    if (this.rangeParticles) {
+      this.rangeParticles.destroy();
+      this.rangeParticles = null;
+    }
 
     window.dispatchEvent(new CustomEvent('select-building', { 
       detail: { isVisible: false } 

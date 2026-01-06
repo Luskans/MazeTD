@@ -17,11 +17,16 @@ export const MAP_DATA = {
   waveTimer: 30,
   minRocks: 10,
   maxRocks: 33,
+
   minAreaRadius: 64,
   maxAreaRadius: 192,
   negativeAreaMultiplier: 50,
   minAreaMultiplier: 110,
   maxAreaMultiplier: 200,
+  damageAreaColor: 0,
+  attackSpeedAreaColor: 0,
+  rangeAreaColor: 0,
+  speedAreaColor: 0,
 
   baseLives: 100,
   baseGold: 20000,

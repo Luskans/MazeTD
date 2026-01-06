@@ -11,6 +11,8 @@ export type TowerStore = {
   attackSpeed: number,
   range: number,
   direction: number,
+  totalDamage: number,
+  totalKills: number,
   totalCost: number
 }
 export type WallStore = {

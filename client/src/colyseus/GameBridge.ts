@@ -237,6 +237,8 @@ const setupBuildingListeners = (player: PlayerState, sessionId: string, $: any) 
       attackSpeed: tower.attackSpeed,
       range: tower.range,
       direction: tower.direction,
+      totalDamage: tower.totalDamage,
+      totalKills: tower.totalKills,
       totalCost: tower.totalCost
     };
 
@@ -247,6 +249,8 @@ const setupBuildingListeners = (player: PlayerState, sessionId: string, $: any) 
         buildingStore.towers[towerId].attackSpeed = tower.attackSpeed;
         buildingStore.towers[towerId].range = tower.range;
         buildingStore.towers[towerId].direction = tower.direction;
+        buildingStore.towers[towerId].totalDamage = tower.totalDamage;
+        buildingStore.towers[towerId].totalKills = tower.totalKills;
         buildingStore.towers[towerId].totalCost = tower.totalCost;
       }
     });

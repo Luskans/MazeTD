@@ -58,16 +58,16 @@ export class BuildService {
       console.error(`Tour introuvable pour ${buildingId}.`);
       return
     }
-
+    
     const newTower = new TowerState({
       id: generateId(),
       dataId: data.id,
       gridX: x,
       gridY: y,
       level: 1,
-      damage: data.damage * 1,
-      attackSpeed: data.attackSpeed * 1,
-      range: data.range,
+      damage: Math.round(data.stats.damageMultiplier * 1 / 100),
+      attackSpeed: Math.round(data.stats.attackSpeedMultiplier * 1 / 100),
+      range: data.stats.range,
       totalCost: paymentCost,
       placingPending: isDuringWave,
       sellingPending: false

@@ -1,4 +1,4 @@
-import { Schema, MapSchema, type } from "@colyseus/schema";
+import { Schema, type } from "@colyseus/schema";
 
 export class TowerState extends Schema {
   @type("string") id: string;
@@ -13,6 +13,8 @@ export class TowerState extends Schema {
   @type("number") attackSpeed: number;
   @type("number") range: number;
 
-  @type("number") direction: number;
+  @type("number") direction: number = 0;
+  @type("number") totalDamage: number = 0;
+  @type("number") totalKills: number = 0;
   @type("number") totalCost: number;
 }

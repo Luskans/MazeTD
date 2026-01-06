@@ -5,15 +5,25 @@
   import ShopPanel from './ShopPanel.svelte';
   import WavesPanel from './WavesPanel.svelte';
   import SettingsPanel from './SettingsPanel.svelte';
-  import ActionBar from './ActionBar.svelte';
   import { gameStore } from '../../stores/gameStore.svelte';
   import BuildingInfo from './BuildingInfo.svelte';
+  import Menu from './Menu.svelte';
+  import { onMount } from 'svelte';
   
   let activePanel = $state<"players" | "shop" | "waves" | "settings" | null>(null);
+  let selection = $state({ isVisible: false, buildingId: '', type: '' });
 
   const togglePanel = (panel: "players" | "shop" | "waves" | "settings") => {
     activePanel = (activePanel === panel) ? null : panel;
   };
+
+  onMount(() => {
+    const handleSelect = (e: any) => {
+      if (e.detail.isVisible) activePanel = null;
+    };
+    window.addEventListener('select-building', handleSelect);
+    return () => window.removeEventListener('select-building', handleSelect);
+  });
 </script>
 
 <div class="wave-hud">
@@ -33,7 +43,7 @@
           stitchTiles="stitch"/>
       </filter>
     </svg> -->
-    <ActionBar 
+    <Menu 
       {activePanel} 
       onButtonClick={togglePanel} 
     />
