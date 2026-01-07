@@ -64,7 +64,7 @@ export class GameRoom extends Room<GameState> {
       }
 
       // 1. Vérification des ressources
-      const paymentCost = this.buildService.validatePayment(this.state, player, data.buildingId, data.buildingType);
+      const paymentCost = this.buildService.validateShopPayment(this.state, player, data.buildingId, data.buildingType);
       if (paymentCost === null) {
         client.send("not_enough_gold", "You don't have enough gold.");
         return;
@@ -95,7 +95,7 @@ export class GameRoom extends Room<GameState> {
       const player = this.state.players.get(client.sessionId);
       if (!player) return;
 
-      const paymentCost = this.buildService.validatePayment(this.state, player, data.buildingId, data.buildingType);
+      const paymentCost = this.buildService.validateShopPayment(this.state, player, data.buildingId, data.buildingType);
       if (paymentCost === null) {
         client.send("not_enough_gold", "You don't have enough gold.");
         return;
@@ -110,7 +110,7 @@ export class GameRoom extends Room<GameState> {
       if (!player) return;
       const isDuringWave = this.state.wavePhase === 'running';
 
-      const paymentCost = this.buildService.validatePayment(this.state, player, data.buildingId, data.buildingType);
+      const paymentCost = this.buildService.validateShopPayment(this.state, player, data.buildingId, data.buildingType);
       if (paymentCost === null) {
         client.send("not_enough_gold", "You don't have enough gold.");
         return;
@@ -137,7 +137,7 @@ export class GameRoom extends Room<GameState> {
       player.viewers.delete(data.targetId);
     });
 
-    this.onMessage("player_ready", (client) => {
+    this.onMessage("player_ready", (client: Client) => {
       const player = this.state.players.get(client.sessionId);
       if (!player) return;
 
@@ -151,6 +151,30 @@ export class GameRoom extends Room<GameState> {
         // this._startNextWave();
         this.waveService.startWave();
       }
+    });
+
+    this.onMessage("upgrade_building", (client: Client, data: { buildingId: string }) => {
+      const player = this.state.players.get(client.sessionId);
+      if (!player) return;
+
+      const paymentCost = this.buildService.validateUpgradePayment(this.state, player, data.buildingId);
+      if (paymentCost === null) {
+        client.send("not_enough_gold", "You don't have enough gold.");
+        return;
+      }
+    });
+
+    this.onMessage("sell_building", (client: Client, data: { buildingId: string, buildingType: string }) => {
+      const player = this.state.players.get(client.sessionId);
+      if (!player) return;
+      const isDuringWave = this.state.wavePhase === 'running';
+
+      const paymentCost = this.buildService.validateSellPayment(this.state, player, data.buildingId, data.buildingType, isDuringWave);
+      if (paymentCost === null) {
+        client.send("error_sell_building", "Error to sell the building.");
+        return;
+      }
+      this.pathfindingService.calculateAndSetPath(this.state, player, isDuringWave); 
     });
 
     this.setSimulationInterval((deltaTime: number) => {

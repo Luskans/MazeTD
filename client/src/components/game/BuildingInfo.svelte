@@ -29,11 +29,27 @@
     return () => window.removeEventListener('select-building', handleSelect);
   });
 
-  function handleAction(action: any) {
-    // On renvoie l'ordre à Phaser/Colyseus
-    // Exemple : room.send("buildingAction", { id: selectedBuilding.id, action });
-    console.log("Action sur le bâtiment :", action);
-    console.log("dans le composant info", buildingStore)
+  $effect(() => {
+    if (selection.isVisible && !building) {
+      selection.isVisible = false;
+    }
+  });
+
+  $effect(() => {
+    if (selection.isVisible && building?.sellingPending) {
+      selection.isVisible = false;
+    }
+  });
+
+  function handleAction(action: "upgrade" | "sell" | "rotate") {
+    if (building.sellingPending) return;
+    if (action === "upgrade") {
+      (window as any).phaserGame.events.emit('upgrade_building', { buildingId: selection.buildingId });
+    } else if (action === "sell") {
+      (window as any).phaserGame.events.emit('sell_building', { buildingId: selection.buildingId, buildingType: selection.type });
+    } else {
+      (window as any).phaserGame.events.emit('rotate_building', { buildingId: selection.buildingId, buildingType: selection.type });
+    }
   }
 </script>
 
@@ -89,7 +105,7 @@
       {/if}
     </div>
   </div>
-  {#if isMine}
+  {#if isMine || !building.sellingPending}
   <div class="buttons">
       {#if selection.type === "tower"}
       <button 

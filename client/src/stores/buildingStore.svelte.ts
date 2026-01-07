@@ -14,11 +14,15 @@ export type TowerStore = {
   totalDamage: number,
   totalKills: number,
   totalCost: number
+  placingPending: boolean;
+  sellingPending: boolean;
 }
 export type WallStore = {
   id: string,
   dataId: string,
   ownerId: string,
+  placingPending: boolean;
+  sellingPending: boolean;
 }
 
 export const buildingStore: BuildingStore = $state({

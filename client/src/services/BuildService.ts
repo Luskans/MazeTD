@@ -162,6 +162,10 @@ export class BuildService {
     this.previewContainer.setVisible(false);
   }
 
+  public getSelectedId() {
+    return this.selectedBuildingId;
+  }
+
   public addBuildingSprite(buildingState: TowerState | WallState, type: "tower" | "wall", playerOffset: {x: number, y: number}, player: PlayerState, ySortGroup: Phaser.GameObjects.Group) {
     const x = (buildingState.gridX * 32) + playerOffset.x;
     const y = (buildingState.gridY * 32) + playerOffset.y;
@@ -174,7 +178,7 @@ export class BuildService {
     sprite.setDepth(3);
     sprite.on('pointerdown', (pointer: Phaser.Input.Pointer, event: Phaser.Types.Input.EventData) => {
       if (pointer.leftButtonDown()) {
-        // event.stopPropagation(); // Empêche d'autres clics
+        if (buildingState.sellingPending) return;
         this.selectBuilding(buildingState, player.sessionId, type, sprite);
       }
     });

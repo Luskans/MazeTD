@@ -20,7 +20,7 @@
     (window as any).phaserGame.events.emit('choose_wall', { 
       buildingId: wall.id, 
       buildingType: wall.type, 
-      buildingSize: wall.size 
+      buildingSize: wall.size
     });
   }
 

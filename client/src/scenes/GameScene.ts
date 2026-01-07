@@ -95,12 +95,16 @@ export class GameScene extends Phaser.Scene {
         $(tower).listen("sellingPending", (pending) => {
           if (pending) {
             this.buildService.updateBuildingSprite(tower.id, "selling");
+            if (this.buildService.getSelectedId() === tower.id) {
+              this.buildService.deselectBuilding();
+            }
           }
         });
       });
 
       $(player).towers.onRemove((tower: TowerState, towerId: string) => {
         this.buildService.removeBuildingSprite(towerId);
+        this.buildService.deselectBuilding();
       });
 
       $(player).walls.onAdd((wall: WallState, wallId: string) => {
@@ -115,12 +119,16 @@ export class GameScene extends Phaser.Scene {
         $(wall).listen("sellingPending", (pending) => {
           if (pending) {
             this.buildService.updateBuildingSprite(wall.id, "selling");
+            if (this.buildService.getSelectedId() === wall.id) {
+              this.buildService.deselectBuilding();
+            }
           }
         });
       });
 
       $(player).walls.onRemove((wall: WallState, wallId: string) => {
         this.buildService.removeBuildingSprite(wallId);
+        this.buildService.deselectBuilding();
       });
 
       $(player).enemies.onAdd((enemy: EnemyState, enemyId: string) => {
@@ -174,12 +182,24 @@ export class GameScene extends Phaser.Scene {
     this.room.onMessage("path_blocked", () => {
       console.log("chemin bloquette")
     });
+    this.room.onMessage("error_sell_building", () => {
+      console.log("erreur vente building")
+    });
     this.game.events.on('choose-building', (data: any) => {
       console.log("Création de :", data.buildingId);
     });
     this.game.events.on('focus_on_player', (playerIndex: number) => {
       const playerOffset = this.setupService.getPlayerOffset(playerIndex);
       this.cameraService.handleFocus(playerOffset);
+    });
+    this.game.events.on('upgrade_building', (data: { buildingId: string }) => {
+      this.room.send("upgrade_building", { buildingId: data.buildingId });
+    });
+    this.game.events.on('sell_building', (data: { buildingId: string, buildingType: string }) => {
+      this.room.send("sell_building", { buildingId: data.buildingId, buildingType: data.buildingType });
+    });
+    this.game.events.on('rotate_building', (playerIndex: number) => {
+  
     });
 
 

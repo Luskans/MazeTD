@@ -239,7 +239,9 @@ const setupBuildingListeners = (player: PlayerState, sessionId: string, $: any) 
       direction: tower.direction,
       totalDamage: tower.totalDamage,
       totalKills: tower.totalKills,
-      totalCost: tower.totalCost
+      totalCost: tower.totalCost,
+      placingPending: tower.placingPending,
+      sellingPending: tower.sellingPending
     };
 
     $(tower).onChange(() => {
@@ -252,6 +254,8 @@ const setupBuildingListeners = (player: PlayerState, sessionId: string, $: any) 
         buildingStore.towers[towerId].totalDamage = tower.totalDamage;
         buildingStore.towers[towerId].totalKills = tower.totalKills;
         buildingStore.towers[towerId].totalCost = tower.totalCost;
+        buildingStore.towers[towerId].placingPending = tower.placingPending;
+        buildingStore.towers[towerId].sellingPending = tower.sellingPending;
       }
     });
   });
@@ -265,6 +269,8 @@ const setupBuildingListeners = (player: PlayerState, sessionId: string, $: any) 
       id: wall.id,
       dataId: wall.dataId,
       ownerId: sessionId,
+      placingPending: wall.placingPending,
+      sellingPending: wall.sellingPending
     };
 
     // $(wall).onChange(() => {

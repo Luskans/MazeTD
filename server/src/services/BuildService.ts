@@ -20,7 +20,7 @@ export class BuildService {
     return player.population < player.maxPopulation;
   }
 
-  public validatePayment(state: GameState, player: PlayerState, buildingId: string, buildingType: string): number | null {
+  public validateShopPayment(state: GameState, player: PlayerState, buildingId: string, buildingType: string): number | null {
     let config: "towersConfig" | "upgradesConfig" | "wallsConfig";
     if (buildingType === "tower") {
       config = "towersConfig";
@@ -50,6 +50,82 @@ export class BuildService {
 
     player.gold -= buildingPrice;
     return buildingPrice;
+  }
+
+  public validateUpgradePayment(state: GameState, player: PlayerState, buildingId: string): number | null {
+    const tower = player.towers.get(buildingId);
+    if (!tower) {
+      console.error(`Building introuvable pour l'id ${buildingId}`);
+      return null;
+    }
+
+    if (tower.sellingPending) {
+      console.error(`Tentative d'upgrade le building d'id ${buildingId} pendant le pending.`);
+      return null;
+    }
+
+    const data = TOWERS_DATA[tower.dataId];
+    if (!data) {
+      console.error(`Data introuvables pour ${tower.dataId}`);
+      return null;
+    }
+    const price = tower.level * 4;
+    if (player.gold < price) return null;
+
+    player.gold -= price;
+    tower.level++;
+    tower.damage = Math.round(data.stats.damageMultiplier * tower.level / 100);
+    tower.attackSpeed = Math.round(data.stats.attackSpeedMultiplier * tower.level / 100);
+    tower.totalCost += price;
+
+    return price;
+  }
+
+  public validateSellPayment(state: GameState, player: PlayerState, buildingId: string, buildingType: string, isDuringWave: boolean): number | null {
+    const building = buildingType === "tower" 
+      ? player.towers.get(buildingId) 
+      : player.walls.get(buildingId);
+    if (!building) {
+      console.error(`Building introuvable pour l'id ${buildingId}`);
+      return null;
+    }
+
+    if (building.sellingPending) {
+      console.error(`Tentative de sell le building d'id ${buildingId} pendant le pending.`);
+      return null;
+    }
+
+    const data = buildingType === "tower" 
+      ? TOWERS_DATA[building.dataId] 
+      : WALLS_DATA[building.dataId];
+    if (!data) {
+      console.error(`Data introuvables pour ${building.dataId}`);
+      return null;
+    }
+
+    let goldReceived = 0;
+    if (buildingType === "tower") {
+      goldReceived = Math.round((building as TowerState).totalCost * data.sellPercentage / 100);
+    } else {
+      const config = state.shop.wallsConfig.get(building.dataId);
+      if (config) {
+        goldReceived = Math.round(config.price * data.sellPercentage / 100);
+      }
+    }
+
+    player.gold += goldReceived;
+    player.population--;
+    if (isDuringWave) {
+      building.sellingPending = true;
+    } else {
+      if (buildingType === "tower") {
+        player.towers.delete(buildingId);
+      } else {
+        player.walls.delete(buildingId);
+      }
+    }
+
+    return goldReceived;
   }
 
   public createTower(player: PlayerState, x: number, y: number, buildingId: string, paymentCost: number, isDuringWave: boolean): void {
