@@ -166,6 +166,10 @@ export class BuildService {
     return this.selectedBuildingId;
   }
 
+  public getSprite(buildingId: string) {
+    return this.buildingsSprites.get(buildingId);
+  }
+
   public addBuildingSprite(buildingState: TowerState | WallState, type: "tower" | "wall", playerOffset: {x: number, y: number}, player: PlayerState, ySortGroup: Phaser.GameObjects.Group) {
     const x = (buildingState.gridX * 32) + playerOffset.x;
     const y = (buildingState.gridY * 32) + playerOffset.y;
@@ -267,11 +271,10 @@ export class BuildService {
 
     if (type === "tower" && towerData) {  
       const range = (buildingState as TowerState).range;
-      const baseAngle = (towerData.attack.direction || 0) * (Math.PI / 2); // 0, 90, 180, 270 degrés
+      const baseAngle = ((buildingState as TowerState).direction) * (Math.PI / 2); // 0, 90, 180, 270 degrés
       const coneAngleRad = Phaser.Math.DegToRad(towerData.attack.angle || 90);
 
       switch (towerData.attack.mode) {
-        
         case 'circle':
           this.selectionGraphics.fillCircle(centerX, centerY, range);
           this.selectionGraphics.strokeCircle(centerX, centerY, range);

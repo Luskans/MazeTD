@@ -177,6 +177,15 @@ export class GameRoom extends Room<GameState> {
       this.pathfindingService.calculateAndSetPath(this.state, player, isDuringWave); 
     });
 
+    this.onMessage("rotate_building", (client: Client, data: { buildingId: string }) => {
+      const player = this.state.players.get(client.sessionId);
+      const tower = player?.towers.get(data.buildingId);
+      
+      if (tower && !tower.sellingPending) {
+          tower.direction = (tower.direction + 1) % 4;
+      }
+    });
+
     this.setSimulationInterval((deltaTime: number) => {
         this.enemyService.update(deltaTime);
         // this.combatService.update(deltaTime);

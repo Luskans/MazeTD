@@ -198,8 +198,18 @@ export class GameScene extends Phaser.Scene {
     this.game.events.on('sell_building', (data: { buildingId: string, buildingType: string }) => {
       this.room.send("sell_building", { buildingId: data.buildingId, buildingType: data.buildingType });
     });
-    this.game.events.on('rotate_building', (playerIndex: number) => {
-  
+    this.game.events.on('rotate_building', (data: { buildingId: string }) => {
+      this.room.send("rotate_building", { buildingId: data.buildingId });
+    });
+    this.game.events.on('rotate_building', (data: { buildingId: string }) => {
+      const player = this.room.state.players.get(this.room.sessionId);
+      const tower = player?.towers.get(data.buildingId);
+      const sprite = this.buildService.getSprite(data.buildingId);
+
+      if (tower && sprite) {
+        tower.direction = (tower.direction + 1) % 4;
+        this.buildService.selectBuilding(tower, player.sessionId, "tower", sprite);
+      }
     });
 
 

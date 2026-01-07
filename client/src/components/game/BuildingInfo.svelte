@@ -48,7 +48,7 @@
     } else if (action === "sell") {
       (window as any).phaserGame.events.emit('sell_building', { buildingId: selection.buildingId, buildingType: selection.type });
     } else {
-      (window as any).phaserGame.events.emit('rotate_building', { buildingId: selection.buildingId, buildingType: selection.type });
+      (window as any).phaserGame.events.emit('rotate_building', { buildingId: selection.buildingId });
     }
   }
 </script>
