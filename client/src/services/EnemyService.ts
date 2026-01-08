@@ -81,10 +81,10 @@ export class EnemyService {
   }
 
   destroyEnemySprite(id: string) {
-      const sprite = this.enemySprites.get(id);
-      if (sprite) {
-          sprite.destroy();
-          this.enemySprites.delete(id);
-      }
+    const sprite = this.enemySprites.get(id);
+    if (sprite) {
+      sprite.destroy();
+      this.enemySprites.delete(id);
+    }
   }
 }

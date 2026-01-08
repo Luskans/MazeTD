@@ -52,7 +52,7 @@ export class BuildService {
     return buildingPrice;
   }
 
-  public validateUpgradePayment(state: GameState, player: PlayerState, buildingId: string): number | null {
+  public validateLevelUpPayment(state: GameState, player: PlayerState, buildingId: string): number | null {
     const tower = player.towers.get(buildingId);
     if (!tower) {
       console.error(`Building introuvable pour l'id ${buildingId}`);
@@ -60,7 +60,7 @@ export class BuildService {
     }
 
     if (tower.sellingPending) {
-      console.error(`Tentative d'upgrade le building d'id ${buildingId} pendant le pending.`);
+      console.error(`Tentative de level up le building d'id ${buildingId} pendant le pending.`);
       return null;
     }
 
@@ -187,8 +187,8 @@ export class BuildService {
     upgrade.currentValue += upgradeData.upgradeValue;
     upgrade.currentCost = upgrade.nextCost;
     upgrade.nextValue = upgrade.currentValue + upgradeData.upgradeValue;
-    upgrade.nextCost = Math.round(upgrade.currentCost * upgradeConfig.upgradeMultiplier / 100);
-    upgrade.nextCost = upgrade.currentCost + Math.round(upgradeData.price * upgradeConfig.upgradeMultiplier / 100);
+    // upgrade.nextCost = Math.round(upgrade.currentCost * upgradeConfig.upgradeMultiplier / 100); // exponential
+    upgrade.nextCost = upgrade.currentCost + Math.round(upgradeData.price * upgradeConfig.upgradeMultiplier / 100); // linear
 
     this.applyUpgrade(state, player, upgrade);
   }

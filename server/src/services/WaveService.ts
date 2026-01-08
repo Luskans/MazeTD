@@ -177,13 +177,17 @@ export class WaveService {
         if (w.placingPending) w.placingPending = false;
         if (w.sellingPending) player.walls.delete(wallId);
       });
+      player.rocks.forEach((r, rockId) => {
+        if (r.destroyPending) player.rocks.delete(rockId);
+      });
 
       if (player.pendingPath.length > 0) {
         player.currentPath.clear();
         player.currentPath.push(...player.pendingPath);
         player.currentPathVersion++;
-        // player.currentPath = player.pendingPath;
-        // player.pendingPath = null;
+        
+        player.pendingPath.clear(); // On vide le pending après l'avoir appliqué
+        player.pendingPathVersion++;
       }
     });
   }

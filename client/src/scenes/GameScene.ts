@@ -13,6 +13,7 @@ import type { EnemyState } from "../../../server/src/rooms/schema/EnemyState";
 import { EnemyService } from "../services/EnemyService";
 import type { TowerState } from "../../../server/src/rooms/schema/TowerState";
 import type { WallState } from "../../../server/src/rooms/schema/WallState";
+import type { RockState } from "../../../server/src/rooms/schema/RockState";
 
 export class GameScene extends Phaser.Scene {
   private room!: Room<GameState>;
@@ -81,6 +82,18 @@ export class GameScene extends Phaser.Scene {
         this.pathRenderer.drawPath(Array.from(player.pendingPath.values()), playerOffset, "pending", sessionId);
         //@ts-ignore
         console.log("Pending Chemin changé, nouvelle state de la game : ", this.room.state.toJSON())
+      });
+
+      $(player).rocks.onAdd((rock: RockState, rockId: string) => {
+        $(rock).listen("destroyPending", (pending) => {
+          if (pending) {
+            this.setupService.updateRockSprite(rockId);
+          }
+        });
+      });
+
+      $(player).rocks.onRemove((rock: RockState, rockId: string) => {
+        this.setupService.removeRockSprite(rockId);
       });
 
       $(player).towers.onAdd((tower: TowerState, towerId: string) => {
@@ -192,16 +205,14 @@ export class GameScene extends Phaser.Scene {
       const playerOffset = this.setupService.getPlayerOffset(playerIndex);
       this.cameraService.handleFocus(playerOffset);
     });
-    this.game.events.on('upgrade_building', (data: { buildingId: string }) => {
-      this.room.send("upgrade_building", { buildingId: data.buildingId });
+    this.game.events.on('levelup_building', (data: { buildingId: string }) => {
+      this.room.send("levelup_building", { buildingId: data.buildingId });
     });
     this.game.events.on('sell_building', (data: { buildingId: string, buildingType: string }) => {
       this.room.send("sell_building", { buildingId: data.buildingId, buildingType: data.buildingType });
     });
     this.game.events.on('rotate_building', (data: { buildingId: string }) => {
       this.room.send("rotate_building", { buildingId: data.buildingId });
-    });
-    this.game.events.on('rotate_building', (data: { buildingId: string }) => {
       const player = this.room.state.players.get(this.room.sessionId);
       const tower = player?.towers.get(data.buildingId);
       const sprite = this.buildService.getSprite(data.buildingId);

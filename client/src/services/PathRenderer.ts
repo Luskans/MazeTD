@@ -154,18 +154,29 @@ export class PathRenderer {
     const graphics = this.scene.add.graphics().setDepth(10);
     // const color = type === "current" ? 0x00ffff : 0xff00ff;
     const color = 0x00ffff;
-
     const points = path.map(node => ({
       x: offset.x + (node.gridX * 32) + 16,
       y: offset.y + (node.gridY * 32) + 16
     }));
 
+    let particles: Phaser.GameObjects.Particles.ParticleEmitter | undefined;
+    let tween: Phaser.Tweens.Tween | undefined;
+
     // --- RENDU DU CHEMIN ---
     if (type === "current") {
       this.drawGlowPath(graphics, points, color);
+      const waveData = this.createEnergyWave(points, color);
+      particles = waveData.particles;
+      tween = waveData.tween;
     } else {
       this.drawDashedPath(graphics, points, color);
     }
+
+    this.paths.set(pathKey, {
+      graphics,
+      particles: particles as any, // On stocke même si undefined pour cleanupPath
+      tween: tween as any
+    });
 
     // --- EFFET DE PULSE ---
     // this.scene.tweens.add({
@@ -177,15 +188,15 @@ export class PathRenderer {
     // });
 
     // --- EFFET D'ONDE ---
-    if (type === "current") {
-      const waveData = this.createEnergyWave(points, color);
+    // if (type === "current") {
+    //   const waveData = this.createEnergyWave(points, color);
 
-      this.paths.set(pathKey, {
-        graphics,
-        particles: waveData.particles,
-        tween: waveData.tween
-      });
-    }
+    //   this.paths.set(pathKey, {
+    //     graphics,
+    //     particles: waveData.particles,
+    //     tween: waveData.tween
+    //   });
+    // }
   }
 
   private drawDashedPath(graphics: Phaser.GameObjects.Graphics, points: {x: number, y: number}[], color: number) {
@@ -286,13 +297,12 @@ export class PathRenderer {
     return { particles, tween };
   }
 
-
   public cleanupPath(pathKey: string) {
     const existing = this.paths.get(pathKey);
     if (existing) {
-      existing.graphics.destroy();
-      existing.particles.destroy();
-      existing.tween.stop();
+      if (existing.graphics) existing.graphics.destroy();
+      if (existing.particles) existing.particles.destroy();
+      if (existing.tween) existing.tween.stop();
       this.paths.delete(pathKey);
     }
   }

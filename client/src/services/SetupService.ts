@@ -3,6 +3,7 @@ import { MAP_DATA } from "../../../server/src/datas/mapData";
 import type { Room } from "colyseus.js";
 import { getRandom } from "../../../server/src/services/utils";
 import { WaterPostPipeline } from "../shaders/WaterPostPipeline";
+import type { RockState } from "../../../server/src/rooms/schema/RockState";
 
 const TILE = {
   TOP_LEFT: 64, TOP_START: 65, TOP_END: 68, TOP_RIGHT: 69,
@@ -498,5 +499,32 @@ export class SetupService {
         ySortGroup.add(sprite);
       }
     });
+  }
+
+  public createRockSprite(rock: RockState, offsetX: number, offsetY: number, landMargin: number, ySortGroup: Phaser.GameObjects.Group) {
+    const sprite = this.scene.add.sprite(offsetX + (landMargin * 32), offsetY + (landMargin * 32), `rock`).setDepth(3);
+    sprite.setOrigin(0.5, 0.5);
+    this.rockSprites.set(rock.id, sprite);
+    ySortGroup.add(sprite);
+  }
+
+  public updateRockSprite(rockId: string) {
+    const sprite = this.rockSprites.get(rockId);
+    if (sprite) {
+      sprite.setAlpha(0.5);
+      sprite.setTint(0xF8BBD0);
+    }
+  }
+
+  public removeRockSprite(rockId: string) {
+    const sprite = this.rockSprites.get(rockId);
+    if (sprite) {
+      sprite.destroy();
+      this.rockSprites.delete(rockId);
+    }
+  }
+
+  public destroy() {
+
   }
 }

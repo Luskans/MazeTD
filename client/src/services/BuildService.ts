@@ -245,7 +245,7 @@ export class BuildService {
   //     } 
   //   }));
   // }
-  selectBuilding(buildingState: TowerState | WallState, ownerId: string, type: "tower" | "wall", sprite: Phaser.GameObjects.Sprite) {
+  public selectBuilding(buildingState: TowerState | WallState, ownerId: string, type: "tower" | "wall", sprite: Phaser.GameObjects.Sprite) {
     this.selectedBuildingId = buildingState.id;
 
     if (this.rangeParticles) {
@@ -384,7 +384,7 @@ export class BuildService {
     }));
   }
 
-  deselectBuilding() {
+  public deselectBuilding() {
     if (!this.selectedBuildingId) return;
     this.selectedBuildingId = null;
     this.selectionGraphics.clear();

@@ -48,10 +48,12 @@ export class PathfindingService {
     const gridMap = Array.from({ length: rows }, () => new Array(cols).fill(FREE));
 
     for (const rock of player.rocks.values()) {
-      for (let x = 0; x < 2; x++) {
-        for (let y = 0; y < 2; y++) {
-          if (rock.gridY + y < rows && rock.gridX + x < cols) {
-            gridMap[rock.gridY + y][rock.gridX + x] = BLOCKED;
+      if (!rock.destroyPending) {
+        for (let x = 0; x < 2; x++) {
+          for (let y = 0; y < 2; y++) {
+            if (rock.gridY + y < rows && rock.gridX + x < cols) {
+              gridMap[rock.gridY + y][rock.gridX + x] = BLOCKED;
+            }
           }
         }
       }
@@ -577,14 +579,14 @@ export class PathfindingService {
         player.currentPath.clear();
         player.currentPath.push(...fullPath);
         player.currentPathVersion++;
-        player.pendingPath.clear();
-        player.pendingPath.push(...fullPath);
-        player.pendingPathVersion++;
+        // player.pendingPath.clear();
+        // player.pendingPath.push(...fullPath);
+        // player.pendingPathVersion++;
+        if (player.pendingPath.length > 0) {
+            player.pendingPath.clear();
+            player.pendingPathVersion++;
+        }
       }
-      // player.currentPath.clear();
-      // player.currentPath.push(...fullPath);
-      // player.pathVersion++;
-      // player.currentPath.push(...optimizedPath);
     }
     return fullPath;
     // return optimizedPath;

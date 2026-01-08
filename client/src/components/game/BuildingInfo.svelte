@@ -41,10 +41,10 @@
     }
   });
 
-  function handleAction(action: "upgrade" | "sell" | "rotate") {
+  function handleAction(action: "levelup" | "sell" | "rotate") {
     if (building.sellingPending) return;
-    if (action === "upgrade") {
-      (window as any).phaserGame.events.emit('upgrade_building', { buildingId: selection.buildingId });
+    if (action === "levelup") {
+      (window as any).phaserGame.events.emit('levelup_building', { buildingId: selection.buildingId });
     } else if (action === "sell") {
       (window as any).phaserGame.events.emit('sell_building', { buildingId: selection.buildingId, buildingType: selection.type });
     } else {
@@ -109,16 +109,16 @@
   <div class="buttons">
       {#if selection.type === "tower"}
       <button 
-        onclick={() => handleAction('upgrade')}
+        onclick={() => handleAction('levelup')}
         disabled={notGold}
         class:disabled={notGold}
       >
         <p class="shortcut">S</p>
         <div class="image-card">
-          <img src="/icons/heart.png" alt="Upgrade" />
+          <img src="/icons/heart.png" alt="Level up" />
         </div>
         <div class="button-text">
-          <p class="title">Upgrade</p>
+          <p class="title">Level up</p>
           <p class="price" class:disabled={notGold}>{(building as TowerStore).level * 4} 🪙</p>
         </div>
       </button>

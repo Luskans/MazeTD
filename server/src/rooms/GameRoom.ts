@@ -116,11 +116,19 @@ export class GameRoom extends Room<GameState> {
         return;
       }
 
-      if (player.rocks.has(data.rockId)) {
-        player.rocks.delete(data.rockId); 
-        this.pathfindingService.calculateAndSetPath(this.state, player, isDuringWave); 
-      }
       this.buildService.buyUpgrade(this.state, player, data.buildingId);
+
+      if (isDuringWave) {
+        const rock = player.rocks.get(data.rockId);
+        if (rock) {
+          rock.destroyPending = true;
+        }
+      } else {
+        if (player.rocks.has(data.rockId)) {
+          player.rocks.delete(data.rockId); 
+        }
+      }
+      this.pathfindingService.calculateAndSetPath(this.state, player, isDuringWave); 
     });
 
     this.onMessage("grant_vision", (client: Client, data: { targetId: string }) => {
@@ -153,11 +161,11 @@ export class GameRoom extends Room<GameState> {
       }
     });
 
-    this.onMessage("upgrade_building", (client: Client, data: { buildingId: string }) => {
+    this.onMessage("levelup_building", (client: Client, data: { buildingId: string }) => {
       const player = this.state.players.get(client.sessionId);
       if (!player) return;
 
-      const paymentCost = this.buildService.validateUpgradePayment(this.state, player, data.buildingId);
+      const paymentCost = this.buildService.validateLevelUpPayment(this.state, player, data.buildingId);
       if (paymentCost === null) {
         client.send("not_enough_gold", "You don't have enough gold.");
         return;
