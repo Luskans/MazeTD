@@ -10,24 +10,24 @@
   function handleTowerClick(tower: any) {
     console.log("data", tower);
     (window as any).phaserGame.events.emit('choose_tower', { 
-      buildingId: tower.id, 
-      buildingType: tower.type, 
-      buildingSize: tower.size
+      dataId: tower.id, 
+      type: tower.type, 
+      size: tower.size
     });
   }
 
   function handleWallClick(wall: any) {
     (window as any).phaserGame.events.emit('choose_wall', { 
-      buildingId: wall.id, 
-      buildingType: wall.type, 
-      buildingSize: wall.size
+      dataId: wall.id, 
+      type: wall.type, 
+      size: wall.size
     });
   }
 
   function handleUpgradeClick(upgrade: any) {
     (window as any).phaserGame.events.emit('choose_upgrade', {
-      buildingId: upgrade.id, 
-      buildingType: upgrade.type, 
+      dataId: upgrade.id, 
+      type: upgrade.type, 
       // buildingSize: upgrade.size 
     });
   }

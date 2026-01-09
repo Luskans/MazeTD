@@ -3,12 +3,11 @@ import type { TowerState } from "../../../server/src/rooms/schema/TowerState";
 import type { WallState } from "../../../server/src/rooms/schema/WallState";
 import { PathfindingService } from "../../../server/src/services/PathfindingService";
 import type { GameState } from "../../../server/src/rooms/schema/GameState";
-import type { SetupService } from "./SetupService";
 import { getPlayerOffset } from "./utils";
 import type { PlayerState } from "../../../server/src/rooms/schema/PlayerState";
 import { TOWERS_DATA } from "../../../server/src/datas/towersData";
 
-export class BuildService {
+export class BuildingService {
   private scene: Phaser.Scene;
   private room: Room<GameState>;
   private pathfindingService: PathfindingService;
@@ -18,7 +17,7 @@ export class BuildService {
   private previewContainer: Phaser.GameObjects.Container;
   private ghostSprite: Phaser.GameObjects.Sprite;
   private gridRect: Phaser.GameObjects.Rectangle;
-  private currentBuildingId: string | null = null;
+  private currentBuildingDataId: string | null = null;
   private currentBuildingType: string | null = null;
   private currentBuildingSize: number | null = null;
   private buildingsSprites: Map<string, Phaser.GameObjects.Sprite> = new Map();
@@ -66,15 +65,15 @@ export class BuildService {
     });
   }
 
-  private startPreparation(event: any) {
+  private startPreparation(event: {dataId: string, type: string, size: number}) {
     this.isPreparing = true;
-    this.currentBuildingId = event.buildingId;
-    this.currentBuildingType = event.buildingType;
-    this.currentBuildingSize = event.buildingSize;
-    const pixelSize = event.buildingSize * 32;
+    this.currentBuildingDataId = event.dataId;
+    this.currentBuildingType = event.type;
+    this.currentBuildingSize = event.size;
+    const pixelSize = event.size * 32;
 
     this.gridRect.setSize(pixelSize, pixelSize);
-    this.ghostSprite.setTexture(event.buildingId);
+    this.ghostSprite.setTexture(event.dataId);
     this.ghostSprite.setSize(pixelSize, pixelSize);
     // this.ghostSprite.setPosition(pixelSize / 2, pixelSize / 2);
     this.ghostSprite.setPosition(pixelSize / 2, pixelSize / 4);
@@ -102,17 +101,17 @@ export class BuildService {
     const player = this.room.state.players.get(this.room.sessionId);
     const gridSize = this.currentBuildingSize!;
 
-    if (gridX < 0 || gridY < 0 || 
-      gridX + gridSize > this.room.state.grid.col || 
+    if (gridX < 0 || gridY < 0 ||
+      gridX + gridSize > this.room.state.grid.col ||
       gridY + gridSize > this.room.state.grid.row) {
       return false;
     }
 
     const hasCollision = (otherX: number, otherY: number, otherSize: number) => {
-      return !(gridX + gridSize <= otherX || 
-              otherX + otherSize <= gridX || 
-              gridY + gridSize <= otherY || 
-              otherY + otherSize <= gridY);
+      return !(gridX + gridSize <= otherX ||
+        otherX + otherSize <= gridX ||
+        gridY + gridSize <= otherY ||
+        otherY + otherSize <= gridY);
     };
 
     for (const rock of player.rocks.values()) {
@@ -141,7 +140,7 @@ export class BuildService {
     if (!this.checkLocalValidity(gridX, gridY)) return;
 
     const isDuringWave = this.room.state.wavePhase === 'running';
-    const isPathPossible = this.pathfindingService.validatePlacement(this.room.state, player, gridX, gridY, this.currentBuildingSize as number, isDuringWave);
+    const isPathPossible = this.pathfindingService.validatePlacement(player, gridX, gridY, this.currentBuildingSize as number, isDuringWave);
 
     if (!isPathPossible) {
       console.log('Construction impossible : chemin bloqué.')
@@ -149,11 +148,11 @@ export class BuildService {
     }
 
     this.room.send("place_building", {
-      buildingId: this.currentBuildingId,
+      dataId: this.currentBuildingDataId,
       x: gridX,
       y: gridY,
-      buildingSize: this.currentBuildingSize,
-      buildingType: this.currentBuildingType
+      size: this.currentBuildingSize,
+      type: this.currentBuildingType
     });
   }
 
@@ -170,7 +169,7 @@ export class BuildService {
     return this.buildingsSprites.get(buildingId);
   }
 
-  public addBuildingSprite(buildingState: TowerState | WallState, type: "tower" | "wall", playerOffset: {x: number, y: number}, player: PlayerState, ySortGroup: Phaser.GameObjects.Group) {
+  public addBuildingSprite(buildingState: TowerState | WallState, type: "tower" | "wall", playerOffset: { x: number, y: number }, player: PlayerState, ySortGroup: Phaser.GameObjects.Group) {
     const x = (buildingState.gridX * 32) + playerOffset.x;
     const y = (buildingState.gridY * 32) + playerOffset.y;
     const buildingSize = type === 'wall' ? (buildingState as WallState).size : 2;
@@ -187,8 +186,8 @@ export class BuildService {
       }
     });
     if (buildingState.placingPending) {
-        sprite.setAlpha(0.5);
-        sprite.setTint(0xFFF3A0);
+      sprite.setAlpha(0.5);
+      sprite.setTint(0xFFF3A0);
     }
 
     this.buildingsSprites.set(buildingState.id, sprite);
@@ -217,7 +216,7 @@ export class BuildService {
 
   // selectBuilding(buildingState: TowerState | WallState, ownerId: string, type: "tower" | "wall", sprite: Phaser.GameObjects.Sprite) {
   //   this.selectedBuildingId = buildingState.id;
-    
+
   //   // Dessiner l'aura
   //   this.selectionGraphics.clear();
   //   this.selectionGraphics.lineStyle(2, 0x00ffff, 1);
@@ -226,7 +225,7 @@ export class BuildService {
   //   const centerX = sprite.x;
   //   const centerY = sprite.y;
   //   this.selectionGraphics.strokeCircle(centerX, centerY, sprite.displayWidth * 0.5);
-    
+
   //   // Animation de pulsation
   //   this.scene.tweens.add({
   //     targets: this.selectionGraphics,
@@ -252,7 +251,7 @@ export class BuildService {
       this.rangeParticles.destroy();
       this.rangeParticles = null;
     }
-    
+
     this.selectionGraphics.clear();
     this.scene.tweens.killTweensOf(this.selectionGraphics);
     this.selectionGraphics.setAlpha(1);
@@ -262,14 +261,14 @@ export class BuildService {
     const fillColor = 0xffffff;
     const fillAlpha = 0.1;
     const lineThickness = 2;
-    
+
     // Position centrale au sol de la tour (le pied du sprite)
     const centerX = sprite.x;
     const centerY = sprite.y;
     this.selectionGraphics.lineStyle(lineThickness, fillColor, 0.3);
     this.selectionGraphics.fillStyle(fillColor, fillAlpha);
 
-    if (type === "tower" && towerData) {  
+    if (type === "tower" && towerData) {
       const range = (buildingState as TowerState).range;
       const baseAngle = ((buildingState as TowerState).direction) * (Math.PI / 2); // 0, 90, 180, 270 degrés
       const coneAngleRad = Phaser.Math.DegToRad(towerData.attack.angle || 90);
@@ -305,11 +304,11 @@ export class BuildService {
         //     this.selectionGraphics.save();
         //     this.selectionGraphics.translate(centerX, centerY);
         //     this.selectionGraphics.rotate(rotation);
-            
+
         //     // On dessine le rectangle (x décalé de la moitié de la largeur, y commence à 0 vers le range)
         //     this.selectionGraphics.fillRect(-lineWidth / 2, 0, lineWidth, range);
         //     this.selectionGraphics.strokeRect(-lineWidth / 2, 0, lineWidth, range);
-            
+
         //     this.selectionGraphics.restore();
         //   };
 
@@ -336,7 +335,7 @@ export class BuildService {
             this.selectionGraphics.fillPoints([p1, p2, p3, p4], true);
             this.selectionGraphics.strokePoints([p1, p2, p3, p4], true);
           };
-          
+
           drawLine(baseAngle);
           if (towerData.attack.dual) drawLine(baseAngle + Math.PI);
           if (towerData.attack.quad) {
@@ -356,9 +355,9 @@ export class BuildService {
         tint: colors,
         frequency: 20,
         blendMode: 'ADD',
-        emitZone: { 
+        emitZone: {
           // type: 'random',
-          type: 'edge', 
+          type: 'edge',
           source: new Phaser.Geom.Circle(0, 0, range),
           quantity: 100,
         }
@@ -379,8 +378,8 @@ export class BuildService {
     }
 
     // Envoi de l'événement UI
-    window.dispatchEvent(new CustomEvent('select-building', { 
-      detail: { isVisible: true, buildingId: buildingState.id, type: type, ownerId: ownerId } 
+    window.dispatchEvent(new CustomEvent('select-building', {
+      detail: { isVisible: true, buildingId: buildingState.id, type: type, ownerId: ownerId }
     }));
   }
 
@@ -395,8 +394,8 @@ export class BuildService {
       this.rangeParticles = null;
     }
 
-    window.dispatchEvent(new CustomEvent('select-building', { 
-      detail: { isVisible: false } 
+    window.dispatchEvent(new CustomEvent('select-building', {
+      detail: { isVisible: false }
     }));
   }
 

@@ -23,6 +23,7 @@ export const MAP_DATA = {
   negativeAreaMultiplier: 50,
   minAreaMultiplier: 110,
   maxAreaMultiplier: 200,
+  areaTypes: ['damage', 'attackSpeed', 'range', 'speed'],
   damageAreaColor: 0,
   attackSpeedAreaColor: 0,
   rangeAreaColor: 0,

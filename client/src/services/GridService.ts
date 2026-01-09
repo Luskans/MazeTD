@@ -23,10 +23,11 @@ const TILE = {
   C_TOP_LEFT: 120, C_TOP_RIGHT: 121, C_BOT_LEFT: 122, C_BOT_RIGHT: 123
 };
 
-export class SetupService {
+export class GridService {
   private scene: Phaser.Scene;
   private room: Room<GameState>;
   private rockSprites: Map<string, Phaser.GameObjects.Sprite> = new Map();
+  private mask!: Phaser.Display.Masks.GeometryMask;
 
   constructor(scene: Phaser.Scene, room: Room<GameState>) {
       this.scene = scene;
@@ -398,7 +399,7 @@ export class SetupService {
     const { width: gridW, height: gridH } = this.getGridPixelSize();
     const players = Array.from(room.state.players.values());
 
-    // 0. Créer l'océan
+    // Créer l'océan
     this.scene.add.tileSprite(0, 0, 8000, 8000, 'water').setDepth(0);
 
     players.forEach((player, index) => {
@@ -408,6 +409,12 @@ export class SetupService {
       const landMargin = 1;
       const islandCols = room.state.grid.col + (landMargin * 2);
       const islandRows = room.state.grid.row + (landMargin * 3);
+
+      // 0. On crée le mask aux dimensions des zones
+      const mask = this.scene.add.graphics();
+      mask.fillStyle(0xffffff);
+      mask.fillRect(pos.x + MAP_DATA.outsideSize, pos.y + MAP_DATA.outsideSize, room.state.grid.col * 32, room.state.grid.row * 32);
+      this.mask = mask.createGeometryMask();
 
       // 1. Créer la Tilemap dynamique
       const map = this.scene.make.tilemap({
@@ -480,9 +487,9 @@ export class SetupService {
       gridOverlay.setDepth(2).setAlpha(0.8);
 
       // ROCK SPRITES
-      for (const r of room.state.grid.rocks) {
-        const x = startX + r.gridX * MAP_DATA.cellSize;
-        const y = startY + r.gridY * MAP_DATA.cellSize;
+      for (const rock of room.state.grid.rocks) {
+        const x = startX + rock.gridX * MAP_DATA.cellSize;
+        const y = startY + rock.gridY * MAP_DATA.cellSize;
         // const rand = getRandom(1, 4);
         // const sprite = this.scene.add.sprite(x + 32, y + 20, `rock${rand}`).setDepth(3);
         // this.rockSprites.set(r.id, sprite);
@@ -495,8 +502,80 @@ export class SetupService {
         //   ).setDepth(3);
         const sprite = this.scene.add.sprite(x + 32, y + 32, `rock`).setDepth(3);
         sprite.setOrigin(0.5, 0.5);
-        this.rockSprites.set(r.id, sprite);
+        this.rockSprites.set(rock.id, sprite);
         ySortGroup.add(sprite);
+      }
+
+      // --- AREAS ---
+      for (const area of room.state.grid.areas) {
+        const x = startX + area.gridX * MAP_DATA.cellSize;
+        const y = startY + area.gridY * MAP_DATA.cellSize;
+
+        let baseColor: number;
+        switch (area.type) {
+            case "damage":      baseColor = 0xFF0000; break; // Rouge
+            case "attackSpeed": baseColor = 0xFFA500; break; // Orange
+            case "range":       baseColor = 0xFFFF00; break; // Jaune
+            case "speed":       baseColor = 0x0000FF; break; // Bleu
+            default:            baseColor = 0x808080; break; // Gris par défaut
+        }
+        const normalizedMultiplier = (area.multiplier - 100) / 100;
+        const darkFactor = 1 - (normalizedMultiplier * 0.5); // Réduit la luminosité jusqu'à 50%
+
+        // const areaShape = this.scene.add.circle(x, y, area.radius, baseColor, 0.15)
+        const areaShape = this.scene.add.circle(x, y, area.radius)
+        areaShape.setStrokeStyle(2, baseColor, 0.20)
+        areaShape.setDepth(3);
+        areaShape.setMask(this.mask);
+
+        // const perimeter = 2 * Math.PI * area.radius;
+        // const particleCount = Math.floor(perimeter / 1.5);
+        // const circleZone = new Phaser.Geom.Circle(x, y, area.radius);
+        // const emitter = this.scene.add.particles(0, 0, 'dot', {
+        //   lifespan: 2500,
+        //   speed: 10,
+        //   radial: true,
+        //   scale: { start: 0.12, end: 0 },
+        //   alpha: { start: 0.8, end: 0 },
+        //   frequency: 20,
+        //   quantity: 1,
+        //   tint: baseColor,
+        //   blendMode: 'ADD',
+        //   emitZone: {
+        //       type: 'edge',
+        //       source: circleZone,
+        //       quantity: particleCount,
+        //   },
+        //   // emitCallback: (particle: any) => {
+        //   //   const angle = Phaser.Math.FloatBetween(0, Math.PI * 2);
+
+        //   //   particle.x = x + Math.cos(angle) * area.radius;
+        //   //   particle.y = y + Math.sin(angle) * area.radius;
+
+        //   //   // particle.velocityX = Math.cos(angle) * 30;
+        //   //   // particle.velocityY = Math.sin(angle) * 30;
+        //   //   particle.velocityX = 0;
+        //   //   particle.velocityY = -10;
+        //   // }
+        // });
+        // emitter.setDepth(3);
+        // emitter.setMask(this.mask);
+
+        // --- Affichage du pourcentage ---
+        const percentageText = this.scene.add.text(x, y, `${area.multiplier}%`, {
+            fontFamily: 'Arial',
+            fontSize: '12px',
+            fontStyle: 'bold',
+            // color: `#${baseColor.toString(16).padStart(6, '0')}`,
+            color: '#ffffff',
+            stroke: '#51361e',
+            // stroke: '#ffffff',
+            // stroke: `#${baseColor.toString(16).padStart(6, '0')}`,
+            strokeThickness: 1
+        })
+        .setOrigin(0.5) // Centre le texte
+        .setDepth(8000); // Au-dessus du cercle
+
       }
     });
   }

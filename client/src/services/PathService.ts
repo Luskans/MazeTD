@@ -132,7 +132,7 @@ import type { GameState } from "../../../server/src/rooms/schema/GameState";
 
 
 
-export class PathRenderer {
+export class PathService {
   private scene: Phaser.Scene;
   private room: Room<GameState>;
   private paths: Map<string, { 

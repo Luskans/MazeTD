@@ -1,4 +1,6 @@
 import { Schema, type } from "@colyseus/schema";
+import { AreaModifierState } from "./AreaModifierState";
+import { UpgradeModifierState } from "./UpgradeModifierState";
 
 export class EnemyState extends Schema {
   @type("string") id: string;
@@ -16,4 +18,7 @@ export class EnemyState extends Schema {
   @type("number") maxHp: number;
   @type("number") speed: number;
   @type("number") proximity: number;
+
+  @type(AreaModifierState) areaModifiers = new AreaModifierState();
+  @type(UpgradeModifierState) upgradeModifiers = new UpgradeModifierState();
 }

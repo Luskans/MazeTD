@@ -3,7 +3,6 @@ import type { TowerState } from "../../../server/src/rooms/schema/TowerState";
 import type { WallState } from "../../../server/src/rooms/schema/WallState";
 import { PathfindingService } from "../../../server/src/services/PathfindingService";
 import type { GameState } from "../../../server/src/rooms/schema/GameState";
-import type { SetupService } from "./SetupService";
 import type { RockState } from "../../../server/src/rooms/schema/RockState";
 import { getPlayerOffset } from "./utils";
 
@@ -50,17 +49,17 @@ export class UpgradeService {
   //   }
   // }
 
-  private startPreparation(event: any) {
-    if (event.buildingId !== "destroy") {
+  private startPreparation(event: {dataId: string, type: string}) {
+    if (event.dataId !== "destroy") {
       this.room.send("buy_upgrade", {
-        buildingId: event.buildingId,
-        buildingType: event.buildingType
+        dataId: event.dataId,
+        type: event.type
       });
 
     } else {
       this.isPreparing = true;
-      this.currentBuildingId = event.buildingId;
-      this.currentBuildingType = event.buildingType;
+      this.currentBuildingId = event.dataId;
+      this.currentBuildingType = event.type;
       this.scene.input.setDefaultCursor('pointer'); // futur marteau 🛠️
       this.gridRect.setVisible(true);
     }
@@ -124,8 +123,8 @@ export class UpgradeService {
     if (!this.hoveredRockId) return;
 
     this.room.send("destroy_rock", {
-      buildingId: this.currentBuildingId,
-      buildingType: this.currentBuildingType,
+      dataId: this.currentBuildingId,
+      type: this.currentBuildingType,
       rockId: this.hoveredRockId
     });
 

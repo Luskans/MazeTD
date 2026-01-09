@@ -1,18 +1,26 @@
 import { GameState } from "../rooms/schema/GameState";
 import { PlayerState } from "../rooms/schema/PlayerState";
 import { PathNodeState } from "../rooms/schema/PathNodeState";
+import { Room } from "colyseus";
+import { TypedEventEmitter } from "./EventBus";
+import { logger } from "./utils";
 
 const BLOCKED = 1;
 const FREE = 0;
 
 export class PathfindingService {
+  private room: Room<GameState>;
+  
+  constructor(room: Room<GameState>) {
+    this.room = room;
+  }
 
-  public buildStaticGrid(state: GameState): number[][] {
-    const cols = state.grid.col;
-    const rows = state.grid.row;
+  public buildStaticGrid(): number[][] {
+    const cols = this.room.state.grid.col;
+    const rows = this.room.state.grid.row;
     const gridMap = Array.from({ length: rows }, () => new Array(cols).fill(0));
 
-    for (const rock of state.grid.rocks) {
+    for (const rock of this.room.state.grid.rocks) {
       for (let x = 0; x < 2; x++) {
         for (let y = 0; y < 2; y++) {
           if (rock.gridY + y < rows && rock.gridX + x < cols) {
@@ -42,9 +50,9 @@ export class PathfindingService {
     return true;
   }
 
-  private buildPlayerGrid(state: GameState, player: PlayerState, newObstacle?: { gridX: number, gridY: number, gridSize: number }): number[][] {
-    const cols = state.grid.col;
-    const rows = state.grid.row;
+  private buildPlayerGrid(player: PlayerState, newObstacle?: { gridX: number, gridY: number, gridSize: number }): number[][] {
+    const cols = this.room.state.grid.col;
+    const rows = this.room.state.grid.row;
     const gridMap = Array.from({ length: rows }, () => new Array(cols).fill(FREE));
 
     for (const rock of player.rocks.values()) {
@@ -513,8 +521,8 @@ export class PathfindingService {
   //   return optimizedPath;
   // }
 
-  public calculateAndSetPath(state: GameState, player: PlayerState, isDuringWave: boolean, newObstacle?: { gridX: number, gridY: number, gridSize: number }): PathNodeState[] | null {
-    const gridMap = this.buildPlayerGrid(state, player, newObstacle);
+  public calculateAndSetPath(player: PlayerState, isDuringWave: boolean, newObstacle?: { gridX: number, gridY: number, gridSize: number }): PathNodeState[] | null {
+    const gridMap = this.buildPlayerGrid(player, newObstacle);
     const checkpoints = Array.from(player.checkpoints.values());
     if (checkpoints.length === 0) return null;
 
@@ -595,8 +603,9 @@ export class PathfindingService {
   /**
    * Vérifie si l'ajout d'une structure bloque le chemin pour un joueur.
    */
-  public validatePlacement(state: GameState, player: PlayerState, gridX: number, gridY: number, gridSize: number, isDuringWave: boolean): boolean {
-    const path = this.calculateAndSetPath(state, player, isDuringWave, { gridX, gridY, gridSize });
+  public validatePlacement(player: PlayerState, gridX: number, gridY: number, gridSize: number, isDuringWave: boolean): boolean {
+    const path = this.calculateAndSetPath(player, isDuringWave, { gridX, gridY, gridSize });
+    if (path === null) logger.warn(`Joueur ${player.sessionId} : path invalid`);
     return path !== null;
   }
 }
