@@ -3,7 +3,7 @@ import type { TowerState } from "../../../server/src/rooms/schema/TowerState";
 import type { WallState } from "../../../server/src/rooms/schema/WallState";
 import { PathfindingService } from "../../../server/src/services/PathfindingService";
 import type { GameState } from "../../../server/src/rooms/schema/GameState";
-import { getPlayerOffset } from "./utils";
+import { getColorByAreaType, getPlayerOffset } from "./utils";
 import type { PlayerState } from "../../../server/src/rooms/schema/PlayerState";
 import { TOWERS_DATA } from "../../../server/src/datas/towersData";
 
@@ -12,15 +12,17 @@ export class BuildingService {
   private room: Room<GameState>;
   private pathfindingService: PathfindingService;
   private startClickPos = { x: 0, y: 0 };
+  private buildingsSprites: Map<string, Phaser.GameObjects.Sprite> = new Map();
+
+  private shopBuildingDataId: string | null = null;
+  private shopBuildingType: string | null = null;
+  private shopBuildingSize: number | null = null;
 
   private isPreparing = false;
   private previewContainer: Phaser.GameObjects.Container;
   private ghostSprite: Phaser.GameObjects.Sprite;
+  private ghostParticles: Phaser.GameObjects.Particles.ParticleEmitter;
   private gridRect: Phaser.GameObjects.Rectangle;
-  private currentBuildingDataId: string | null = null;
-  private currentBuildingType: string | null = null;
-  private currentBuildingSize: number | null = null;
-  private buildingsSprites: Map<string, Phaser.GameObjects.Sprite> = new Map();
 
   private selectionGraphics: Phaser.GameObjects.Graphics;
   private selectedBuildingId: string | null = null;
@@ -34,9 +36,25 @@ export class BuildingService {
     this.previewContainer = scene.add.container(0, 0).setVisible(false).setDepth(8000);
     this.gridRect = scene.add.rectangle(0, 0, 64, 64, 0x00ff00, 0.4);
     this.gridRect.setOrigin(0, 0);
-    this.ghostSprite = scene.add.sprite(32, 32, "").setAlpha(0.6); // Centré dans le 64x64
+    this.ghostSprite = scene.add.sprite(32, 32, "").setAlpha(0.6);
+    this.ghostParticles = scene.add.particles(0, 0, 'dot', {
+      speed: { min: 10, max: 20 },
+      lifespan: { min: 800, max: 1200 },
+      angle: { min: 260, max: 280 },
+      scale: { start: 0.15, end: 0 },
+      alpha: 1,
+      tint: [0xff0000, 0x00ff00],
+      // tint: 0xffffff,
+      // blendMode: 'ADD',
+      frequency: 50,
+      emitting: false,
+      emitZone: {
+        type: 'random',
+        source: new Phaser.Geom.Circle(0, 0, 32),
+        quantity: 1
+      }
+    }).setDepth(8001);
     this.previewContainer.add([this.gridRect, this.ghostSprite]);
-
     this.selectionGraphics = this.scene.add.graphics().setDepth(8000);
 
     // Écouteurs
@@ -67,9 +85,9 @@ export class BuildingService {
 
   private startPreparation(event: {dataId: string, type: string, size: number}) {
     this.isPreparing = true;
-    this.currentBuildingDataId = event.dataId;
-    this.currentBuildingType = event.type;
-    this.currentBuildingSize = event.size;
+    this.shopBuildingDataId = event.dataId;
+    this.shopBuildingType = event.type;
+    this.shopBuildingSize = event.size;
     const pixelSize = event.size * 32;
 
     this.gridRect.setSize(pixelSize, pixelSize);
@@ -95,11 +113,39 @@ export class BuildingService {
 
     const isValid = this.checkLocalValidity(gridX, gridY);
     this.gridRect.setFillStyle(isValid ? 0x00ff00 : 0xff0000, 0.4);
+
+
+    if (this.shopBuildingType === 'wall') {
+        this.ghostParticles.stop();
+        return;
+    }
+    // Point de détection : centre de la base de la tour
+    const centerX = this.previewContainer.x + (this.shopBuildingSize! * 16);
+    const centerY = this.previewContainer.y + (this.shopBuildingSize! * 16);
+
+    let activeAreasColor: number[] = [];
+    for (const area of this.room.state.grid.areas) {
+        const areaX = playerOffset.x + (area.gridX * 32);
+        const areaY = playerOffset.y + (area.gridY * 32);
+        if (Phaser.Math.Distance.Between(centerX, centerY, areaX, areaY) <= area.radius) {
+            activeAreasColor.push(getColorByAreaType(area.type));
+        }
+    }
+
+    if (activeAreasColor.length > 0) {
+        this.ghostParticles.setPosition(centerX, centerY);
+        // this.ghostParticles.setParticleTint(activeAreasColor);
+        this.ghostParticles.updateConfig({tint: activeAreasColor});
+        // this.ghostParticles.setParticleTint([0x00ff00, 0x0000ff]);
+        if (!this.ghostParticles.emitting) this.ghostParticles.start();
+    } else {
+        this.ghostParticles.stop();
+    }
   }
 
   private checkLocalValidity(gridX: number, gridY: number): boolean {
     const player = this.room.state.players.get(this.room.sessionId);
-    const gridSize = this.currentBuildingSize!;
+    const gridSize = this.shopBuildingSize!;
 
     if (gridX < 0 || gridY < 0 ||
       gridX + gridSize > this.room.state.grid.col ||
@@ -140,7 +186,7 @@ export class BuildingService {
     if (!this.checkLocalValidity(gridX, gridY)) return;
 
     const isDuringWave = this.room.state.wavePhase === 'running';
-    const isPathPossible = this.pathfindingService.validatePlacement(player, gridX, gridY, this.currentBuildingSize as number, isDuringWave);
+    const isPathPossible = this.pathfindingService.validatePlacement(player, gridX, gridY, this.shopBuildingSize as number, isDuringWave);
 
     if (!isPathPossible) {
       console.log('Construction impossible : chemin bloqué.')
@@ -148,17 +194,18 @@ export class BuildingService {
     }
 
     this.room.send("place_building", {
-      dataId: this.currentBuildingDataId,
+      dataId: this.shopBuildingDataId,
       x: gridX,
       y: gridY,
-      size: this.currentBuildingSize,
-      type: this.currentBuildingType
+      size: this.shopBuildingSize,
+      type: this.shopBuildingType
     });
   }
 
   private cancelPreparation() {
     this.isPreparing = false;
     this.previewContainer.setVisible(false);
+    this.ghostParticles.stop();
   }
 
   public getSelectedId() {
@@ -189,9 +236,47 @@ export class BuildingService {
       sprite.setAlpha(0.5);
       sprite.setTint(0xFFF3A0);
     }
-
     this.buildingsSprites.set(buildingState.id, sprite);
     ySortGroup.add(sprite);
+
+
+
+    // Si c'est une tour, on check si elle est née dans un buff
+    if (type === "tower") {
+      const centerX = sprite.x;
+      const centerY = sprite.y;
+      
+      // On cherche l'area (identique à la logique du ghost)
+      let activeAreasColor: number[] = [];
+      for (const area of this.room.state.grid.areas) {
+        const areaX = playerOffset.x + (area.gridX * 32);
+        const areaY = playerOffset.y + (area.gridY * 32);
+        if (Phaser.Math.Distance.Between(centerX, centerY, areaX, areaY) <= area.radius) {
+          activeAreasColor.push(getColorByAreaType(area.type));
+        }
+      }
+      if (activeAreasColor.length !== 0) {
+        this.createTowerBuffParticles(centerX, centerY, activeAreasColor);
+      }
+    }
+  }
+
+  private createTowerBuffParticles(x: number, y: number, colors: number[]) {
+    const emitter = this.scene.add.particles(x, y, 'dot', {
+      speed: { min: 10, max: 20 },
+      scale: { start: 0.15, end: 0 },
+      angle: { min: 260, max: 280 },
+      alpha: 1,
+      lifespan: { min: 800, max: 1200 },
+      tint: colors,
+      frequency: 50,
+      emitZone: {
+        type: 'random',
+        source: new Phaser.Geom.Circle(0, 0, 32),
+        quantity: 1
+      }
+    }).setDepth(8000); // Sous la tour (profondeur 3 dans ton code)
+    return emitter;
   }
 
   public removeBuildingSprite(id: string) {

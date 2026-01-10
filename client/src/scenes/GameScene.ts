@@ -57,14 +57,7 @@ export class GameScene extends Phaser.Scene {
 
     // GROUP OF ALL SPRITES TO Y SORT THEM
     this.ySortGroup = this.add.group();
-
-    this.gridService.createPlayersGrid(this.room, this.ySortGroup);   // draw the grid
-    // this.pathService.drawPath(
-    //   Array.from(this.player.currentPath.values()),
-    //   this.playerOffset.x,
-    //   this.playerOffset.y
-    // );
-    // this.cameraService.handleFocus(playerIndex);   // center camera on player grid
+    this.gridService.createPlayersGrid(this.room, this.ySortGroup);
     this.cameraService.handleFocus(playerOffset);
 
     // LISTEN CHANGES AND EVENTS

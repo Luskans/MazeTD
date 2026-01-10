@@ -1,5 +1,6 @@
 import type { Room } from 'colyseus.js';
 import type { GameState } from '../../../server/src/rooms/schema/GameState';
+import { MAP_DATA } from '../../../server/src/datas/mapData';
 
 export class CameraService {
   private scene: Phaser.Scene;
@@ -31,18 +32,17 @@ export class CameraService {
   }
 
   private setupLimits() {
-    // On calcule la zone totale. Exemple si tes joueurs sont disposés sur l'axe X :
-    const playerCount = this.room.state.players.size || 1;
+    const COLS = 4;
+    const ROWS = 2;
+    const activeCols = Math.min(this.room.state.players.size, COLS);
+    const activeRows = Math.ceil(this.room.state.players.size / COLS);
     const gridPixelWidth = this.room.state.grid.col * 32;
     const gridPixelHeight = this.room.state.grid.row * 32;
-
-    // Supposons que SetupService place les joueurs avec un espacement (offset)
-    // Ici on définit une zone large qui englobe tout (à adapter selon ta disposition)
-    const totalWidth = gridPixelWidth * playerCount * 2;
-    const totalHeight = gridPixelHeight * 2;
-
-    // On centre les limites autour de l'origine ou de tes offsets
-    this.scene.cameras.main.setBounds(-1000, -1000, totalWidth + 2000, totalHeight + 2000);
+    const islandWidth = gridPixelWidth + (2 * 32) + 2 * MAP_DATA.outsideSize;
+    const islandHeight = gridPixelHeight + (3 * 32) + 2 * MAP_DATA.outsideSize;
+    const worldWidth = activeCols * (islandWidth + MAP_DATA.spaceSize) + MAP_DATA.spaceSize;
+    const worldHeight = activeRows * (islandHeight + MAP_DATA.spaceSize) + MAP_DATA.spaceSize;
+    this.scene.cameras.main.setBounds(0, 0, worldWidth, worldHeight);
   }
 
   private handleWheel(pointer: Phaser.Input.Pointer, gameObjects: Phaser.GameObjects.GameObject[], deltaX: number, deltaY: number, deltaZ: number) {

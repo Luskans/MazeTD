@@ -4,6 +4,7 @@ import type { Room } from "colyseus.js";
 import { getRandom } from "../../../server/src/services/utils";
 import { WaterPostPipeline } from "../shaders/WaterPostPipeline";
 import type { RockState } from "../../../server/src/rooms/schema/RockState";
+import { getColorByAreaType } from "./utils";
 
 const TILE = {
   TOP_LEFT: 64, TOP_START: 65, TOP_END: 68, TOP_RIGHT: 69,
@@ -32,6 +33,7 @@ export class GridService {
   constructor(scene: Phaser.Scene, room: Room<GameState>) {
       this.scene = scene;
       this.room = room;
+      this.createWorldOcean();
   }
 
   private getGridPixelSize() {
@@ -63,6 +65,20 @@ export class GridService {
     const x = pos.x + MAP_DATA.outsideSize;
     const y = pos.y + MAP_DATA.outsideSize;
     return { x, y };
+  }
+
+  public createWorldOcean() {
+    const COLS = 4;
+    const ROWS = 2;
+    const activeCols = Math.min(this.room.state.players.size, COLS);
+    const activeRows = Math.ceil(this.room.state.players.size / COLS);
+    const gridPixelWidth = this.room.state.grid.col * 32;
+    const gridPixelHeight = this.room.state.grid.row * 32;
+    const islandWidth = gridPixelWidth + (2 * 32) + 2 * MAP_DATA.outsideSize;
+    const islandHeight = gridPixelHeight + (3 * 32) + 2 * MAP_DATA.outsideSize;
+    const worldWidth = activeCols * (islandWidth + MAP_DATA.spaceSize) + MAP_DATA.spaceSize;
+    const worldHeight = activeRows * (islandHeight + MAP_DATA.spaceSize) + MAP_DATA.spaceSize;
+    this.scene.add.tileSprite(0, 0, worldWidth, worldHeight, 'water').setOrigin(0, 0).setDepth(0);
   }
 
   // public createPlayersGrid(room: Room<GameState>) {
@@ -400,7 +416,7 @@ export class GridService {
     const players = Array.from(room.state.players.values());
 
     // Créer l'océan
-    this.scene.add.tileSprite(0, 0, 8000, 8000, 'water').setDepth(0);
+    // this.scene.add.tileSprite(0, 0, worldSize.worldWidth, worldSize.worldHeight, 'water').setDepth(0);
 
     players.forEach((player, index) => {
       const pos = this.computeGridPosition2x4(index, gridW, gridH);
@@ -511,22 +527,19 @@ export class GridService {
         const x = startX + area.gridX * MAP_DATA.cellSize;
         const y = startY + area.gridY * MAP_DATA.cellSize;
 
-        let baseColor: number;
-        switch (area.type) {
-            case "damage":      baseColor = 0xFF0000; break; // Rouge
-            case "attackSpeed": baseColor = 0xFFA500; break; // Orange
-            case "range":       baseColor = 0xFFFF00; break; // Jaune
-            case "speed":       baseColor = 0x0000FF; break; // Bleu
-            default:            baseColor = 0x808080; break; // Gris par défaut
-        }
-        const normalizedMultiplier = (area.multiplier - 100) / 100;
-        const darkFactor = 1 - (normalizedMultiplier * 0.5); // Réduit la luminosité jusqu'à 50%
-
+        let baseColor = getColorByAreaType(area.type);
+        // const normalizedMultiplier = (area.multiplier - 100) / 100;
+        const normalizedMultiplier = area.multiplier - 100;
         // const areaShape = this.scene.add.circle(x, y, area.radius, baseColor, 0.15)
         const areaShape = this.scene.add.circle(x, y, area.radius)
-        areaShape.setStrokeStyle(2, baseColor, 0.20)
+        areaShape.setStrokeStyle(2, baseColor, 0.50)
         areaShape.setDepth(3);
         areaShape.setMask(this.mask);
+
+        // const areaShape2 = this.scene.add.circle(x, y, area.radius)
+        // areaShape2.setStrokeStyle(2, baseColor, 0.30)
+        // areaShape2.setDepth(3);
+        // areaShape2.setMask(this.mask);
 
         // const perimeter = 2 * Math.PI * area.radius;
         // const particleCount = Math.floor(perimeter / 1.5);
@@ -562,16 +575,16 @@ export class GridService {
         // emitter.setMask(this.mask);
 
         // --- Affichage du pourcentage ---
-        const percentageText = this.scene.add.text(x, y, `${area.multiplier}%`, {
-            fontFamily: 'Arial',
+        const percentageText = this.scene.add.text(x, y, `+ ${normalizedMultiplier}%`, {
+            fontFamily: 'Roboto',
             fontSize: '12px',
             fontStyle: 'bold',
-            // color: `#${baseColor.toString(16).padStart(6, '0')}`,
-            color: '#ffffff',
-            stroke: '#51361e',
-            // stroke: '#ffffff',
+            color: `#${baseColor.toString(16).padStart(6, '0')}`,
+            // color: '#ffffff',
+            // stroke: '#51361e',
+            // stroke: '#000000',
             // stroke: `#${baseColor.toString(16).padStart(6, '0')}`,
-            strokeThickness: 1
+            // strokeThickness: 3
         })
         .setOrigin(0.5) // Centre le texte
         .setDepth(8000); // Au-dessus du cercle
