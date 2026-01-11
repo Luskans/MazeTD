@@ -24,6 +24,11 @@
   --grey:#afb1b3;
   --grey-dark:#616161;
   --white:#f6f9ff;
+
+  --damage: #ff8e74;
+  --attackSpeed: #ffdf81;
+  --range: #dbb4ff;
+  --speed: #9fe9ff;
 }
 .custom {
   --toastBackground: var(--panel);

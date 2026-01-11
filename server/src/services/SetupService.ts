@@ -194,8 +194,9 @@ export class SetupService {
       area.gridY = getRandom(0, this.room.state.grid.row);
       area.radius = getRandom(MAP_DATA.minAreaRadius, MAP_DATA.maxAreaRadius);
       area.type = MAP_DATA.areaTypes[Math.floor(Math.random() * MAP_DATA.areaTypes.length)]
-      if (area.type === 'speed') area.multiplier = getRandom(MAP_DATA.negativeAreaMultiplier, MAP_DATA.maxAreaMultiplier);
-      else area.multiplier = getRandom(MAP_DATA.minAreaMultiplier, MAP_DATA.maxAreaMultiplier);
+      // if (area.type === 'speed') area.multiplier = getRandom(MAP_DATA.negativeAreaMultiplier, MAP_DATA.maxAreaMultiplier);
+      // else area.multiplier = getRandom(MAP_DATA.minAreaMultiplier, MAP_DATA.maxAreaMultiplier);
+      area.multiplier = getRandom(MAP_DATA.minAreaMultiplier, MAP_DATA.maxAreaMultiplier);
       this.room.state.grid.areas.push(area);
     }
   }

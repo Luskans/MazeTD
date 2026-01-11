@@ -1,9 +1,9 @@
 import { Schema, type } from "@colyseus/schema";
 
 export class UpgradeModifierState extends Schema {
-  @type('number') damageMultiplier: number = 100;
-  @type('number') attackSpeedMultiplier: number = 100;
-  @type('number') rangeMultiplier: number = 100;
+  @type('number') damageMultiplier: number = 0;
+  @type('number') attackSpeedMultiplier: number = 0;
+  @type('number') rangeMultiplier: number = 0;
 
   @type('number') targetBonus: number = 0;
   @type('number') angleBonus: number = 0;
@@ -13,6 +13,6 @@ export class UpgradeModifierState extends Schema {
   @type('number') pierceBonus: number = 0;
   @type('number') pierceReductionBonus: number = 0;
 
-  @type('number') speedMultiplier: number = 100;
-  @type('number') armorMultiplier: number = 100;
+  @type('number') speedMultiplier: number = 0;
+  @type('number') armorMultiplier: number = 0;
 }

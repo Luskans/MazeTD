@@ -1,3 +1,8 @@
+export type AreaModifierStore = {
+  damage: number;
+  attackSpeed: number;
+  range: number;
+}
 export type BuildingStore = {
   towers: Record<string, TowerStore>;
   walls: Record<string, WallStore>;
@@ -16,6 +21,7 @@ export type TowerStore = {
   totalCost: number
   placingPending: boolean;
   sellingPending: boolean;
+  areasModifiers: AreaModifierStore;
 }
 export type WallStore = {
   id: string,

@@ -43,6 +43,8 @@ export class GameRoom extends Room<GameState> {
     this.enemyService = new EnemyService(this, this.eventBus);
     this.waveService = new WaveService(this, this.eventBus);
     this.combatService = new CombatService(this);
+    this.areaService = new AreaService();
+    this.upgradeService = new UpgradeService();
 
     this.setPrivate();
     this.setupService.setupGame();
@@ -94,13 +96,13 @@ export class GameRoom extends Room<GameState> {
         const tower = this.towerService.createTower(player, data.dataId, data.x, data.y, paymentCost, isDuringWave);
         
         // 5. Update les modificateurs des areas
-        // this.areaService.applyAreasToTower(tower, this.state.grid.areas);
+        this.areaService.applyAreasToTower(tower, this.state.grid.areas);
         
         // 6. Update les modificateurs des upgrades
         // this.upgradeService.applyUpgradesToTower(tower, player);
         
         // 7. Update les statistiques de la tower
-        // this.towerService.updateTower(tower);
+        this.towerService.updateTower(tower);
         
       } else {
         this.towerService.createWall(player, data.dataId, data.x, data.y, data.size, paymentCost, isDuringWave);

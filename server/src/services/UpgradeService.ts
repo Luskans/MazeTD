@@ -28,10 +28,10 @@ export class UpgradeService {
 
   private applyEffect(entity: TowerState | EnemyState, upgrade: UpgradeState, type: string) {
     if (type === 'tower') {
-      if (upgrade.dataId === "damage") entity.upgradeModifiers.damageMultiplier = upgrade.currentValue;
-      if (upgrade.dataId === "attackSpeed") entity.upgradeModifiers.attackSpeedMultiplier = upgrade.currentValue;
+      if (upgrade.dataId === "damage") entity.upgradeModifiers.damageMultiplier += upgrade.currentValue;
+      if (upgrade.dataId === "attackSpeed") entity.upgradeModifiers.attackSpeedMultiplier += upgrade.currentValue;
     } else {
-      if (upgrade.dataId === "speed") entity.upgradeModifiers.speedMultiplier = upgrade.currentValue;
+      if (upgrade.dataId === "speed") entity.upgradeModifiers.speedMultiplier += upgrade.currentValue;
     }
   }
 }

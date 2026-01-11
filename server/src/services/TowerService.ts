@@ -61,11 +61,21 @@ export class TowerService {
     if (!data) {
       logger.error(`Data non trouvée pour la tour ${tower.dataId}`);
       return;
-    } 
+    }
+    console.log("dans update tower server")
       
-    tower.damage = Math.round((tower.level * data.damageMultiplier) * tower.upgradeModifiers.damageMultiplier / 100 * tower.areaModifiers.damageMultiplier / 100);
-    tower.attackSpeed = Math.round((tower.level * data.attackSpeedMultiplier) * tower.upgradeModifiers.attackSpeedMultiplier / 100 * tower.areaModifiers.attackSpeedMultiplier / 100);;
-    tower.range = Math.round(data.range * tower.upgradeModifiers.rangeMultiplier / 100 * tower.areaModifiers.rangeMultiplier / 100);;
+    // tower.damage = Math.round((tower.level * data.damageMultiplier) * tower.upgradeModifiers.damageMultiplier / 100 * tower.areaModifiers.damageMultiplier / 100);
+    // tower.attackSpeed = Math.round((tower.level * data.attackSpeedMultiplier) * tower.upgradeModifiers.attackSpeedMultiplier / 100 * tower.areaModifiers.attackSpeedMultiplier / 100);
+    // tower.range = Math.round(data.range * tower.upgradeModifiers.rangeMultiplier / 100 * tower.areaModifiers.rangeMultiplier / 100);
+    const damageArea = (tower.upgradeModifiers.damageMultiplier + 100) / 100;
+    const attackSpeedArea = (tower.upgradeModifiers.attackSpeedMultiplier + 100) / 100;
+    const rangeArea = (tower.upgradeModifiers.rangeMultiplier + 100) / 100;
+    // const speedArea = 100 / (tower.upgradeModifiers.rangeMultiplier + 100); // A mettre pour update des enemies
+
+    tower.damage = Math.round((tower.level * (data.stats.damageMultiplier / 100)) * damageArea);
+    tower.attackSpeed = Math.round((tower.level * (data.stats.attackSpeedMultiplier / 100)) * attackSpeedArea);
+    tower.range = Math.round(data.stats.range * rangeArea);
+    console.log("dans update tower server, damage", tower.damage)
   }
 
   public checkLevelupPayment(player: PlayerState, buildingId: string): number | null {

@@ -10,6 +10,7 @@ import type { UpgradeState } from "../../../server/src/rooms/schema/UpgradeState
 import { buildingStore, type WallStore } from "../stores/buildingStore.svelte";
 import type { TowerState } from "../../../server/src/rooms/schema/TowerState";
 import { shopStore, type TowerConfigStore, type UpgradeConfigStore, type WallConfigStore } from "../stores/shopStore.svelte";
+import type { AreaModifierState } from "../../../server/src/rooms/schema/AreaModifierState";
 
 let cleanupFns: (() => void)[] = [];
 
@@ -241,7 +242,8 @@ const setupBuildingListeners = (player: PlayerState, sessionId: string, $: any) 
       totalKills: tower.totalKills,
       totalCost: tower.totalCost,
       placingPending: tower.placingPending,
-      sellingPending: tower.sellingPending
+      sellingPending: tower.sellingPending,
+      areasModifiers: updateAreasModifiers(tower.areaModifiers)
     };
 
     $(tower).onChange(() => {
@@ -259,6 +261,15 @@ const setupBuildingListeners = (player: PlayerState, sessionId: string, $: any) 
       }
     });
   });
+
+  const updateAreasModifiers = (areasModifiers: AreaModifierState) => {
+    const result = {
+      damage: areasModifiers.damageMultiplier,
+      attackSpeed: areasModifiers.attackSpeedMultiplier,
+      range: areasModifiers.rangeMultiplier,
+    };
+    return result;
+  }
 
   $(player.towers).onRemove((tower: TowerState, towerId: string) => {
     delete buildingStore.towers[towerId];

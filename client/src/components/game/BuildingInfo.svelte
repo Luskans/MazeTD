@@ -70,6 +70,11 @@
     </header>
     <div class="infos">
       {#if selection.type === "tower"}
+      <div class="areas">
+        {#if (building as TowerStore).areasModifiers.damage}<p class="area damage">+ {(building as TowerStore).areasModifiers.damage}% damage</p>{/if}
+        {#if (building as TowerStore).areasModifiers.attackSpeed}<p class="area attackSpeed">+ {(building as TowerStore).areasModifiers.attackSpeed}% attack speed</p>{/if}
+        {#if (building as TowerStore).areasModifiers.range}<p class="area range">+ {(building as TowerStore).areasModifiers.range}% range</p>{/if}
+      </div>
       <div class="info-line">
         <div class="item">
           <span class="value">{(building as TowerStore).level}</span>
@@ -204,6 +209,25 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
+  }
+  .areas {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .area {
+    font-size: 10px;
+    font-weight: bold;
+    font-style: italic;
+  }
+  .damage {
+    color: var(--damage);
+  }
+  .attackSpeed {
+    color: var(--attackSpeed);
+  }
+  .range {
+    color: var(--range);
   }
   .info-line {
     display: grid;

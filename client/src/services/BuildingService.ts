@@ -13,6 +13,7 @@ export class BuildingService {
   private pathfindingService: PathfindingService;
   private startClickPos = { x: 0, y: 0 };
   private buildingsSprites: Map<string, Phaser.GameObjects.Sprite> = new Map();
+  private buildingsParticles: Map<string, Phaser.GameObjects.Particles.ParticleEmitter> = new Map();
 
   private shopBuildingDataId: string | null = null;
   private shopBuildingType: string | null = null;
@@ -55,7 +56,7 @@ export class BuildingService {
       }
     }).setDepth(8001);
     this.previewContainer.add([this.gridRect, this.ghostSprite]);
-    this.selectionGraphics = this.scene.add.graphics().setDepth(8000);
+    this.selectionGraphics = this.scene.add.graphics().setDepth(3);
 
     // Écouteurs
     this.scene.game.events.on('choose_tower', this.startPreparation, this);
@@ -119,12 +120,14 @@ export class BuildingService {
         this.ghostParticles.stop();
         return;
     }
+
     // Point de détection : centre de la base de la tour
     const centerX = this.previewContainer.x + (this.shopBuildingSize! * 16);
     const centerY = this.previewContainer.y + (this.shopBuildingSize! * 16);
 
     let activeAreasColor: number[] = [];
     for (const area of this.room.state.grid.areas) {
+        if (area.type === 'speed') continue;
         const areaX = playerOffset.x + (area.gridX * 32);
         const areaY = playerOffset.y + (area.gridY * 32);
         if (Phaser.Math.Distance.Between(centerX, centerY, areaX, areaY) <= area.radius) {
@@ -249,6 +252,7 @@ export class BuildingService {
       // On cherche l'area (identique à la logique du ghost)
       let activeAreasColor: number[] = [];
       for (const area of this.room.state.grid.areas) {
+        if (area.type === 'speed') continue;
         const areaX = playerOffset.x + (area.gridX * 32);
         const areaY = playerOffset.y + (area.gridY * 32);
         if (Phaser.Math.Distance.Between(centerX, centerY, areaX, areaY) <= area.radius) {
@@ -256,12 +260,13 @@ export class BuildingService {
         }
       }
       if (activeAreasColor.length !== 0) {
-        this.createTowerBuffParticles(centerX, centerY, activeAreasColor);
+        const emitter = this.createTowerParticles(centerX, centerY, activeAreasColor);
+        this.buildingsParticles.set(buildingState.id, emitter);
       }
     }
   }
 
-  private createTowerBuffParticles(x: number, y: number, colors: number[]) {
+  private createTowerParticles(x: number, y: number, colors: number[]) {
     const emitter = this.scene.add.particles(x, y, 'dot', {
       speed: { min: 10, max: 20 },
       scale: { start: 0.15, end: 0 },
@@ -284,6 +289,11 @@ export class BuildingService {
     if (sprite) {
       this.buildingsSprites.delete(id);
       sprite.destroy();
+    }
+    const emitter = this.buildingsParticles.get(id);
+    if (emitter) {
+      emitter.destroy();
+      this.buildingsParticles.delete(id);
     }
   }
 
@@ -332,10 +342,10 @@ export class BuildingService {
   public selectBuilding(buildingState: TowerState | WallState, ownerId: string, type: "tower" | "wall", sprite: Phaser.GameObjects.Sprite) {
     this.selectedBuildingId = buildingState.id;
 
-    if (this.rangeParticles) {
-      this.rangeParticles.destroy();
-      this.rangeParticles = null;
-    }
+    // if (this.rangeParticles) {
+    //   this.rangeParticles.destroy();
+    //   this.rangeParticles = null;
+    // }
 
     this.selectionGraphics.clear();
     this.scene.tweens.killTweensOf(this.selectionGraphics);
@@ -344,13 +354,13 @@ export class BuildingService {
     // Récupérer les données de stats (depuis ton TOWERS_DATA)
     const towerData = TOWERS_DATA[buildingState.dataId];
     const fillColor = 0xffffff;
-    const fillAlpha = 0.1;
+    const fillAlpha = 0.2;
     const lineThickness = 2;
 
     // Position centrale au sol de la tour (le pied du sprite)
     const centerX = sprite.x;
     const centerY = sprite.y;
-    this.selectionGraphics.lineStyle(lineThickness, fillColor, 0.3);
+    // this.selectionGraphics.lineStyle(lineThickness, fillColor, 0.3);
     this.selectionGraphics.fillStyle(fillColor, fillAlpha);
 
     if (type === "tower" && towerData) {
@@ -361,7 +371,7 @@ export class BuildingService {
       switch (towerData.attack.mode) {
         case 'circle':
           this.selectionGraphics.fillCircle(centerX, centerY, range);
-          this.selectionGraphics.strokeCircle(centerX, centerY, range);
+          // this.selectionGraphics.strokeCircle(centerX, centerY, range);
           break;
 
         case 'cone':
@@ -373,7 +383,7 @@ export class BuildingService {
             this.selectionGraphics.arc(centerX, centerY, range, start, end);
             this.selectionGraphics.closePath();
             this.selectionGraphics.fillPath();
-            this.selectionGraphics.strokePath();
+            // this.selectionGraphics.strokePath();
           };
 
           drawCone(baseAngle);
@@ -418,7 +428,7 @@ export class BuildingService {
             const p4 = { x: p1.x + vec.x, y: p1.y + vec.y };
 
             this.selectionGraphics.fillPoints([p1, p2, p3, p4], true);
-            this.selectionGraphics.strokePoints([p1, p2, p3, p4], true);
+            // this.selectionGraphics.strokePoints([p1, p2, p3, p4], true);
           };
 
           drawLine(baseAngle);
@@ -431,35 +441,36 @@ export class BuildingService {
           break;
       }
 
-      const colors = [0x00ffff, 0xff00ff];
-      this.rangeParticles = this.scene.add.particles(centerX, centerY, 'dot', {
-        speed: { min: 10, max: 20 },
-        scale: { start: 0.13, end: 0 },
-        alpha: { start: 1, end: 0 },
-        lifespan: 2500,
-        tint: colors,
-        frequency: 20,
-        blendMode: 'ADD',
-        emitZone: {
-          // type: 'random',
-          type: 'edge',
-          source: new Phaser.Geom.Circle(0, 0, range),
-          quantity: 100,
-        }
-      }).setDepth(this.selectionGraphics.depth);
+      // const colors = [0x00ffff, 0xff00ff];
+      // this.rangeParticles = this.scene.add.particles(centerX, centerY, 'dot', {
+      //   speed: { min: 10, max: 20 },
+      //   scale: { start: 0.13, end: 0 },
+      //   alpha: { start: 1, end: 0 },
+      //   lifespan: 2500,
+      //   tint: colors,
+      //   frequency: 20,
+      //   blendMode: 'ADD',
+      //   emitZone: {
+      //     // type: 'random',
+      //     type: 'edge',
+      //     source: new Phaser.Geom.Circle(0, 0, range),
+      //     quantity: 100,
+      //   }
+      // }).setDepth(this.selectionGraphics.depth);
 
-      // this.scene.tweens.add({
-      //   targets: this.selectionGraphics,
-      //   alpha: 0.4,
-      //   duration: 1000,
-      //   yoyo: true,
-      //   repeat: -1
-      // });
+      this.scene.tweens.add({
+        targets: this.selectionGraphics,
+        alpha: 0.4,
+        duration: 1000,
+        yoyo: true,
+        repeat: -1
+      });
 
     } else {
       // Pour les murs ou bâtiments sans range : simple cercle de sélection autour du sprite
-      this.selectionGraphics.lineStyle(2, 0xffffff, 0.8);
-      this.selectionGraphics.strokeCircle(centerX, centerY, sprite.displayWidth * 0.6);
+      this.selectionGraphics.fillStyle(fillColor, fillAlpha);
+      // this.selectionGraphics.lineStyle(2, 0xffffff, 0.8);
+      // this.selectionGraphics.strokeCircle(centerX, centerY, sprite.displayWidth * 0.6);
     }
 
     // Envoi de l'événement UI

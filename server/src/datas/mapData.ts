@@ -20,14 +20,10 @@ export const MAP_DATA = {
 
   minAreaRadius: 64,
   maxAreaRadius: 192,
-  negativeAreaMultiplier: 50,
-  minAreaMultiplier: 110,
-  maxAreaMultiplier: 200,
+  // negativeAreaMultiplier: 50,
+  minAreaMultiplier: 10,
+  maxAreaMultiplier: 90,
   areaTypes: ['damage', 'attackSpeed', 'range', 'speed'],
-  damageAreaColor: 0,
-  attackSpeedAreaColor: 0,
-  rangeAreaColor: 0,
-  speedAreaColor: 0,
 
   baseLives: 100,
   baseGold: 20000,

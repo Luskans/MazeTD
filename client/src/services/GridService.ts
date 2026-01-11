@@ -529,7 +529,7 @@ export class GridService {
 
         let baseColor = getColorByAreaType(area.type);
         // const normalizedMultiplier = (area.multiplier - 100) / 100;
-        const normalizedMultiplier = area.multiplier - 100;
+        // const normalizedMultiplier = area.multiplier - 100;
         // const areaShape = this.scene.add.circle(x, y, area.radius, baseColor, 0.15)
         const areaShape = this.scene.add.circle(x, y, area.radius)
         areaShape.setStrokeStyle(2, baseColor, 0.50)
@@ -575,7 +575,10 @@ export class GridService {
         // emitter.setMask(this.mask);
 
         // --- Affichage du pourcentage ---
-        const percentageText = this.scene.add.text(x, y, `+ ${normalizedMultiplier}%`, {
+        const text = (area.type === 'speed')
+          ? Math.round((1 - (100 / (area.multiplier + 100))) * 100)
+          : area.multiplier;
+        const percentageText = this.scene.add.text(x, y, `${area.type === 'speed' ? '-' : '+'} ${text}%`, {
             fontFamily: 'Roboto',
             fontSize: '12px',
             fontStyle: 'bold',

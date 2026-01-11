@@ -25,17 +25,24 @@ export class AreaService {
   }
 
   private isInside(entity: TowerState | EnemyState, area: AreaState): boolean {
-    const distance = Math.sqrt(Math.pow(area.gridX * 32 - entity.gridX * 32, 2) + Math.pow(area.gridY * 32 - entity.gridY * 32, 2));
+    const areaCenterX = area.gridX * 32;
+    const areaCenterY = area.gridY * 32;
+    const entityCenterX = (entity.gridX * 32) + 32;
+    const entityCenterY = (entity.gridY * 32) + 32;
+    const dx = areaCenterX - entityCenterX;
+    const dy = areaCenterY - entityCenterY;
+
+    const distance = Math.sqrt(dx * dx + dy * dy);
     return distance <= area.radius;
   }
 
   private applyEffect(entity: TowerState | EnemyState, area: AreaState, type: string) {
     if (type === 'tower') {
-      if (area.type === "damage") entity.areaModifiers.damageMultiplier = area.multiplier;
-      if (area.type === "attackSpeed") entity.areaModifiers.attackSpeedMultiplier = area.multiplier;
-      if (area.type === "range") entity.areaModifiers.rangeMultiplier = area.multiplier;
+      if (area.type === "damage") entity.areaModifiers.damageMultiplier += area.multiplier;
+      if (area.type === "attackSpeed") entity.areaModifiers.attackSpeedMultiplier += area.multiplier;
+      if (area.type === "range") entity.areaModifiers.rangeMultiplier += area.multiplier;
     } else {
-      if (area.type === "speed") entity.areaModifiers.speedMultiplier = area.multiplier;
+      if (area.type === "speed") entity.areaModifiers.speedMultiplier += area.multiplier;
     }
   }
 }
