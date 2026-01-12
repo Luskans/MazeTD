@@ -157,6 +157,8 @@ export class PathService {
     const points = path.map(node => ({
       x: offset.x + (node.gridX * 32) + 16,
       y: offset.y + (node.gridY * 32) + 16
+      // x: offset.x + (node.gridX * 32),
+      // y: offset.y + (node.gridY * 32)
     }));
 
     let particles: Phaser.GameObjects.Particles.ParticleEmitter | undefined;

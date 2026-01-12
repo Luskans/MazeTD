@@ -58,9 +58,12 @@ export class LoadingScene extends Phaser.Scene {
     this.load.image('grass', 'assets/grass.png');
 
     this.load.image('overlay', 'assets/tilesets/overlay.webp');
-    this.load.image("slime", "assets/enemies/slime.png");
-    this.load.image("orc", "assets/enemies/orc.png");
-    this.load.image("golem", "assets/enemies/golem.png");
+    this.load.image("slime3", "assets/enemies/slime3.png");
+    this.load.image("orc3", "assets/enemies/orc3.png");
+    this.load.image("golem3", "assets/enemies/golem3.png");
+    this.load.spritesheet('slime', 'assets/enemies/slime.png', { frameWidth: 32, frameHeight: 32 });
+    this.load.spritesheet('orc', 'assets/enemies/orc.png', { frameWidth: 32, frameHeight: 32 });
+    this.load.spritesheet('golem', 'assets/enemies/golem.png', { frameWidth: 32, frameHeight: 32 });
 
     this.load.image("basic", "assets/buildings/basic.webp");
     // this.load.image("basic", "assets/buildings/basic.png");

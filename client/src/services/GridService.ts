@@ -593,6 +593,27 @@ export class GridService {
         .setDepth(8000); // Au-dessus du cercle
 
       }
+      
+      // --- CHEKCPOINTS ---
+      for (const c of room.state.grid.checkpoints) {
+        const x = startX + c.gridX * MAP_DATA.cellSize;
+        const y = startY + c.gridY * MAP_DATA.cellSize;
+  
+        this.scene.add.circle(
+          x + 32,
+          y + 32,
+          MAP_DATA.cellSize,
+          0x0000ff,
+          0.8
+        ).setDepth(4);
+  
+        this.scene.add.text(
+          x + 28,
+          y + 26,
+          c.order.toString(),
+          { fontSize: "16px", color: "#fff" }
+        ).setDepth(5);
+      }
     });
   }
 
