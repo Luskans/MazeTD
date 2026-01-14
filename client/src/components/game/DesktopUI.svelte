@@ -31,8 +31,8 @@
 </div>
 
 
-<div class="action-bar textured-component">
-  <div class="aura-container">
+<div class="action-bar">
+  <div class="">
   <!-- <div class="container">
     <svg style="display:none">
       <filter id="noiseFilter">

@@ -24,3 +24,9 @@
   <!-- <SvelteToast options={{ intro: { y: -32 } }} /> -->
   <SvelteToast />
 </main>
+
+<style>
+  main {
+    overflow: hidden;
+  }
+</style>

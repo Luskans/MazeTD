@@ -16,14 +16,15 @@
   --toastContainerLeft: calc(50vw - 8rem);
 
   --primary:#2e3b41;
-  --primary-light:#394a50;
-  --primary-dark:#202e37;
+  --primary-light:#425e7c; /* #394a50, #425e7c */
+  --primary-dark:#1f2f42; /* #202e37, #1f2f42 */
   --secondary:#bb8859;
   --secondary-light:#d3a66f;
   --secondary-dark:#976b48;
   --grey:#afb1b3;
   --grey-dark:#616161;
   --white:#f6f9ff;
+  --black:#313131;
 
   --damage: #ff8e74;
   --attackSpeed: #ffdf81;
@@ -52,15 +53,6 @@ body{
   align-items:center;
   justify-content:center;
   /* padding:24px; */
-}
-#app{
-  /* flex:1; */
-  /* background: linear-gradient(180deg, #eef6ff 0%, #fff0f6 100%); */
-}
-main {
-  /* flex: 1;
-  display: flex;
-  justify-content: center; */
 }
 
 /* Screen base */

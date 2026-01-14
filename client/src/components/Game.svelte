@@ -4,7 +4,6 @@
   import { GameScene } from '../scenes/GameScene';
   import GameUI from './GameUI.svelte';
   import { sceneStore } from '../stores/screenStore.svelte';
-    import { WaterPostPipeline } from '../shaders/WaterPostPipeline';
 
   let container: HTMLElement;
   let gameInstance = $state<Phaser.Game | null>(null);
@@ -14,7 +13,8 @@
       type: Phaser.AUTO,
       width: 1280,
       height: 720,
-      parent: container,
+      // parent: container,
+      // parent: parent,
       backgroundColor: "#d7899eff",
       physics: { default: "arcade" },
       pixelArt: false,
@@ -40,15 +40,17 @@
 </script>
 
 <svelte:window on:contextmenu|preventDefault />
-<div class="game-screen" bind:this={container}>
+<!-- <div class="game-screen" bind:this={container}>
   {#if sceneStore.current === 'game'}
     <GameUI />
   {/if}
-</div>
+</div> -->
+<GameUI />
 
 <style>
   .game-screen {
-    width: 100%;
-    height: 100vh;
+    /* width: 100%;
+    height: 100vh; */
+    overflow: hidden;
   }
 </style>
