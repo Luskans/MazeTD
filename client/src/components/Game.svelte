@@ -3,9 +3,7 @@
   import { LoadingScene } from '../scenes/LoadingScene';
   import { GameScene } from '../scenes/GameScene';
   import GameUI from './GameUI.svelte';
-  import { sceneStore } from '../stores/screenStore.svelte';
 
-  let container: HTMLElement;
   let gameInstance = $state<Phaser.Game | null>(null);
 
   onMount(async () => {
@@ -40,17 +38,8 @@
 </script>
 
 <svelte:window on:contextmenu|preventDefault />
-<!-- <div class="game-screen" bind:this={container}>
-  {#if sceneStore.current === 'game'}
-    <GameUI />
-  {/if}
-</div> -->
 <GameUI />
 
 <style>
-  .game-screen {
-    /* width: 100%;
-    height: 100vh; */
-    overflow: hidden;
-  }
+
 </style>

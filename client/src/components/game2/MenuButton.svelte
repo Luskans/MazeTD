@@ -40,13 +40,13 @@
   }
   button:hover .icon {
     transform: scale(1.1);
-    background-color: var(--primary);
+    background-color: var(--secondary-light);
   }
   button:active {
     transform: scale(0.95);
   }
   button.is-active .icon {
-    background-color: var(--primary);
+    background-color: var(--secondary-light);
   }
   /* .shortcut {
     position: absolute;

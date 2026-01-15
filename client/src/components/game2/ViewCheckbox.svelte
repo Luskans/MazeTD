@@ -20,7 +20,7 @@
 </script>
 
 <button aria-label="vision" onclick={() => toggleVision(player.sessionId)}>
-  <div class:granted={hasVision}></div>
+  <div class="inside" class:granted={hasVision}></div>
 </button>
 
 <style>
@@ -32,7 +32,13 @@
     width: 15px;
     height: 15px;
   }
-  .granted {
+  .inside {
+    width: 100%;
+    height: 100%;
+    background-color: transparent;
+    transition: background-color 0.1s ease;
+  }
+  .inside.granted {
     background-color: var(--secondary-light);
   }
 </style>

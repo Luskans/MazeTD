@@ -14,10 +14,12 @@ import { EnemyService } from "../services/EnemyService";
 import type { TowerState } from "../../../server/src/rooms/schema/TowerState";
 import type { WallState } from "../../../server/src/rooms/schema/WallState";
 import type { RockState } from "../../../server/src/rooms/schema/RockState";
+import { GridService2 } from "../services/GridService2";
 
 export class GameScene extends Phaser.Scene {
   private room!: Room<GameState>;
   private gridService!: GridService;
+  private gridService2!: GridService2;
   private cameraService!: CameraService;
   private pathService!: PathService;
   private buildingService!: BuildingService;
@@ -41,6 +43,7 @@ export class GameScene extends Phaser.Scene {
     const $ = getStateCallbacks(this.room);
     // VARIABLES THAT BE SOMEWHERE ELSE
     this.gridService = new GridService(this, this.room);
+    this.gridService2 = new GridService2(this, this.room);
     const player = this.room.state.players.get(this.room.sessionId)
     const playerIndex = Array.from(this.room.state.players.keys()).indexOf(this.room.sessionId);
     const playerOffset = this.gridService.getPlayerOffset(playerIndex);
@@ -57,7 +60,7 @@ export class GameScene extends Phaser.Scene {
 
     // GROUP OF ALL SPRITES TO Y SORT THEM
     this.ySortGroup = this.add.group();
-    this.gridService.createPlayersGrid(this.room, this.ySortGroup);
+    this.gridService2.createPlayersGrid(this.room, this.ySortGroup);
     this.cameraService.handleFocus(playerOffset);
 
     // LISTEN CHANGES AND EVENTS
@@ -202,6 +205,9 @@ export class GameScene extends Phaser.Scene {
         tower.direction = (tower.direction + 1) % 4;
         this.buildingService.selectBuilding(tower, player.sessionId, "tower", sprite);
       }
+    });
+    this.game.events.on('deselect_building', () => {
+      this.buildingService.deselectBuilding();
     });
 
 

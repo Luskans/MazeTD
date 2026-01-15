@@ -57,7 +57,7 @@
     <div class="hud-item">
       <div class="hud-stats">
         <p class="hud-flat" class:danger={player.lives <= 10 || player.isDefeated}>{player.isDefeated ? "Lost" : player.lives}</p>
-        <p class="hud-percent">%</p>
+        <!-- <p class="hud-percent">%</p> -->
       </div>
       <div class="hud-bar">
         <div class="hud-progress" style="width: 10%"></div>
@@ -66,7 +66,7 @@
     <div class="hud-item">
       <div class="hud-stats">
         <p class="hud-flat">{player.kills}</p>
-        <p class="hud-percent">%</p>
+        <!-- <p class="hud-percent">%</p> -->
       </div>
       <div class="hud-bar">
         <div class="hud-progress" style="width: 10%"></div>
@@ -75,7 +75,7 @@
     <div class="hud-item">
       <div class="hud-stats">
         <p class="hud-flat">{player.damage}</p>
-        <p class="hud-percent">%</p>
+        <!-- <p class="hud-percent">%</p> -->
       </div>
       <div class="hud-bar">
         <div class="hud-progress" style="width: 60%"></div>
@@ -84,7 +84,7 @@
     <div class="hud-item">
       <div class="hud-stats">
         <p class="hud-flat">{player.mazeDuration}</p>
-        <p class="hud-percent">%</p>
+        <!-- <p class="hud-percent">%</p> -->
       </div>
       <div class="hud-bar">
         <div class="hud-progress" style="width: 20%"></div>
@@ -93,7 +93,7 @@
     <div class="hud-item">
       <div class="hud-stats">
         <p class="hud-flat">+{player.incomeBonus}</p>
-        <p class="hud-percent">%</p>
+        <!-- <p class="hud-percent">%</p> -->
       </div>
       <div class="hud-bar">
         <div class="hud-progress" style="width: 30%"></div>
@@ -170,16 +170,18 @@
     display: flex;
     justify-content: space-between;
     color: var(--white);
-    font-size: 8px;
+    font-size: 10px;
+    font-weight: bold;
+    width: 100%;
+    padding-left: 3px;
   }
   .hud-flat {
+    color: var(--white);
+    font-size: 8px;
     white-space: nowrap;
     text-wrap: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-  }
-  .hud-percent {
-
   }
   .hud-bar {
     position: relative;

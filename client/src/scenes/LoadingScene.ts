@@ -43,12 +43,19 @@ export class LoadingScene extends Phaser.Scene {
     // Assets
     this.load.image('rockk', 'assets/tilesets/rocks/rock.webp');
     this.load.image('rock', 'assets/tilesets/rocks/rockk.webp');
-    this.load.image('rock1', 'assets/tilesets/rocks/rock1.webp');
-    this.load.image('rock2', 'assets/tilesets/rocks/rock2.webp');
-    this.load.image('rock3', 'assets/tilesets/rocks/rock3.webp');
-    this.load.image('rock4', 'assets/tilesets/rocks/rock4.webp');
+    // this.load.image('rock1', 'assets/tilesets/rocks/rock1.webp');
+    // this.load.image('rock2', 'assets/tilesets/rocks/rock2.webp');
+    // this.load.image('rock3', 'assets/tilesets/rocks/rock3.webp');
+    // this.load.image('rock4', 'assets/tilesets/rocks/rock4.webp');
+    this.load.image('rock9', 'assets/tilesets/rock9.png');
+    this.load.image('rock1', 'assets/tilesets/rock_custom1.png');
+    this.load.image('rock2', 'assets/tilesets/rock_custom2.png');
+    this.load.image('rock3', 'assets/tilesets/rock_custom3.png');
+    this.load.image('rock4', 'assets/tilesets/rock_custom4.png');
+
 
     this.load.image('tileset_all', 'assets/tilesets/tileset_all.webp');
+    this.load.image('tileset_all2', 'assets/tilesets/tileset_all2.png');
     this.load.image('tileset_grass', 'assets/tilesets/tileset_grass.png');
     this.load.image('tileset_tree', 'assets/tilesets/tileset_tree.png');
     this.load.image('tileset_wall', 'assets/tilesets/tileset_wall.png');

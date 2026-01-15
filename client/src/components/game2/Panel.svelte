@@ -10,7 +10,7 @@
 </script>
 
 <div 
-  class="panel" 
+  class="panel"
   onclick={(e) => e.stopPropagation()}
   transition:slide={{ axis: "x", duration: 300, easing: cubicIn }}
   tabindex="0"
@@ -23,7 +23,7 @@
     <h2>{title.toUpperCase()}</h2>
   </header>
   
-  <div class="content">
+  <div class="content" class:isMenu={title === "menu"}>
     <!-- <slot></slot> -->
     {@render children()}
   </div>
@@ -48,21 +48,27 @@
     justify-content: center;
     align-items: center; */
     background: var(--primary);
+    /* background: rgba(0, 0, 0, 0.4); */
     padding: 2px 0px;
     width: 180px;
     text-align: center;
     white-space: nowrap;
   }
   h2 {
-    color: var(--white);
+    color: var(--secondary-light);
     font-size: 16px;
     font-weight: bold;
   }
   .content {
     background: var(--primary);
+    /* background: rgba(0, 0, 0, 0.4); */
+    border-radius: 0 4px 4px 0;
     padding: 16px;
     max-height: 88vh;
     overflow-y: auto;
     overflow-x: hidden;
+  }
+  .content.isMenu {
+    border-radius: 0 0 4px 0;
   }
 </style>

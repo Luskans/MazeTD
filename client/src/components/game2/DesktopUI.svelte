@@ -6,12 +6,18 @@
   import PlayerHUD from './PlayerHUD.svelte';
   import Panel from './Panel.svelte';
   import PlayersPanel from './PlayersPanel.svelte';
+  import ShopPanel from './ShopPanel.svelte';
+  import WavesPanel from './WavesPanel.svelte';
+  import MenuPanel from './MenuPanel.svelte';
+  import SettingsPanel from './SettingsPanel.svelte';
+  import BuildingInfo from './BuildingInfo.svelte';
   
   let activePanel = $state<"menu" | "players" | "shop" | "waves" | "settings" | null>(null);
-  let selection = $state({ isVisible: false, buildingId: '', type: '' });
+  // let selection = $state({ isVisible: false, buildingId: '', type: '' });
 
   const togglePanel = (panel: "menu" | "players" | "shop" | "waves" | "settings") => {
     activePanel = (activePanel === panel) ? null : panel;
+    (window as any).phaserGame.events.emit('deselect_building');
   };
 
   onMount(() => {
@@ -36,13 +42,19 @@
   />
 </div>
 
+{#if activePanel === "menu"}
+  <Panel title={activePanel} onClose={() => activePanel = null}>
+    <MenuPanel />
+  </Panel>
+{/if}
+
 {#if activePanel === "players"}
   <Panel title={activePanel} onClose={() => activePanel = null}>
     <PlayersPanel players={gameStore.players} />
   </Panel>
 {/if}
 
-<!-- {#if activePanel === "shop"}
+{#if activePanel === "shop"}
   <Panel title={activePanel} onClose={() => activePanel = null}>
     <ShopPanel />
   </Panel>
@@ -60,15 +72,15 @@
   </Panel>
 {/if}
 
-<BuildingInfo /> -->
+<BuildingInfo />
 
 <style>
   .wave-hud {
     position: fixed;
     top: 10px;
-    right: 20px;
-    /* left: 50%;
-    transform: translateX(-50%); */
+    /* right: 20px; */
+    left: 50%;
+    transform: translateX(-50%);
   }
   .menu-bar {
     position: fixed;

@@ -19,19 +19,18 @@ export const ENEMIES_DATA: Record<string, any> = {
       enabled: false,
       name: 'tough',
       flat: 1,
-      percentage: 10,
       info: 1
     },
     regenerative: {
       enabled: false,
       name: 'regenerative',
-      regeneration: 10,
+      flat: 10,
       info: 1
     },
     armored: {
       enabled: false,
       name: 'armored',
-      armor: 10,
+      percentage: 10,
       info: 1
     },
     agile: {
@@ -83,19 +82,18 @@ export const ENEMIES_DATA: Record<string, any> = {
       enabled: false,
       name: 'tough',
       flat: 1,
-      percentage: 10,
       info: 1
     },
     regenerative: {
       enabled: false,
       name: 'regenerative',
-      regeneration: 10,
+      flat: 10,
       info: 1
     },
     armored: {
       enabled: true,
       name: 'armored',
-      armor: 20,
+      percentage: 20,
       info: 3
     },
     agile: {
@@ -152,13 +150,13 @@ export const ENEMIES_DATA: Record<string, any> = {
     regenerative: {
       enabled: false,
       name: 'regenerative',
-      regeneration: 10,
+      flat: 10,
       info: 1
     },
     armored: {
       enabled: false,
       name: 'armored',
-      armor: 10,
+      percentage: 10,
       info: 1
     },
     agile: {
