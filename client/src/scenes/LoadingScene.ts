@@ -41,42 +41,26 @@ export class LoadingScene extends Phaser.Scene {
     });
 
     // Assets
-    this.load.image('rockk', 'assets/tilesets/rocks/rock.webp');
-    this.load.image('rock', 'assets/tilesets/rocks/rockk.webp');
-    // this.load.image('rock1', 'assets/tilesets/rocks/rock1.webp');
-    // this.load.image('rock2', 'assets/tilesets/rocks/rock2.webp');
-    // this.load.image('rock3', 'assets/tilesets/rocks/rock3.webp');
-    // this.load.image('rock4', 'assets/tilesets/rocks/rock4.webp');
-    this.load.image('rock9', 'assets/tilesets/rock9.png');
-    this.load.image('rock1', 'assets/tilesets/rock_custom1.png');
-    this.load.image('rock2', 'assets/tilesets/rock_custom2.png');
-    this.load.image('rock3', 'assets/tilesets/rock_custom3.png');
-    this.load.image('rock4', 'assets/tilesets/rock_custom4.png');
+    this.load.image('rock0', 'assets/grid/rock0.png');
+    this.load.image('rock1', 'assets/grid/rock1.png');
+    this.load.image('rock2', 'assets/grid/rock2.png');
+    this.load.image('rock3', 'assets/grid/rock3.png');
+    this.load.spritesheet('checkpoints', 'assets/grid/checkpoints.png', { frameWidth: 64, frameHeight: 64});
+    this.load.image('checkpoint', 'assets/grid/checkpoint4.png');
 
+    this.load.image('tileset_ground', 'assets/grid/tileset_ground.png');
+    this.load.image('tileset_object', 'assets/grid/tileset_object.png');
 
     this.load.image('tileset_all', 'assets/tilesets/tileset_all.webp');
-    this.load.image('tileset_all2', 'assets/tilesets/tileset_all2.png');
-    this.load.image('tileset_grass', 'assets/tilesets/tileset_grass.png');
-    this.load.image('tileset_tree', 'assets/tilesets/tileset_tree.png');
-    this.load.image('tileset_wall', 'assets/tilesets/tileset_wall.png');
-    this.load.image('tileset_object', 'assets/tilesets/tileset_object.png');
-
     this.load.image('water', 'assets/tilesets/water.webp');
-    this.load.image('grass', 'assets/grass.png');
-
     this.load.image('overlay', 'assets/tilesets/overlay.webp');
-    this.load.image("slime3", "assets/enemies/slime3.png");
-    this.load.image("orc3", "assets/enemies/orc3.png");
-    this.load.image("golem3", "assets/enemies/golem3.png");
+
     this.load.spritesheet('slime', 'assets/enemies/slime.png', { frameWidth: 32, frameHeight: 32 });
     this.load.spritesheet('orc', 'assets/enemies/orc.png', { frameWidth: 32, frameHeight: 32 });
     this.load.spritesheet('golem', 'assets/enemies/golem.png', { frameWidth: 32, frameHeight: 32 });
 
     this.load.image("basic", "assets/buildings/basic.webp");
-    // this.load.image("basic", "assets/buildings/basic.png");
     this.load.image("earth_shock", "assets/buildings/earth_shock.png");
-    // this.load.image('small_wall', 'assets/buildings/small_wall.png');
-    // this.load.image('big_wall', 'assets/buildings/big_wall.png');
     this.load.image('small_wall3', 'assets/buildings/small_wall.webp');
     this.load.image('big_wall3', 'assets/buildings/big_wall.webp');
     this.load.image('small_wall', 'assets/buildings/small_wall2.webp');
@@ -84,8 +68,8 @@ export class LoadingScene extends Phaser.Scene {
 
     this.load.image("spark", "assets/particles/spark.png");
     this.load.image("dot", "assets/particles/dot.png");
-    this.load.image("towerBroken", "assets/towerBroken.png");
-    this.load.image('grass', 'assets/grass.png');
+    this.load.image("ball", "assets/particles/ball.png");
+    this.load.image("line", "assets/particles/line.png");
   }
 
   async create() {
