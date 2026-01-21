@@ -58,6 +58,8 @@ export class BuildingService {
     this.previewContainer.add([this.gridRect, this.ghostSprite]);
     this.selectionGraphics = this.scene.add.graphics().setDepth(3);
 
+    this.createAnimations('earth_shock', 12);
+
     // Écouteurs
     this.scene.game.events.on('choose_tower', this.startPreparation, this);
     this.scene.game.events.on('choose_wall', this.startPreparation, this);
@@ -84,6 +86,18 @@ export class BuildingService {
     });
   }
 
+  private createAnimations(dataId: string, frames: number) {
+    const animKey = `${dataId}_anim`;
+    if (!this.scene.anims.exists(animKey)) {
+      this.scene.anims.create({
+          key: animKey,
+          frames: this.scene.anims.generateFrameNumbers(dataId, { start: 0, end: (frames - 1) }),
+          frameRate: 10,
+          repeat: -1
+      });
+    }
+  }
+
   private startPreparation(event: {dataId: string, type: string, size: number}) {
     this.isPreparing = true;
     this.shopBuildingDataId = event.dataId;
@@ -92,7 +106,8 @@ export class BuildingService {
     const pixelSize = event.size * 32;
 
     this.gridRect.setSize(pixelSize, pixelSize);
-    this.ghostSprite.setTexture(event.dataId);
+    this.ghostSprite.setTexture(`${event.dataId}_icon`);
+    this.ghostSprite.setScale(2);
     this.ghostSprite.setSize(pixelSize, pixelSize);
     // this.ghostSprite.setPosition(pixelSize / 2, pixelSize / 2);
     this.ghostSprite.setPosition(pixelSize / 2, pixelSize / 4);
@@ -225,10 +240,13 @@ export class BuildingService {
     const buildingSize = type === 'wall' ? (buildingState as WallState).size : 2;
 
     const sprite = this.scene.add.sprite(x + (buildingSize * 16), y + (buildingSize * 16), buildingState.dataId)
+    const animKey = `${buildingState.dataId}_anim`;
+    sprite.play(animKey);
     sprite.setOrigin(0.5, 0.666);
     sprite.setData('ownerId', player.sessionId);
     sprite.setInteractive();
-    sprite.setDepth(3);
+    // sprite.setDepth(3);
+    sprite.setScale(2);
     sprite.on('pointerdown', (pointer: Phaser.Input.Pointer, event: Phaser.Types.Input.EventData) => {
       if (pointer.leftButtonDown()) {
         if (buildingState.sellingPending) return;

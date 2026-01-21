@@ -33,30 +33,6 @@ export class EnemyService {
     });
   }
 
-  // createEnemySprite(enemy: EnemyState, enemyId: string) {
-  //     // On crée le sprite à la position initiale
-  //     const sprite = this.scene.add.sprite(enemy.gridX * 32, enemy.gridY * 32, 'enemy');
-      
-  //     // On stocke la référence
-  //     this.enemySprites.set(enemyId, sprite);
-
-  //     // On attache les données du serveur au sprite pour y accéder dans l'update
-  //     // 'targetX' et 'targetY' sont en pixels
-  //     sprite.setData('targetX', enemy.gridX * 32);
-  //     sprite.setData('targetY', enemy.gridY * 32);
-
-  //     // On écoute les changements de position de cet ennemi précis
-  //     (enemy as any).onChange(() => {
-  //         // Optionnel : On peut utiliser un tween ici pour plus de fluidité
-  //         // sprite.x = state.gridX * 32; 
-  //         // sprite.y = state.gridY * 32;
-
-  //         // À chaque changement côté serveur, on met à jour la CIBLE, pas la position
-  //         sprite.setData('targetX', enemy.gridX * 32);
-  //         sprite.setData('targetY', enemy.gridY * 32);
-  //     });
-  // }
-
   createEnemySprite(enemy: EnemyState, enemyId: string, playerOffset: {x: number, y: number}, ySortGroup: Phaser.GameObjects.Group) {
     const x = (enemy.gridX * 32) + playerOffset.x + 16;
     const y = (enemy.gridY * 32) + playerOffset.y + 16;
@@ -66,9 +42,17 @@ export class EnemyService {
     sprite.setOrigin(0.5, 0.75);
     sprite.setData('targetX', x);
     sprite.setData('targetY', y);
+    sprite.setScale(1.5);
     sprite.play(`${enemy.dataId}_walk_down`);
     this.enemySprites.set(enemyId, sprite);
     ySortGroup.add(sprite);
+    this.playSpawnEffect(sprite);
+
+    this.scene.events.emit('enemy_spawned', {
+      id: enemyId,
+      sprite,
+      maxHp: enemy.maxHp
+    });
   }
 
   // Cette fonction sera appelée par la Scene à chaque changement
@@ -81,26 +65,6 @@ export class EnemyService {
       sprite.setData('targetY', y);
     }
   }
-
-  // update(time: number, delta: number) {
-  //   const LERP_FACTOR = 0.15; // Entre 0 et 1. Plus c'est bas, plus c'est fluide mais "mou"
-
-  //   this.enemySprites.forEach((sprite, id) => {
-  //     const tx = sprite.getData('targetX');
-  //     const ty = sprite.getData('targetY');
-
-  //     // Math.abs pour éviter les micro-mouvements inutiles
-  //     if (Math.abs(sprite.x - tx) > 0.1 || Math.abs(sprite.y - ty) > 0.1) {
-  //       // Formule : Position = Position + (Cible - Position) * Facteur
-  //       sprite.x += (tx - sprite.x) * LERP_FACTOR;
-  //       sprite.y += (ty - sprite.y) * LERP_FACTOR;
-  //     } else {
-  //       // On force la position finale pour stopper le calcul
-  //       sprite.x = tx;
-  //       sprite.y = ty;
-  //     }
-  //   });
-  // }
 
   update(time: number, delta: number) {
     const LERP_FACTOR = 0.15;
@@ -150,11 +114,41 @@ export class EnemyService {
     }
   }
 
-  destroyEnemySprite(id: string) {
+  public destroyEnemySprite(id: string) {
     const sprite = this.enemySprites.get(id);
-    if (sprite) {
-      sprite.destroy();
-      this.enemySprites.delete(id);
-    }
+    if (!sprite) return;
+
+    sprite.setTintFill(0xffffff);
+
+    this.scene.tweens.add({
+      targets: sprite,
+      scale: 0,
+      alpha: 0,
+      duration: 200,
+      ease: 'Back.In',
+      onComplete: () => {
+        sprite.destroy();
+        this.enemySprites.delete(id);
+      }
+    });
+
+    this.scene.events.emit('enemy_despawned', id);
+  }
+
+  private playSpawnEffect(sprite: Phaser.GameObjects.Sprite) {
+    sprite.setScale(0);
+    sprite.setAlpha(0);
+    sprite.setTintFill(0xffffff);
+
+    this.scene.tweens.add({
+      targets: sprite,
+      scale: 1.5,
+      alpha: 1,
+      duration: 250,
+      ease: 'Back.Out',
+      onComplete: () => {
+        sprite.clearTint();
+      }
+    });
   }
 }

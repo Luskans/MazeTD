@@ -46,6 +46,7 @@ export class LoadingScene extends Phaser.Scene {
     this.load.image('rock2', 'assets/grid/rock2.png');
     this.load.image('rock3', 'assets/grid/rock3.png');
     this.load.spritesheet('checkpoints', 'assets/grid/checkpoints.png', { frameWidth: 64, frameHeight: 64});
+    this.load.spritesheet('areas', 'assets/grid/areas.png', { frameWidth: 32, frameHeight: 64});
     this.load.image('checkpoint', 'assets/grid/checkpoint4.png');
 
     this.load.image('tileset_ground', 'assets/grid/tileset_ground.png');
@@ -59,8 +60,10 @@ export class LoadingScene extends Phaser.Scene {
     this.load.spritesheet('orc', 'assets/enemies/orc.png', { frameWidth: 32, frameHeight: 32 });
     this.load.spritesheet('golem', 'assets/enemies/golem.png', { frameWidth: 32, frameHeight: 32 });
 
+    this.load.image("earth_shock_icon", "assets/buildings/earth_shock_icon.png");
+    this.load.spritesheet('earth_shock', 'assets/buildings/earth_shock.png', { frameWidth: 64, frameHeight: 64 });
     this.load.image("basic", "assets/buildings/basic.webp");
-    this.load.image("earth_shock", "assets/buildings/earth_shock.png");
+    // this.load.image("earth_shock", "assets/buildings/earth_shock.png");
     this.load.image('small_wall3', 'assets/buildings/small_wall.webp');
     this.load.image('big_wall3', 'assets/buildings/big_wall.webp');
     this.load.image('small_wall', 'assets/buildings/small_wall2.webp');
@@ -70,6 +73,7 @@ export class LoadingScene extends Phaser.Scene {
     this.load.image("dot", "assets/particles/dot.png");
     this.load.image("ball", "assets/particles/ball.png");
     this.load.image("line", "assets/particles/line.png");
+    this.load.image("path", "assets/particles/path.png");
   }
 
   async create() {

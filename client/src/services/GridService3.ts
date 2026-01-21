@@ -31,6 +31,7 @@ export class GridService3 {
   private room: Room<GameState>;
   private rockSprites: Map<string, Phaser.GameObjects.Sprite> = new Map();
   private checkpointSprites: Map<string, Phaser.GameObjects.Sprite> = new Map();
+  private areaSprites: Map<string, Phaser.GameObjects.Sprite> = new Map();
   private mask!: Phaser.Display.Masks.GeometryMask;
 
   constructor(scene: Phaser.Scene, room: Room<GameState>) {
@@ -199,7 +200,7 @@ export class GridService3 {
 
       for (let i = 0; i < 9; i++) {
         this.scene.anims.create({
-          key: `flag_anim_${i}`,
+          key: `checkpoint_anim_${i}`,
           frames: this.scene.anims.generateFrameNumbers('checkpoints', { 
             start: i * 6, 
             end: (i * 6) + 5 
@@ -218,19 +219,48 @@ export class GridService3 {
         // sprite.setDepth(3);
         this.checkpointSprites.set(`${(player as PlayerState).sessionId}_checkpoint_${index}`, sprite);
         ySortGroup.add(sprite);
+        sprite.play({key: `checkpoint_anim_${index}`, startFrame: Math.floor(Math.random() * 6)});
         
-        if (index === checkpoints.length - 1) {
-          sprite.play({key: 'flag_anim_8', startFrame: Math.floor(Math.random() * 6)});
-        } else {
-          const animIndex = (index % 8); 
-          sprite.play({key: `flag_anim_${animIndex}`, startFrame: Math.floor(Math.random() * 6)});
-        }
+        // if (index === checkpoints.length - 1) {
+        //   sprite.play({key: 'checkpoint_anim_8', startFrame: Math.floor(Math.random() * 6)});
+        // } else {
+        //   const animIndex = (index % 8); 
+        //   sprite.play({key: `checkpoint_anim_${animIndex}`, startFrame: Math.floor(Math.random() * 6)});
+        // }
       });
 
       // --- AREAS ---
+      for (let i = 0; i < 4; i++) {
+        this.scene.anims.create({
+          key: `area_anim_${i}`,
+          frames: this.scene.anims.generateFrameNumbers('areas', { 
+            start: i * 6, 
+            end: (i * 6) + 5 
+          }),
+          frameRate: 6,
+          repeat: -1
+        });
+      }
       for (const area of room.state.grid.areas) {
         const x = startX + area.gridX * MAP_DATA.cellSize;
         const y = startY + area.gridY * MAP_DATA.cellSize;
+        const sprite = this.scene.add.sprite(x, y + 2, 'areas');
+        sprite.setOrigin(0.5, 1); 
+        // sprite.setDepth(3);
+        this.areaSprites.set(`${(player as PlayerState).sessionId}_area_${index}`, sprite);
+        ySortGroup.add(sprite);
+        
+        if (area.type === "speed") {
+          sprite.play({key: 'area_anim_0', startFrame: Math.floor(Math.random() * 6)});
+        } else if (area.type === "damage") {
+          sprite.play({key: 'area_anim_1', startFrame: Math.floor(Math.random() * 6)});
+        } else if (area.type === "attackSpeed") {
+          sprite.play({key: 'area_anim_2', startFrame: Math.floor(Math.random() * 6)});
+        } else if (area.type === "range") {
+          sprite.play({key: 'area_anim_3', startFrame: Math.floor(Math.random() * 6)});
+        }
+
+
 
         let baseColor = getColorByAreaType(area.type);
         // const normalizedMultiplier = (area.multiplier - 100) / 100;
@@ -303,18 +333,19 @@ export class GridService3 {
         const text = (area.type === 'speed')
           ? Math.round((1 - (100 / (area.multiplier + 100))) * 100)
           : area.multiplier;
-        const percentageText = this.scene.add.text(x, y, `${area.type === 'speed' ? '-' : '+'} ${text}%`, {
+        const percentageText = this.scene.add.text(x, y - 36, `${area.type === 'speed' ? '-' : '+'} ${text}%`, {
             fontFamily: 'Roboto',
-            fontSize: '12px',
+            fontSize: '24px',
             fontStyle: 'bold',
-            color: `#${baseColor.toString(16).padStart(6, '0')}`,
-            // color: '#ffffff',
+            // color: `#${baseColor.toString(16).padStart(6, '0')}`,
+            color: '#ffffff',
             stroke: '#51361e',
             // stroke: '#000000',
             // stroke: `#${baseColor.toString(16).padStart(6, '0')}`,
-            strokeThickness: 2
+            strokeThickness: 4
         })
         .setOrigin(0.5) // Centre le texte
+        .setScale(0.5)
         .setDepth(8000); // Au-dessus du cercle
 
       }

@@ -34,7 +34,7 @@
   >
     <!-- <p class="shortcut"></p> -->
     <div class="image-card">
-      <img src="/assets/buildings/{data.id}.png" alt={data.name} class="image" />
+      <img src="/assets/buildings/{data.id}_icon.png" alt={data.name} class="image" />
     </div>
     <div class="price-card">
       <!-- <p class="price-text" class:disabled={notGold}>{price} 🪙</p> -->

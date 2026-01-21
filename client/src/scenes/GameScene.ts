@@ -16,6 +16,8 @@ import type { WallState } from "../../../server/src/rooms/schema/WallState";
 import type { RockState } from "../../../server/src/rooms/schema/RockState";
 import { GridService2 } from "../services/GridService2";
 import { GridService3 } from "../services/GridService3";
+import { PathService2 } from "../services/PathService2";
+import { EnemyUIService } from "../services/EnemyUIService";
 
 export class GameScene extends Phaser.Scene {
   private room!: Room<GameState>;
@@ -24,11 +26,13 @@ export class GameScene extends Phaser.Scene {
   private gridService3!: GridService3;
   private cameraService!: CameraService;
   private pathService!: PathService;
+  private pathService2!: PathService2;
   private buildingService!: BuildingService;
   private upgradeService!: UpgradeService;
   private waveService!: WaveService;
   private pathfindingService!: PathfindingService;
   private enemyService!: EnemyService;
+  private enemyUIService!: EnemyUIService;
   private ySortGroup!: Phaser.GameObjects.Group;
 
   constructor() {
@@ -55,11 +59,13 @@ export class GameScene extends Phaser.Scene {
     // INIT SERVICES
     this.cameraService = new CameraService(this, this.room);
     this.pathService = new PathService(this, this.room);
+    this.pathService2 = new PathService2(this, this.room);
     this.pathfindingService = new PathfindingService(this.room);
     this.buildingService = new BuildingService(this, this.room, this.pathfindingService);
     this.upgradeService = new UpgradeService(this, this.room);
     this.waveService = new WaveService(this);
     this.enemyService = new EnemyService(this, this.room);
+    this.enemyUIService = new EnemyUIService(this);
 
     // GROUP OF ALL SPRITES TO Y SORT THEM
     this.ySortGroup = this.add.group();
@@ -72,13 +78,13 @@ export class GameScene extends Phaser.Scene {
       const playerOffset = this.gridService.getPlayerOffset(playerIndex);
 
       $(player).listen("currentPathVersion", () => {
-        this.pathService.drawPath(Array.from(player.currentPath.values()), playerOffset, "current", sessionId);
+        this.pathService2.drawPath(Array.from(player.currentPath.values()), playerOffset, "current", sessionId);
         //@ts-ignore
         console.log("Current Chemin changé, nouvelle state de la game : ", this.room.state.toJSON())
       });
 
       $(player).listen("pendingPathVersion", () => {
-        this.pathService.drawPath(Array.from(player.pendingPath.values()), playerOffset, "pending", sessionId);
+        this.pathService2.drawPath(Array.from(player.pendingPath.values()), playerOffset, "pending", sessionId);
         //@ts-ignore
         console.log("Pending Chemin changé, nouvelle state de la game : ", this.room.state.toJSON())
       });
@@ -161,8 +167,8 @@ export class GameScene extends Phaser.Scene {
     });
 
     $(this.room.state).players.onRemove((p: PlayerState, id: string) => {
-      this.pathService.cleanupPath(`${p.sessionId}_current`);
-      this.pathService.cleanupPath(`${p.sessionId}_pending`);
+      this.pathService2.cleanupPath(`${p.sessionId}_current`);
+      this.pathService2.cleanupPath(`${p.sessionId}_pending`);
     });
     // $(player).listen("pathVersion", () => {
     //   this.pathService.drawPath(
@@ -221,6 +227,7 @@ export class GameScene extends Phaser.Scene {
   update(time: number, delta: number) {
     this.cameraService.update(time, delta);
     this.enemyService.update(time, delta);
+    this.enemyUIService.update();
     this.ySortGroup.getChildren().forEach((child: any) => {
       child.setDepth(child.y);
     });
