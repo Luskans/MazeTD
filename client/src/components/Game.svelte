@@ -3,6 +3,7 @@
   import { LoadingScene } from '../scenes/LoadingScene';
   import { GameScene } from '../scenes/GameScene';
   import GameUI from './GameUI.svelte';
+  import { sceneStore } from '../stores/screenStore.svelte';
 
   let gameInstance = $state<Phaser.Game | null>(null);
 
@@ -38,7 +39,9 @@
 </script>
 
 <svelte:window on:contextmenu|preventDefault />
+{#if sceneStore.current === "gameScene"}
 <GameUI />
+{/if}
 
 <style>
 

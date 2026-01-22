@@ -245,7 +245,9 @@ export class PathfindingService {
     if (checkpoints.length < 2) return null;
 
     let fullFinalPath: PathNodeState[] = [];
-    let currentPos = { x: checkpoints[0].gridX + 1, y: checkpoints[0].gridY + 1 };
+    // let currentPos = { x: checkpoints[0].gridX + 1, y: checkpoints[0].gridY + 1 };
+    let currentPos = this.findFreeCellIn2x2(gridMap, checkpoints[0].gridX, checkpoints[0].gridY);
+    if (!currentPos) return null;
 
     for (let i = 1; i < checkpoints.length; i++) {
       const targetCP = checkpoints[i];
@@ -274,6 +276,17 @@ export class PathfindingService {
     }
 
     return fullFinalPath;
+  }
+
+  private findFreeCellIn2x2(gridMap: number[][], x: number, y: number) {
+    for (let dy = 0; dy < 2; dy++) {
+      for (let dx = 0; dx < 2; dx++) {
+        if (gridMap[y + dy]?.[x + dx] === FREE) {
+          return { x: x + dx, y: y + dy };
+        }
+      }
+    }
+    return null;
   }
 
   public validatePlacement(player: PlayerState, gridX: number, gridY: number, gridSize: number, isDuringWave: boolean): boolean {

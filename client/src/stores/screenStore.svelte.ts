@@ -5,5 +5,5 @@ export const screenStore = $state({
   current: 'home' as ScreenStore
 });
 export const sceneStore = $state({
-  current: 'home' as ScreenStore
+  current: 'loadingScene' as SceneStore
 });

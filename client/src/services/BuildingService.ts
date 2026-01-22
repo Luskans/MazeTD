@@ -120,13 +120,13 @@ export class BuildingService {
 
     this.gridRect.setSize(event.size * 32, event.size * 32);
     this.ghostSprite.setTexture(`${event.dataId}_icon`);
-    this.ghostSprite.setOrigin(0.5, 1);
-    this.ghostSprite.setPosition(event.size * 16, event.size * 32);
+    this.ghostSprite.setOrigin(0.5, 0.75);
+    this.ghostSprite.setPosition(event.size * 16, event.size * 16);
     this.ghostSprite.setScale(1);
     // this.ghostSprite.setSize(pixelSize, pixelSize);
     if (event.type === "tower") {
       this.ghostSprite.setScale(2);
-      this.ghostSprite.setPosition(event.size * 16, 48);
+      this.ghostSprite.setPosition(32, 16);
     }
     this.previewContainer.setVisible(true);
   }
@@ -180,6 +180,7 @@ export class BuildingService {
 
   private checkLocalValidity(gridX: number, gridY: number): boolean {
     const player = this.room.state.players.get(this.room.sessionId);
+    const grid = this.room.state.grid;
     const gridSize = this.shopBuildingSize!;
 
     if (gridX < 0 || gridY < 0 ||
@@ -195,6 +196,23 @@ export class BuildingService {
         otherY + otherSize <= gridY);
     };
 
+    const wouldFullyBlockCheckpoint = (buildingX: number, buildingY: number, buildingSize: number, checkpointX: number, checkpointY: number) => {
+      let blockedCells = 0;
+
+      for (let dy = 0; dy < 2; dy++) {
+        for (let dx = 0; dx < 2; dx++) {
+          const cellX = checkpointX + dx;
+          const cellY = checkpointY + dy;
+
+          if (cellX >= buildingX && cellX < buildingX + buildingSize && cellY >= buildingY && cellY < buildingY + buildingSize) {
+            blockedCells++;
+          }
+        }
+      }
+
+      return blockedCells === 4;
+    }
+
     for (const rock of player.rocks.values()) {
       if (hasCollision(rock.gridX, rock.gridY, 2)) return false;
     }
@@ -205,6 +223,10 @@ export class BuildingService {
 
     for (const wall of player.walls.values()) {
       if (hasCollision(wall.gridX, wall.gridY, wall.size)) return false;
+    }
+
+    for (const checkpoint of grid.checkpoints.values()) {
+      if (wouldFullyBlockCheckpoint(gridX,gridY,gridSize,checkpoint.gridX,checkpoint.gridY)) return false;
     }
 
     return true;
@@ -256,12 +278,12 @@ export class BuildingService {
     const y = (buildingState.gridY * 32) + playerOffset.y;
     const buildingSize = (type === 'wall') ? (buildingState as WallState).size : 2;
     const texture = (type === 'wall') ? `${buildingState.dataId}_icon` : buildingState.dataId;
-    const sprite = this.scene.add.sprite(x + (buildingSize * 16), y + (buildingSize * 32), texture)
+    const sprite = this.scene.add.sprite(x + (buildingSize * 16), y + (buildingSize * 16), texture)
     if (type === "tower") {
       const animKey = `${buildingState.dataId}_anim`;
       sprite.play(animKey);
     }
-    sprite.setOrigin(0.5, 1);
+    sprite.setOrigin(0.5, 0.75);
     sprite.setData('ownerId', player.sessionId);
     sprite.setInteractive();
     // sprite.setDepth(3);

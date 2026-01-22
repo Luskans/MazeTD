@@ -100,7 +100,7 @@ export class LoadingScene extends Phaser.Scene {
 
     this.room.onMessage("begin", () => {
       // connectGame(this.room);
-      sceneStore.current = 'game';
+      sceneStore.current = 'gameScene';
       this.scene.start("GameScene");
     });
 

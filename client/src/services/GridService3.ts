@@ -214,7 +214,7 @@ export class GridService3 {
         
         const sprite = this.scene.add.sprite(x + 32, y + 32, 'checkpoints');
         sprite.setOrigin(0.5, 0.5); 
-        sprite.setDepth(3);
+        sprite.setDepth(1);
         this.checkpointSprites.set(`${(player as PlayerState).sessionId}_checkpoint_${index}`, sprite);
         // ySortGroup.add(sprite);
         sprite.play({key: `checkpoint_anim_${index}`, startFrame: Math.floor(Math.random() * 6)});
