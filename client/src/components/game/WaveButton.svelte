@@ -77,7 +77,7 @@
     border: 2px solid var(--primary);
     border-radius: 0 8px 8px 8px;
     overflow: hidden;
-    cursor: pointer;
+    /* cursor: pointer; */
     background: var(--primary);
     transition: transform 0.2s, box-shadow 0.2s;
     width: 280px;

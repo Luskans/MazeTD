@@ -29,4 +29,10 @@
   main {
     overflow: hidden;
   }
+  :global(body) {
+    cursor: url('/assets/cursors/pointer.png') 4 4, auto;
+  }
+  :global(button, a, [role="button"], .pointer, .btn) {
+    cursor: url('/assets/cursors/hand_point.png') 6 4, pointer;
+  }
 </style>

@@ -172,7 +172,7 @@ export class GridService3 {
         room.state.grid.row * 32,
         'overlay'
       );
-      gridOverlay.setDepth(2).setAlpha(0.8);
+      gridOverlay.setDepth(1).setAlpha(0.8);
 
       // ROCK SPRITES
       for (const rock of room.state.grid.rocks) {

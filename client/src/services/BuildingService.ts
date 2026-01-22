@@ -25,9 +25,9 @@ export class BuildingService {
   private ghostParticles: Phaser.GameObjects.Particles.ParticleEmitter;
   private gridRect: Phaser.GameObjects.Rectangle;
 
+  private selectedSprite: Phaser.GameObjects.Sprite | null = null;
   private selectionGraphics: Phaser.GameObjects.Graphics;
   private selectedBuildingId: string | null = null;
-  private rangeParticles: Phaser.GameObjects.Particles.ParticleEmitter | null = null;
 
   constructor(scene: Phaser.Scene, room: Room<GameState>, pathfindingService: PathfindingService) {
     this.scene = scene;
@@ -41,12 +41,12 @@ export class BuildingService {
       speed: { min: 10, max: 20 },
       lifespan: { min: 800, max: 1200 },
       angle: { min: 260, max: 280 },
-      scale: { start: 0.15, end: 0 },
+      scale: { start: 0.25, end: 0 },
       alpha: 1,
       tint: [0xff0000, 0x00ff00],
       // tint: 0xffffff,
       // blendMode: 'ADD',
-      frequency: 50,
+      frequency: 40,
       emitting: false,
       emitZone: {
         type: 'random',
@@ -106,7 +106,7 @@ export class BuildingService {
       this.scene.anims.create({
           key: animKey,
           frames: this.scene.anims.generateFrameNumbers(dataId, { start: 0, end: (frames - 1) }),
-          frameRate: 10,
+          frameRate: 16,
           repeat: -1
       });
     }
@@ -129,6 +129,7 @@ export class BuildingService {
       this.ghostSprite.setPosition(32, 16);
     }
     this.previewContainer.setVisible(true);
+    this.scene.input.setDefaultCursor('url(assets/cursors/open.png) 6 8, auto');
   }
 
   private updatePreview(pointer: Phaser.Input.Pointer) {
@@ -285,9 +286,23 @@ export class BuildingService {
     }
     sprite.setOrigin(0.5, 0.75);
     sprite.setData('ownerId', player.sessionId);
-    sprite.setInteractive();
+    // sprite.setInteractive();
+    sprite.setInteractive({
+      pixelPerfect: true,
+      alphaTolerance: 1,
+      cursor: 'url(assets/cursors/hand_point.png) 6 4, pointer'
+    });
     // sprite.setDepth(3);
     // sprite.setScale(2);
+    // sprite.on('pointerover', () => {
+    //   if (sprite === this.selectedSprite) return;
+    //   sprite.postFX.clear();
+    //   sprite.postFX.addGlow(0xffffff, 2);
+    // });
+    // sprite.on('pointerout', () => {
+    //   if (sprite === this.selectedSprite) return;
+    //   sprite.postFX.clear();
+    // });
     sprite.on('pointerdown', (pointer: Phaser.Input.Pointer, event: Phaser.Types.Input.EventData) => {
       if (pointer.leftButtonDown()) {
         if (buildingState.sellingPending) return;
@@ -295,7 +310,7 @@ export class BuildingService {
       }
     });
     if (buildingState.placingPending) {
-      sprite.setAlpha(0.5);
+      sprite.setAlpha(0.6);
       sprite.setTint(0xFFF3A0);
     }
     this.buildingsSprites.set(buildingState.id, sprite);
@@ -328,12 +343,12 @@ export class BuildingService {
   private createTowerParticles(x: number, y: number, colors: number[]) {
     const emitter = this.scene.add.particles(x, y, 'dot', {
       speed: { min: 10, max: 20 },
-      scale: { start: 0.15, end: 0 },
+      scale: { start: 0.25, end: 0 },
       angle: { min: 260, max: 280 },
       alpha: 1,
       lifespan: { min: 800, max: 1200 },
       tint: colors,
-      frequency: 50,
+      frequency: 40,
       emitZone: {
         type: 'random',
         source: new Phaser.Geom.Circle(0, 0, 32),
@@ -363,7 +378,7 @@ export class BuildingService {
       sprite.setAlpha(1);
       sprite.clearTint();
     } else if (action === "selling") {
-      sprite.setAlpha(0.5);
+      sprite.setAlpha(0.6);
       sprite.setTint(0xF8BBD0);
     }
   }
@@ -399,24 +414,26 @@ export class BuildingService {
   //   }));
   // }
   public selectBuilding(buildingState: TowerState | WallState, ownerId: string, type: "tower" | "wall", sprite: Phaser.GameObjects.Sprite) {
-    this.selectedBuildingId = buildingState.id;
-
-    // if (this.rangeParticles) {
-    //   this.rangeParticles.destroy();
-    //   this.rangeParticles = null;
-    // }
-
+    if (this.selectedSprite) {
+      this.selectedSprite.postFX.clear();
+    }
+    // sprite.postFX.clear();
     this.selectionGraphics.clear();
     this.scene.tweens.killTweensOf(this.selectionGraphics);
     this.selectionGraphics.setAlpha(1);
 
-    // Récupérer les données de stats (depuis ton TOWERS_DATA)
+    // const outline = sprite.postFX.addOutline(0xffffff, 2);
+    // const outline = sprite.postFX.addBloom(0xffffff);
+    
+    
+    this.selectedSprite = sprite;
+    this.selectedSprite.postFX.addGlow(0xffffff, 2);
+    this.selectedBuildingId = buildingState.id;
     const towerData = TOWERS_DATA[buildingState.dataId];
     const fillColor = 0xffffff;
     const fillAlpha = 0.2;
     const lineThickness = 2;
 
-    // Position centrale au sol de la tour (le pied du sprite)
     const centerX = sprite.x;
     const centerY = sprite.y;
     // this.selectionGraphics.lineStyle(lineThickness, fillColor, 0.3);
@@ -524,15 +541,8 @@ export class BuildingService {
         yoyo: true,
         repeat: -1
       });
-
-    } else {
-      // Pour les murs ou bâtiments sans range : simple cercle de sélection autour du sprite
-      this.selectionGraphics.fillStyle(fillColor, fillAlpha);
-      // this.selectionGraphics.lineStyle(2, 0xffffff, 0.8);
-      // this.selectionGraphics.strokeCircle(centerX, centerY, sprite.displayWidth * 0.6);
     }
 
-    // Envoi de l'événement UI
     window.dispatchEvent(new CustomEvent('select-building', {
       detail: { isVisible: true, buildingId: buildingState.id, type: type, ownerId: ownerId }
     }));
@@ -544,10 +554,10 @@ export class BuildingService {
     this.selectionGraphics.clear();
     this.scene.tweens.killTweensOf(this.selectionGraphics);
     this.selectionGraphics.alpha = 1;
-    if (this.rangeParticles) {
-      this.rangeParticles.destroy();
-      this.rangeParticles = null;
+    if (this.selectedSprite) {
+      this.selectedSprite.postFX.clear();
     }
+    this.selectedSprite = null;
 
     window.dispatchEvent(new CustomEvent('select-building', {
       detail: { isVisible: false }

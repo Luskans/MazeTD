@@ -34,7 +34,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    cursor: pointer;
+    /* cursor: pointer; */
   }
   button:hover {
     box-shadow: 0 0 6px 2px var(--secondary-light);

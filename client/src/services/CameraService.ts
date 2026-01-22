@@ -22,6 +22,7 @@ export class CameraService {
     scene.input.on('wheel', this.handleWheel, this);
     scene.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
       if (pointer.rightButtonDown()) {
+        this.scene.input.setDefaultCursor('url(assets/cursors/closed.png) 8 9, auto');
         const camera = this.scene.cameras.main;
         camera.scrollX -= (pointer.x - pointer.prevPosition.x) / camera.zoom;
         camera.scrollY -= (pointer.y - pointer.prevPosition.y) / camera.zoom;

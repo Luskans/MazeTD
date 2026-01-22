@@ -20,7 +20,7 @@
     background: var(--primary-light);
     border: none;
     padding: 8px;
-    cursor: pointer;
+    /* cursor: pointer; */
     display: flex;
     align-items: center;
     text-align: center;

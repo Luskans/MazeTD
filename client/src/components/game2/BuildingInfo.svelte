@@ -268,7 +268,7 @@
     align-items: center;
     border-radius: 4px;
     overflow: hidden;
-    cursor: pointer;
+    /* cursor: pointer; */
     background: var(--primary);
     transition: transform 0.2s ease;
     color: var(--white);

@@ -89,7 +89,7 @@
     border: 3px solid var(--primary-dark);
     border-radius: 8px;
     padding: 6px 10px;
-    cursor: pointer;
+    /* cursor: pointer; */
     font-weight: bold;
     font-size: 12px;
     transition: transform 0.2s, background-color 0.2s;

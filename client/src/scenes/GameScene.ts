@@ -71,6 +71,14 @@ export class GameScene extends Phaser.Scene {
     this.ySortGroup = this.add.group();
     this.gridService3.createPlayersGrid(this.room, this.ySortGroup);
     this.cameraService.handleFocus(playerOffset);
+    // this.input.mouse?.disableContextMenu();
+    this.input.setDefaultCursor('url(assets/cursors/pointer.png) 4 4, auto');
+    this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+      this.input.setDefaultCursor('url(assets/cursors/pointer.png) 4 4, auto');
+    });
+    this.input.on('pointerup', (pointer: Phaser.Input.Pointer) => {
+      this.input.setDefaultCursor('url(assets/cursors/pointer.png) 4 4, auto');
+    });
 
     // LISTEN CHANGES AND EVENTS
     $(this.room.state).players.onAdd((player: PlayerState, sessionId: string) => {
@@ -202,6 +210,7 @@ export class GameScene extends Phaser.Scene {
       this.room.send("levelup_building", { buildingId: data.buildingId });
     });
     this.game.events.on('sell_building', (data: { buildingId: string, buildingType: string }) => {
+      this.buildingService.deselectBuilding();
       this.room.send("sell_building", { buildingId: data.buildingId, buildingType: data.buildingType });
     });
     this.game.events.on('rotate_building', (data: { buildingId: string }) => {

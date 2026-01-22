@@ -44,7 +44,7 @@
     border: none;
     border-radius: 4px;
     padding: 6px 10px;
-    cursor: pointer;
+    /* cursor: pointer; */
     font-weight: bold;
     font-size: 10px;
     transition: transform 0.2s ease;

@@ -16,7 +16,7 @@
 <style>
   button {
     position: relative;
-    cursor: pointer;
+    /* cursor: pointer; */
     background: var(--primary-dark);
     border-radius: 0 4px 4px 4px;
     transition: all 0.2s ease;

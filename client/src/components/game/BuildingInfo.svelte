@@ -270,7 +270,7 @@
     /* gap: 8px; */
     border-radius: 0 8px 8px 8px;
     overflow: hidden;
-    cursor: pointer;
+    /* cursor: pointer; */
     /* padding: 4px 8px; */
     background: var(--secondary);
     border: 3px solid var(--secondary-dark);

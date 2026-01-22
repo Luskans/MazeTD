@@ -28,7 +28,7 @@
     background: transparent;
     border: 1px solid var(--grey);
     border-radius: 4px;
-    cursor: pointer;
+    /* cursor: pointer; */
     width: 15px;
     height: 15px;
   }

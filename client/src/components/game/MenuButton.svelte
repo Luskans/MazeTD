@@ -19,7 +19,7 @@
     border: 2px solid var(--primary-dark);
     border-radius: 0 8px 8px 8px;
     padding: 12px;
-    cursor: pointer;
+    /* cursor: pointer; */
     display: flex;
     align-items: center;
     text-align: center;

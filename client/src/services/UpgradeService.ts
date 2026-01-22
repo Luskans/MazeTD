@@ -60,7 +60,7 @@ export class UpgradeService {
       this.isPreparing = true;
       this.currentBuildingId = event.dataId;
       this.currentBuildingType = event.type;
-      this.scene.input.setDefaultCursor('pointer'); // futur marteau 🛠️
+      this.scene.input.setDefaultCursor('url(assets/cursors/pickaxe.png) 9 9, auto');
       this.gridRect.setVisible(true);
     }
   }

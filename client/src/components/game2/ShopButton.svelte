@@ -57,7 +57,7 @@
     /* border: 2px solid var(--primary); */
     border-radius: 0 8px 8px 8px;
     overflow: hidden;
-    cursor: pointer;
+    /* cursor: pointer; */
     background: var(--primary-dark);
     /* border: 2px solid white; */
     /* box-shadow: 0px 0px 3px 0px var(--white); */
