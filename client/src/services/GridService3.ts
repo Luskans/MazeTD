@@ -2,8 +2,6 @@ import type { GameState } from "../../../server/src/rooms/schema/GameState";
 import { MAP_DATA } from "../../../server/src/datas/mapData";
 import type { Room } from "colyseus.js";
 import { getRandom } from "../../../server/src/services/utils";
-import { WaterPostPipeline } from "../shaders/WaterPostPipeline";
-import type { RockState } from "../../../server/src/rooms/schema/RockState";
 import { getColorByAreaType } from "./utils";
 import type { CheckpointState } from "../../../server/src/rooms/schema/CheckpointState";
 import type { PlayerState } from "../../../server/src/rooms/schema/PlayerState";
@@ -82,7 +80,7 @@ export class GridService3 {
     const islandHeight = gridPixelHeight + (3 * 32) + 2 * MAP_DATA.outsideSize;
     const worldWidth = activeCols * (islandWidth + MAP_DATA.spaceSize) + MAP_DATA.spaceSize;
     const worldHeight = activeRows * (islandHeight + MAP_DATA.spaceSize) + MAP_DATA.spaceSize;
-    this.scene.add.tileSprite(0, 0, worldWidth, worldHeight, 'water').setOrigin(0, 0).setDepth(0);
+    this.scene.add.tileSprite(0, 0, worldWidth, worldHeight, 'ocean').setOrigin(0, 0).setDepth(0);
   }
 
   public createPlayersGrid(room: Room<GameState>, ySortGroup: Phaser.GameObjects.Group) {
@@ -114,7 +112,7 @@ export class GridService3 {
         height: islandRows,
       });
 
-      const tileset = map.addTilesetImage('tileset_all', 'tileset_all');
+      const tileset = map.addTilesetImage('tileset', 'tileset');
       
       // On positionne la tilemap pour que la grille logique tombe au bon endroit
       const startX = pos.x + MAP_DATA.outsideSize;
@@ -216,9 +214,9 @@ export class GridService3 {
         
         const sprite = this.scene.add.sprite(x + 32, y + 32, 'checkpoints');
         sprite.setOrigin(0.5, 0.5); 
-        // sprite.setDepth(3);
+        sprite.setDepth(3);
         this.checkpointSprites.set(`${(player as PlayerState).sessionId}_checkpoint_${index}`, sprite);
-        ySortGroup.add(sprite);
+        // ySortGroup.add(sprite);
         sprite.play({key: `checkpoint_anim_${index}`, startFrame: Math.floor(Math.random() * 6)});
         
         // if (index === checkpoints.length - 1) {

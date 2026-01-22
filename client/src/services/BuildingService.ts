@@ -35,9 +35,8 @@ export class BuildingService {
     this.pathfindingService = pathfindingService;
 
     this.previewContainer = scene.add.container(0, 0).setVisible(false).setDepth(8000);
-    this.gridRect = scene.add.rectangle(0, 0, 64, 64, 0x00ff00, 0.4);
-    this.gridRect.setOrigin(0, 0);
-    this.ghostSprite = scene.add.sprite(32, 32, "").setAlpha(0.6);
+    this.gridRect = scene.add.rectangle(0, 0, 64, 64, 0x00ff00, 0.4).setOrigin(0, 0);
+    this.ghostSprite = scene.add.sprite(0, 0, "").setAlpha(0.6).setOrigin(0, 0);
     this.ghostParticles = scene.add.particles(0, 0, 'dot', {
       speed: { min: 10, max: 20 },
       lifespan: { min: 800, max: 1200 },
@@ -58,7 +57,22 @@ export class BuildingService {
     this.previewContainer.add([this.gridRect, this.ghostSprite]);
     this.selectionGraphics = this.scene.add.graphics().setDepth(3);
 
-    this.createAnimations('earth_shock', 12);
+    this.createAnimations('basic', 12);
+    this.createAnimations('fire', 12);
+    this.createAnimations('ice', 12);
+    this.createAnimations('air', 12);
+    this.createAnimations('nature', 12);
+    this.createAnimations('earth', 12);
+    this.createAnimations('water', 12);
+    this.createAnimations('electric', 12);
+    this.createAnimations('ghost', 12);
+    this.createAnimations('arcane', 12);
+    this.createAnimations('fairy', 12);
+    this.createAnimations('light', 12);
+    this.createAnimations('dark', 12);
+    this.createAnimations('poison', 12);
+    this.createAnimations('blood', 12);
+    this.createAnimations('metal', 12);
 
     // Écouteurs
     this.scene.game.events.on('choose_tower', this.startPreparation, this);
@@ -103,14 +117,17 @@ export class BuildingService {
     this.shopBuildingDataId = event.dataId;
     this.shopBuildingType = event.type;
     this.shopBuildingSize = event.size;
-    const pixelSize = event.size * 32;
 
-    this.gridRect.setSize(pixelSize, pixelSize);
+    this.gridRect.setSize(event.size * 32, event.size * 32);
     this.ghostSprite.setTexture(`${event.dataId}_icon`);
-    this.ghostSprite.setScale(2);
-    this.ghostSprite.setSize(pixelSize, pixelSize);
-    // this.ghostSprite.setPosition(pixelSize / 2, pixelSize / 2);
-    this.ghostSprite.setPosition(pixelSize / 2, pixelSize / 4);
+    this.ghostSprite.setOrigin(0.5, 1);
+    this.ghostSprite.setPosition(event.size * 16, event.size * 32);
+    this.ghostSprite.setScale(1);
+    // this.ghostSprite.setSize(pixelSize, pixelSize);
+    if (event.type === "tower") {
+      this.ghostSprite.setScale(2);
+      this.ghostSprite.setPosition(event.size * 16, 48);
+    }
     this.previewContainer.setVisible(true);
   }
 
@@ -237,16 +254,18 @@ export class BuildingService {
   public addBuildingSprite(buildingState: TowerState | WallState, type: "tower" | "wall", playerOffset: { x: number, y: number }, player: PlayerState, ySortGroup: Phaser.GameObjects.Group) {
     const x = (buildingState.gridX * 32) + playerOffset.x;
     const y = (buildingState.gridY * 32) + playerOffset.y;
-    const buildingSize = type === 'wall' ? (buildingState as WallState).size : 2;
-
-    const sprite = this.scene.add.sprite(x + (buildingSize * 16), y + (buildingSize * 16), buildingState.dataId)
-    const animKey = `${buildingState.dataId}_anim`;
-    sprite.play(animKey);
-    sprite.setOrigin(0.5, 0.666);
+    const buildingSize = (type === 'wall') ? (buildingState as WallState).size : 2;
+    const texture = (type === 'wall') ? `${buildingState.dataId}_icon` : buildingState.dataId;
+    const sprite = this.scene.add.sprite(x + (buildingSize * 16), y + (buildingSize * 32), texture)
+    if (type === "tower") {
+      const animKey = `${buildingState.dataId}_anim`;
+      sprite.play(animKey);
+    }
+    sprite.setOrigin(0.5, 1);
     sprite.setData('ownerId', player.sessionId);
     sprite.setInteractive();
     // sprite.setDepth(3);
-    sprite.setScale(2);
+    // sprite.setScale(2);
     sprite.on('pointerdown', (pointer: Phaser.Input.Pointer, event: Phaser.Types.Input.EventData) => {
       if (pointer.leftButtonDown()) {
         if (buildingState.sellingPending) return;

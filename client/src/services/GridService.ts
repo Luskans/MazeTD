@@ -2,7 +2,6 @@ import type { GameState } from "../../../server/src/rooms/schema/GameState";
 import { MAP_DATA } from "../../../server/src/datas/mapData";
 import type { Room } from "colyseus.js";
 import { getRandom } from "../../../server/src/services/utils";
-import { WaterPostPipeline } from "../shaders/WaterPostPipeline";
 import type { RockState } from "../../../server/src/rooms/schema/RockState";
 import { getColorByAreaType } from "./utils";
 

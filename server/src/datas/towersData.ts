@@ -4,7 +4,7 @@ export const TOWERS_DATA: Record<string, any> = {
   basic: {
     id: "basic",
     type: "tower",
-    name: "Basic Totem",
+    name: "Basic Rune",
     description: "Totem polyvalent qui peut se revendre à 95% des dépenses totales.",
     size: 2,    
     stats: {
@@ -54,10 +54,10 @@ export const TOWERS_DATA: Record<string, any> = {
     sellPercentage: 70
   },
 
-  earth_shock: {
-    id: "earth_shock",
+  earth: {
+    id: "earth",
     type: "tower",
-    name: "Earth Shock Totem",
+    name: "Earth Shock Rune",
     description: "Pulse une onde de choc autour de lui, infligeant des dégats à tous les ennemis.",
     size: 2,    
     stats: {
@@ -108,10 +108,10 @@ export const TOWERS_DATA: Record<string, any> = {
     sellPercentage: 70
   },
 
-  water_wave: {
-    id: "water_wave",
+  water: {
+    id: "water",
     type: "tower",
-    name: "Water Wave Totem",
+    name: "Water Wave Rune",
     description: "Projette une vague en cône, infligeant des dégats à tous les ennemis.",
     size: 2,    
     stats: {
@@ -162,10 +162,10 @@ export const TOWERS_DATA: Record<string, any> = {
     sellPercentage: 70
   },
 
-  fire_ball: {
-    id: "fire_ball",
+  fire: {
+    id: "fire",
     type: "tower",
-    name: "Fire Ball Totem",
+    name: "Fire Nova Rune",
     description: "Projette une boule de feu qui inflige des dégats aux ennemis dans une grande zone.",
     size: 2,    
     stats: {
@@ -216,10 +216,10 @@ export const TOWERS_DATA: Record<string, any> = {
     sellPercentage: 70
   },
 
-  ice_spike: {
-    id: "ice_spike",
+  ice: {
+    id: "ice",
     type: "tower",
-    name: "Ice Spike Totem",
+    name: "Ice Spike Rune",
     description: "Projette un pique de glace qui traverse tous les ennemis en ligne dans une direction.",
     size: 2,    
     stats: {
@@ -270,10 +270,10 @@ export const TOWERS_DATA: Record<string, any> = {
     sellPercentage: 70
   },
 
-  chain_lightning: {
-    id: "chain_lightning",
+  electric: {
+    id: "electric",
     type: "tower",
-    name: "Chain Lightning Towtem",
+    name: "Chain Lightning Rune",
     description: "Crée un arc électrique qui rebondit sur 5 ennemis aériens.",
     size: 2,    
     stats: {
@@ -324,10 +324,10 @@ export const TOWERS_DATA: Record<string, any> = {
     sellPercentage: 70
   },
 
-  multi_vine: {
-    id: "multi_vine",
+  nature: {
+    id: "nature",
     type: "tower",
-    name: "Multi Vine Totem",
+    name: "Multi Vines Rune",
     description: "Crée des lianes qui inflige des dégâts à 3 ennemis à portée.",
     size: 2,    
     stats: {

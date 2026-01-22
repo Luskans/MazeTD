@@ -40,40 +40,58 @@ export class LoadingScene extends Phaser.Scene {
       progressBox.destroy();
     });
 
-    // Assets
+    this.load.image('tileset', 'assets/grid/tileset.webp');
+    this.load.image('ocean', 'assets/grid/ocean.webp');
+    this.load.image('overlay', 'assets/grid/overlay.webp');
     this.load.image('rock0', 'assets/grid/rock0.png');
     this.load.image('rock1', 'assets/grid/rock1.png');
     this.load.image('rock2', 'assets/grid/rock2.png');
     this.load.image('rock3', 'assets/grid/rock3.png');
     this.load.spritesheet('checkpoints', 'assets/grid/checkpoints.png', { frameWidth: 64, frameHeight: 64});
     this.load.spritesheet('areas', 'assets/grid/areas.png', { frameWidth: 32, frameHeight: 64});
-    this.load.image('checkpoint', 'assets/grid/checkpoint4.png');
-
-    this.load.image('tileset_ground', 'assets/grid/tileset_ground.png');
-    this.load.image('tileset_object', 'assets/grid/tileset_object.png');
-
-    this.load.image('tileset_all', 'assets/tilesets/tileset_all.webp');
-    this.load.image('water', 'assets/tilesets/water.webp');
-    this.load.image('overlay', 'assets/tilesets/overlay.webp');
 
     this.load.spritesheet('slime', 'assets/enemies/slime.png', { frameWidth: 32, frameHeight: 32 });
     this.load.spritesheet('orc', 'assets/enemies/orc.png', { frameWidth: 32, frameHeight: 32 });
     this.load.spritesheet('golem', 'assets/enemies/golem.png', { frameWidth: 32, frameHeight: 32 });
 
-    this.load.image("earth_shock_icon", "assets/buildings/earth_shock_icon.png");
-    this.load.spritesheet('earth_shock', 'assets/buildings/earth_shock.png', { frameWidth: 64, frameHeight: 64 });
-    this.load.image("basic", "assets/buildings/basic.webp");
-    // this.load.image("earth_shock", "assets/buildings/earth_shock.png");
-    this.load.image('small_wall3', 'assets/buildings/small_wall.webp');
-    this.load.image('big_wall3', 'assets/buildings/big_wall.webp');
-    this.load.image('small_wall', 'assets/buildings/small_wall2.webp');
-    this.load.image('big_wall', 'assets/buildings/big_wall2.webp');
+    this.load.image('small_wall_icon', 'assets/buildings/icons/small_wall_icon.png');
+    this.load.image('big_wall_icon', 'assets/buildings/icons/big_wall_icon.png');
+    this.load.image("basic_icon", "assets/buildings/icons/basic_icon.png");
+    this.load.spritesheet('basic', 'assets/buildings/spritesheets/basic.png', { frameWidth: 128, frameHeight: 128 });
+    this.load.image("fire_icon", "assets/buildings/icons/fire_icon.png");
+    this.load.spritesheet('fire', 'assets/buildings/spritesheets/fire.png', { frameWidth: 128, frameHeight: 128 });
+    this.load.image("ice_icon", "assets/buildings/icons/ice_icon.png");
+    this.load.spritesheet('ice', 'assets/buildings/spritesheets/ice.png', { frameWidth: 128, frameHeight: 128 });
+    this.load.image("earth_icon", "assets/buildings/icons/earth_icon.png");
+    this.load.spritesheet('earth', 'assets/buildings/spritesheets/earth.png', { frameWidth: 128, frameHeight: 128 });
+    this.load.image("nature_icon", "assets/buildings/icons/nature_icon.png");
+    this.load.spritesheet('nature', 'assets/buildings/spritesheets/nature.png', { frameWidth: 128, frameHeight: 128 });
+    this.load.image("water_icon", "assets/buildings/icons/water_icon.png");
+    this.load.spritesheet('water', 'assets/buildings/spritesheets/water.png', { frameWidth: 128, frameHeight: 128 });
+    this.load.image("air_icon", "assets/buildings/icons/air_icon.png");
+    this.load.spritesheet('air', 'assets/buildings/spritesheets/air.png', { frameWidth: 128, frameHeight: 128 });
+    this.load.image("light_icon", "assets/buildings/icons/light_icon.png");
+    this.load.spritesheet('light', 'assets/buildings/spritesheets/light.png', { frameWidth: 128, frameHeight: 128 });
+    this.load.image("dark_icon", "assets/buildings/icons/dark_icon.png");
+    this.load.spritesheet('dark', 'assets/buildings/spritesheets/dark.png', { frameWidth: 128, frameHeight: 128 });
+    this.load.image("electric_icon", "assets/buildings/icons/electric_icon.png");
+    this.load.spritesheet('electric', 'assets/buildings/spritesheets/electric.png', { frameWidth: 128, frameHeight: 128 });
+    this.load.image("ghost_icon", "assets/buildings/icons/ghost_icon.png");
+    this.load.spritesheet('ghost', 'assets/buildings/spritesheets/ghost.png', { frameWidth: 128, frameHeight: 128 });
+    this.load.image("poison_icon", "assets/buildings/icons/poison_icon.png");
+    this.load.spritesheet('poison', 'assets/buildings/spritesheets/poison.png', { frameWidth: 128, frameHeight: 128 });
+    this.load.image("blood_icon", "assets/buildings/icons/blood_icon.png");
+    this.load.spritesheet('blood', 'assets/buildings/spritesheets/blood.png', { frameWidth: 128, frameHeight: 128 });
+    this.load.image("metal_icon", "assets/buildings/icons/metal_icon.png");
+    this.load.spritesheet('metal', 'assets/buildings/spritesheets/metal.png', { frameWidth: 128, frameHeight: 128 });
+    this.load.image("fairy_icon", "assets/buildings/icons/fairy_icon.png");
+    this.load.spritesheet('fairy', 'assets/buildings/spritesheets/fairy.png', { frameWidth: 128, frameHeight: 128 });
+    this.load.image("arcane_icon", "assets/buildings/icons/arcane_icon.png");
+    this.load.spritesheet('arcane', 'assets/buildings/spritesheets/arcane.png', { frameWidth: 128, frameHeight: 128 });
 
-    this.load.image("spark", "assets/particles/spark.png");
     this.load.image("dot", "assets/particles/dot.png");
     this.load.image("ball", "assets/particles/ball.png");
     this.load.image("line", "assets/particles/line.png");
-    this.load.image("path", "assets/particles/path.png");
   }
 
   async create() {
