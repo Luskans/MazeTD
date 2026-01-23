@@ -11,19 +11,11 @@ export class BuildingService2 {
   private view: BuildingViewService;
   private preview: BuildingPreviewService;
   private selection: BuildingSelectionService;
-
-  // Données de préparation (Shop)
-  private shopData: { id: string | null, type: string | null, size: number | null } = {
-    id: null, type: null, size: null
-  };
+  private shopData: { id: string | null, type: string | null, size: number | null } = { id: null, type: null, size: null };
   private isPreparing = false;
   private startClickPos = { x: 0, y: 0 };
 
-  constructor(
-    private scene: Phaser.Scene, 
-    private room: Room<GameState>, 
-    private pathfinding: PathfindingService
-  ) {
+  constructor(private scene: Phaser.Scene, private room: Room<GameState>, private pathfinding: PathfindingService) {
     this.view = new BuildingViewService(scene);
     this.preview = new BuildingPreviewService(scene);
     this.selection = new BuildingSelectionService(scene);
@@ -32,16 +24,11 @@ export class BuildingService2 {
   }
 
   private initEventListeners() {
-    // Événements du Shop
     this.scene.game.events.on('choose_tower', (e: any) => this.startPreparation(e));
     this.scene.game.events.on('choose_wall', (e: any) => this.startPreparation(e));
-
-    // Inputs Souris
     this.scene.input.on('pointermove', (p: Phaser.Input.Pointer) => this.handlePointerMove(p));
     this.scene.input.on('pointerdown', (p: Phaser.Input.Pointer) => this.handlePointerDown(p));
     this.scene.input.on('pointerup', (p: Phaser.Input.Pointer) => this.handlePointerUp(p));
-    
-    // Annulation
     this.scene.input.keyboard!.on('keydown-ESC', () => this.cancelPreparation());
   }
 
@@ -56,7 +43,7 @@ export class BuildingService2 {
   private handlePointerMove(pointer: Phaser.Input.Pointer) {
     if (!this.isPreparing) return;
 
-    const offset = getPlayerOffset(this.room);
+    const offset = getPlayerOffset(this.room, this.room.sessionId);
     const size = this.shopData.size!;
     const gridX = Math.floor((pointer.worldX - offset.x) / 32);
     const gridY = Math.floor((pointer.worldY - offset.y) / 32);
@@ -101,14 +88,14 @@ export class BuildingService2 {
   }
 
   private placeBuilding(pointer: Phaser.Input.Pointer) {
-    const offset = getPlayerOffset(this.room);
+    const offset = getPlayerOffset(this.room, this.room.sessionId);
     const gridX = Math.floor((pointer.worldX - offset.x) / 32);
     const gridY = Math.floor((pointer.worldY - offset.y) / 32);
 
     if (!this.checkLocalValidity(gridX, gridY)) return;
 
     const player = this.room.state.players.get(this.room.sessionId);
-    const isDuringWave = this.room.state.wavePhase === 'running';
+    const isDuringWave = (this.room.state.wavePhase === 'running');
     const isPathPossible = this.pathfinding.validatePlacement(player, gridX, gridY, this.shopData.size!, isDuringWave);
 
     if (!isPathPossible) return;
@@ -137,8 +124,8 @@ export class BuildingService2 {
 
   // --- INTERFACE PUBLIQUE POUR LE STATE (Colyseus) ---
 
-  public addBuildingSprite(buildingState: any, type: "tower" | "wall", player: any, group: Phaser.GameObjects.Group) {
-    const offset = getPlayerOffset(this.room);
+  public addBuilding(buildingState: any, type: "tower" | "wall", player: any, group: Phaser.GameObjects.Group) {
+    const offset = getPlayerOffset(this.room, player.sessionId);
     const pos = { x: (buildingState.gridX * 32) + offset.x, y: (buildingState.gridY * 32) + offset.y };
 
     const sprite = this.view.addBuildingSprite(buildingState, type, pos, player.sessionId, group, (clickedSprite) => {
@@ -151,11 +138,11 @@ export class BuildingService2 {
     }
   }
 
-  public updateBuildingSprite(id: string, action: "placing" | "selling") {
+  public updateBuilding(id: string, action: "placing" | "selling") {
     this.view.updateStatus(id, action);
   }
 
-  public removeBuildingSprite(id: string) {
+  public removeBuilding(id: string) {
     if (this.selection.getSelectedId() === id) this.selection.deselect();
     this.view.remove(id);
   }
@@ -163,26 +150,34 @@ export class BuildingService2 {
   // --- LOGIQUE MÉTIER / VALIDATION ---
 
   private checkLocalValidity(gridX: number, gridY: number): boolean {
+    const grid = this.room.state.grid;
     const player = this.room.state.players.get(this.room.sessionId);
     const size = this.shopData.size!;
     
-    // 1. Sortie de map
     if (gridX < 0 || gridY < 0 || gridX + size > this.room.state.grid.col || gridY + size > this.room.state.grid.row) return false;
 
-    // 2. Fonctions utilitaires de collision (tes fonctions actuelles)
     const hasCollision = (ox: number, oy: number, os: number) => !(gridX + size <= ox || ox + os <= gridX || gridY + size <= oy || oy + os <= gridY);
+    const wouldFullyBlockCheckpoint = (buildingX: number, buildingY: number, buildingSize: number, checkpointX: number, checkpointY: number) => {
+      let blockedCells = 0;
+      for (let dy = 0; dy < 2; dy++) {
+        for (let dx = 0; dx < 2; dx++) {
+          const cellX = checkpointX + dx;
+          const cellY = checkpointY + dy;
+          if (cellX >= buildingX && cellX < buildingX + buildingSize && cellY >= buildingY && cellY < buildingY + buildingSize) blockedCells++;
+        }
+      }
+      return blockedCells === 4;
+    }
 
-    // 3. Checks (Rocks, Towers, Walls, Checkpoints)
     for (const r of player.rocks.values()) if (hasCollision(r.gridX, r.gridY, 2)) return false;
     for (const t of player.towers.values()) if (hasCollision(t.gridX, t.gridY, 2)) return false;
     for (const w of player.walls.values()) if (hasCollision(w.gridX, w.gridY, w.size)) return false;
-    
-    // ... reste de ta logique wouldFullyBlockCheckpoint
+    for (const c of grid.checkpoints.values()) if (wouldFullyBlockCheckpoint(gridX, gridY, size, c.gridX, c.gridY)) return false;
     return true;
   }
 
   private getBuffColorsAt(x: number, y: number): number[] {
-    const offset = getPlayerOffset(this.room);
+    const offset = getPlayerOffset(this.room, this.room.sessionId);
     return (this.room.state.grid.areas as AreaState[])
       .filter(area => area.type !== 'speed')
       .filter(area => {
@@ -194,7 +189,7 @@ export class BuildingService2 {
   }
 
   public destroy() {
-    this.view.remove(""); // ou itérer
+    this.view.remove("");
     this.preview.deactivate();
     this.selection.deselect();
   }

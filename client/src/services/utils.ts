@@ -21,15 +21,25 @@ function computeGridPosition2x4(index: number, gridW: number, gridH: number) {
   return { x, y };
 }
 
-export const getPlayerOffset = (room: Room<GameState>) => {
-  const player = room.state.players.get(room.sessionId);
-  const playerIndex = Array.from(room.state.players.keys()).indexOf(room.sessionId);
+// export const getOwnerOffset = (room: Room<GameState>) => {
+//   const player = room.state.players.get(room.sessionId);
+//   const playerIndex = Array.from(room.state.players.keys()).indexOf(room.sessionId);
+//   const { width: gridW, height: gridH } = getGridPixelSize(room);
+//   const pos = computeGridPosition2x4(playerIndex, gridW, gridH);
+//   const x = pos.x + MAP_DATA.outsideSize;
+//   const y = pos.y + MAP_DATA.outsideSize;
+//   return { x, y };
+// };
+
+export const getPlayerOffset = (room: Room<GameState>, sessionId: string): { x: number, y: number } => {
+  const playersKeys = Array.from(room.state.players.keys());
+  const playerIndex = playersKeys.indexOf(sessionId);
   const { width: gridW, height: gridH } = getGridPixelSize(room);
   const pos = computeGridPosition2x4(playerIndex, gridW, gridH);
   const x = pos.x + MAP_DATA.outsideSize;
   const y = pos.y + MAP_DATA.outsideSize;
   return { x, y };
-};
+}
 
 export const getColorByAreaType = (type: string): number => {
   // const colors: any = { damage: 0xd94a2a, attackSpeed: 0xf2c94c, range: 0x8e3fd6, speed: 0x2fa4c7 };

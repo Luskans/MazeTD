@@ -5,21 +5,24 @@ import { PathfindingService } from "../../../server/src/services/PathfindingServ
 import type { GameState } from "../../../server/src/rooms/schema/GameState";
 import type { RockState } from "../../../server/src/rooms/schema/RockState";
 import { getPlayerOffset } from "./utils";
+import { GridService3 } from "./GridService3";
 
 export class UpgradeService {
   private scene: Phaser.Scene;
   private room: Room<GameState>;
+  private gridService: GridService3;
 
   private isPreparing = false;
-  private currentBuildingId: string | null = null;
-  private currentBuildingType: string | null = null;
+  private upgradeDataId: string | null = null;
+  private upgradeType: string | null = null;
+  private gridRect: Phaser.GameObjects.Rectangle;
   private hoveredRockId: string | null = null;
   private highlightedSprite: Phaser.GameObjects.Sprite | null = null;
-  private gridRect: Phaser.GameObjects.Rectangle;
 
-  constructor(scene: Phaser.Scene, room: Room<GameState>) {
+  constructor(scene: Phaser.Scene, room: Room<GameState>, gridService: GridService3) {
     this.scene = scene;
     this.room = room;
+    this.gridService = gridService;
 
     this.gridRect = scene.add.rectangle(0, 0, 32, 32, 0x00ff00, 0.4);
     this.gridRect.setOrigin(0, 0).setDepth(4);
@@ -58,8 +61,8 @@ export class UpgradeService {
 
     } else {
       this.isPreparing = true;
-      this.currentBuildingId = event.dataId;
-      this.currentBuildingType = event.type;
+      this.upgradeDataId = event.dataId;
+      this.upgradeType = event.type;
       this.scene.input.setDefaultCursor('url(assets/cursors/pickaxe.png) 9 9, auto');
       this.gridRect.setVisible(true);
     }
@@ -70,33 +73,20 @@ export class UpgradeService {
 
     const player = this.room.state.players.get(this.room.sessionId);
     if (!player) return;
-    const playerOffset = getPlayerOffset(this.room);
 
-    const relativeX = pointer.worldX - playerOffset.x;
-    const relativeY = pointer.worldY - playerOffset.y;
+    const playerOffset = getPlayerOffset(this.room, player.sessionId);
+    const gridX = Math.floor((pointer.worldX - playerOffset.x) / 32);
+    const gridY = Math.floor((pointer.worldY - playerOffset.y) / 32);
 
-    const gridX = Math.floor(relativeX / 32);
-    const gridY = Math.floor(relativeY / 32);
-
-    this.gridRect.x = (gridX * 32) + playerOffset.x;
-    this.gridRect.y = (gridY * 32) + playerOffset.y;
-
-    // const gridX = Math.floor(pointer.worldX / 32);
-    // const gridY = Math.floor(pointer.worldY / 32);
+    this.gridRect.setPosition(gridX * 32 + playerOffset.x, gridY * 32 + playerOffset.y);
 
     let foundRock: RockState | null = null;
     for (const rock of player.rocks.values()) {
-      if (
-        gridX >= rock.gridX &&
-        gridX < rock.gridX + 2 &&
-        gridY >= rock.gridY &&
-        gridY < rock.gridY + 2
-      ) {
-        foundRock = rock;
+      if (gridX >= rock.gridX && gridX < rock.gridX + 2 && gridY >= rock.gridY && gridY < rock.gridY + 2) {
+        if (!rock.destroyPending) foundRock = rock;
         break;
       }
     }
-
     this.gridRect.setFillStyle(foundRock ? 0x00ff00 : 0xff0000, 0.4);
 
     if (!foundRock) {
@@ -107,24 +97,29 @@ export class UpgradeService {
     if (this.hoveredRockId === foundRock.id) return;
 
     this.clearHighlight();
-
     this.hoveredRockId = foundRock.id;
-    console.log("found rock", foundRock)
-
-    // const sprite = this.scene.children.getByName(foundRock.id) as Phaser.GameObjects.Sprite;
-    // if (sprite) {
-    //   sprite.setTint(0xff4444);
-    //   this.highlightedSprite = sprite;
-    // }
+    const sprite = this.gridService.getRockSprite(foundRock.id);
+    
+    if (sprite) {
+      this.highlightedSprite = sprite;
+      sprite.postFX.clear();
+      sprite.postFX.addGlow(0xffffff, 2);
+    }
   }
 
   private tryDestroy(pointer: Phaser.Input.Pointer) {
     if (!this.isPreparing || pointer.rightButtonDown()) return;
-    if (!this.hoveredRockId) return;
+    if (!this.hoveredRockId || !this.highlightedSprite) return;
+    
+    const player = this.room.state.players.get(this.room.sessionId);
+    const rockState = player?.rocks.get(this.hoveredRockId);
+    if (!rockState || rockState.destroyPending) return;
+
+    this.playDestroyEffect(this.highlightedSprite);
 
     this.room.send("destroy_rock", {
-      dataId: this.currentBuildingId,
-      type: this.currentBuildingType,
+      dataId: this.upgradeDataId,
+      type: this.upgradeType,
       rockId: this.hoveredRockId
     });
 
@@ -132,16 +127,16 @@ export class UpgradeService {
   }
 
   private clearHighlight() {
-    // if (this.highlightedSprite) {
-    //   this.highlightedSprite.clearTint();
-    //   this.highlightedSprite = null;
-    // }
+    if (this.highlightedSprite) {
+      this.highlightedSprite.postFX.clear();
+      this.highlightedSprite = null;
+    }
     this.hoveredRockId = null;
   }
 
   private cancelPreparation() {
     this.isPreparing = false;
-    this.scene.input.setDefaultCursor('default');
+    this.scene.input.setDefaultCursor('url(assets/cursors/pointer.png) 4 4, auto');
     this.gridRect.setVisible(false);
     this.clearHighlight();
   }
@@ -151,5 +146,34 @@ export class UpgradeService {
     this.scene.input.off('pointermove', this.updateHover, this);
     this.scene.input.off('pointerdown', this.tryDestroy, this);
     this.scene.input.keyboard?.off('keydown-ESC', this.cancelPreparation, this);
+  }
+
+  private playDestroyEffect(sprite: Phaser.GameObjects.Sprite) {
+    const x = sprite.x;
+    const y = sprite.y;
+
+    const particles = this.scene.add.particles(x, y, 'dot', {
+      speed: { min: 160, max: 220 },
+      scale: { start: 0.8, end: 0 },
+      alpha: { start: 1, end: 0 },
+      lifespan: 600,
+      tint: 0x8C8074,
+      gravityY: 200,
+      frequency: -1,
+    });
+
+    particles.setDepth(sprite.depth + 1);
+    particles.explode(20);
+
+    this.scene.tweens.add({
+      targets: sprite,
+      x: x + 4,
+      yoyo: true,
+      duration: 50,
+      repeat: 3,
+      onComplete: () => {
+        particles.destroy();
+      }
+    });
   }
 }

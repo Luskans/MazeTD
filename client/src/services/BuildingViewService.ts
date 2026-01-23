@@ -1,15 +1,17 @@
+import type { TowerState } from "../../../server/src/rooms/schema/TowerState";
+import type { WallState } from "../../../server/src/rooms/schema/WallState";
+
 export class BuildingViewService {
   private buildingsSprites: Map<string, Phaser.GameObjects.Sprite> = new Map();
   private buildingsParticles: Map<string, Phaser.GameObjects.Particles.ParticleEmitter> = new Map();
 
   constructor(private scene: Phaser.Scene) {
-    // On peut initialiser les animations communes ici ou via une méthode dédiée
     this.initAllAnimations();
   }
 
   private initAllAnimations() {
     const types = ['basic', 'fire', 'ice', 'air', 'nature', 'earth', 'water', 'electric', 
-                   'ghost', 'arcane', 'fairy', 'light', 'dark', 'poison', 'blood', 'metal'];
+      'ghost', 'arcane', 'fairy', 'light', 'dark', 'poison', 'blood', 'metal'];
     types.forEach(type => this.createAnimations(type, 12));
   }
 
@@ -19,26 +21,20 @@ export class BuildingViewService {
       this.scene.anims.create({
         key: animKey,
         frames: this.scene.anims.generateFrameNumbers(dataId, { start: 0, end: (frames - 1) }),
-        frameRate: 16,
+        frameRate: 8,
         repeat: -1
       });
     }
   }
 
-  /**
-   * Crée le sprite et les particules associées pour un bâtiment
-   */
-  public addBuildingSprite(buildingState: any, type: "tower" | "wall", pos: { x: number, y: number }, ownerId: string, ySortGroup: Phaser.GameObjects.Group, onSelect: (sprite: Phaser.GameObjects.Sprite) => void) {
-    const buildingSize = (type === 'wall') ? buildingState.size : 2;
+  public addBuildingSprite(buildingState: TowerState | WallState, type: "tower" | "wall", pos: { x: number, y: number }, ownerId: string, ySortGroup: Phaser.GameObjects.Group, onSelect: (sprite: Phaser.GameObjects.Sprite) => void) {
+    const buildingSize = (type === 'wall') ? (buildingState as WallState).size : 2;
     const texture = (type === 'wall') ? `${buildingState.dataId}_icon` : buildingState.dataId;
-    
-    // Positionnement (centré sur la case)
+  
     const sprite = this.scene.add.sprite(pos.x + (buildingSize * 16), pos.y + (buildingSize * 16), texture);
-    
     if (type === "tower") {
       sprite.play(`${buildingState.dataId}_anim`);
     }
-
     sprite.setOrigin(0.5, 0.75);
     sprite.setData('ownerId', ownerId);
     sprite.setInteractive({
@@ -47,29 +43,26 @@ export class BuildingViewService {
       cursor: 'url(assets/cursors/hand_point.png) 6 4, pointer'
     });
 
-    // Gestion du clic pour la sélection
     sprite.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
       if (pointer.leftButtonDown() && !buildingState.sellingPending) {
         onSelect(sprite);
       }
     });
 
-    // État visuel initial (si en attente de pose)
-    if (buildingState.placingPending) sprite.setAlpha(1).setTint(0x8CD1FF);
+    if (buildingState.placingPending) sprite.setTint(0x8CD1FF);
     if (buildingState.sellingPending) {
-      sprite.setAlpha(1).setTint(0xF8BBD0);
+      sprite.setTint(0xF8BBD0);
       sprite.input!.cursor ='url(assets/cursors/pointer.png) 4 4, auto';
     }
 
     this.buildingsSprites.set(buildingState.id, sprite);
     ySortGroup.add(sprite);
+
+    this.playConstructionEffect(sprite);
     
     return sprite;
   }
 
-  /**
-   * Ajoute l'effet de particules sous une tour
-   */
   public addTowerParticles(id: string, x: number, y: number, colors: number[]) {
     if (colors.length === 0) return;
 
@@ -91,9 +84,6 @@ export class BuildingViewService {
     this.buildingsParticles.set(id, emitter);
   }
 
-  /**
-   * Met à jour l'aspect visuel selon l'état (Vente, Pose terminée)
-   */
   public updateStatus(id: string, action: "placing" | "selling") {
     const sprite = this.buildingsSprites.get(id);
     if (!sprite) return;
@@ -101,9 +91,11 @@ export class BuildingViewService {
     if (action === "placing") {
       sprite.setAlpha(1).clearTint();
       sprite.input!.cursor = 'url(assets/cursors/hand_point.png) 6 4, pointer';
+      this.playEndPlacingEffect(sprite);
     } else if (action === "selling") {
       sprite.setAlpha(1).setTint(0xF8BBD0);
       sprite.input!.cursor ='url(assets/cursors/pointer.png) 4 4, auto';
+      this.playSellingEffect(sprite);
     }
   }
 
@@ -113,6 +105,14 @@ export class BuildingViewService {
       sprite.destroy();
       this.buildingsSprites.delete(id);
     }
+    // if (sprite) {
+    //   if (!sprite.active) {
+    //       this.buildingsSprites.delete(id);
+    //   } else {
+    //       sprite.destroy();
+    //       this.buildingsSprites.delete(id);
+    //   }
+    // }
     const emitter = this.buildingsParticles.get(id);
     if (emitter) {
       emitter.destroy();
@@ -122,5 +122,50 @@ export class BuildingViewService {
 
   public getSprite(id: string) {
     return this.buildingsSprites.get(id);
+  }
+
+  private playConstructionEffect(sprite: Phaser.GameObjects.Sprite) {
+    sprite.setScale(1.5);
+    this.scene.tweens.add({
+      targets: sprite,
+      scale: 1,
+      ease: 'Back.out',
+      duration: 300
+    });
+  }
+
+  private playSellingEffect(sprite: Phaser.GameObjects.Sprite) {
+    const originalScale = sprite.scale;
+    sprite.setScale(originalScale + 1);
+    this.scene.tweens.add({
+      targets: sprite,
+      scale: originalScale,
+      ease: 'Back.out',
+      duration: 300
+    });
+  }
+
+  private playEndPlacingEffect(sprite: Phaser.GameObjects.Sprite) {
+    const originalScale = sprite.scale;
+    sprite.setScale(originalScale + 1);
+    this.scene.tweens.add({
+      targets: sprite,
+      scale: originalScale,
+      ease: 'Back.out',
+      duration: 300
+    });
+  }
+
+  private playEndSellingEffect(sprite: Phaser.GameObjects.Sprite) {
+    const originalY = sprite.y;
+    this.scene.tweens.add({
+      targets: sprite,
+      y: originalY + 120,
+      ease: 'Back.out',
+      duration: 300,
+      onComplete: () => {
+        sprite.destroy(); 
+      }
+    });
   }
 }

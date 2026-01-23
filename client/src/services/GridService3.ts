@@ -367,10 +367,14 @@ export class GridService3 {
     });
   }
 
+  public getRockSprite(id: string): Phaser.GameObjects.Sprite | undefined {
+    return this.rockSprites.get(id);
+  }
+
   public updateRockSprite(rockId: string) {
     const sprite = this.rockSprites.get(rockId);
     if (sprite) {
-      sprite.setAlpha(0.5);
+      // sprite.setAlpha(0.5);
       sprite.setTint(0xF8BBD0);
     }
   }

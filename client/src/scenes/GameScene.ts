@@ -1,7 +1,6 @@
 import { GameState } from "../../../server/src/rooms/schema/GameState";
 import { getStateCallbacks, Room } from "colyseus.js";
 import type { PlayerState } from "../../../server/src/rooms/schema/PlayerState";
-import { GridService } from "../services/GridService";
 import { CameraService } from '../services/CameraService';
 import { PathService } from "../services/PathService";
 import { BuildingService } from "../services/BuildingService";
@@ -14,19 +13,14 @@ import { EnemyService } from "../services/EnemyService";
 import type { TowerState } from "../../../server/src/rooms/schema/TowerState";
 import type { WallState } from "../../../server/src/rooms/schema/WallState";
 import type { RockState } from "../../../server/src/rooms/schema/RockState";
-import { GridService2 } from "../services/GridService2";
 import { GridService3 } from "../services/GridService3";
 import { PathService2 } from "../services/PathService2";
 import { EnemyUIService } from "../services/EnemyUIService";
-import { GridService4 } from "../services/GridService4";
 import { BuildingService2 } from "../services/BuildingService2";
 
 export class GameScene extends Phaser.Scene {
   private room!: Room<GameState>;
-  private gridService!: GridService;
-  private gridService2!: GridService2;
-  private gridService3!: GridService3;
-  private gridService4!: GridService4;
+  private gridService!: GridService3;
   private cameraService!: CameraService;
   private pathService!: PathService;
   private pathService2!: PathService2;
@@ -51,10 +45,7 @@ export class GameScene extends Phaser.Scene {
   create() {
     const $ = getStateCallbacks(this.room);
     // VARIABLES THAT BE SOMEWHERE ELSE
-    this.gridService = new GridService(this, this.room);
-    this.gridService2 = new GridService2(this, this.room);
-    this.gridService3 = new GridService3(this, this.room);
-    this.gridService4 = new GridService4(this, this.room);
+    this.gridService = new GridService3(this, this.room);
     const player = this.room.state.players.get(this.room.sessionId)
     const playerIndex = Array.from(this.room.state.players.keys()).indexOf(this.room.sessionId);
     const playerOffset = this.gridService.getPlayerOffset(playerIndex);
@@ -66,23 +57,19 @@ export class GameScene extends Phaser.Scene {
     this.pathService2 = new PathService2(this, this.room);
     this.pathfindingService = new PathfindingService(this.room);
     this.buildingService = new BuildingService2(this, this.room, this.pathfindingService);
-    this.upgradeService = new UpgradeService(this, this.room);
+    this.upgradeService = new UpgradeService(this, this.room, this.gridService);
     this.waveService = new WaveService(this);
     this.enemyService = new EnemyService(this, this.room);
     this.enemyUIService = new EnemyUIService(this);
 
     // GROUP OF ALL SPRITES TO Y SORT THEM
     this.ySortGroup = this.add.group();
-    this.gridService3.createPlayersGrid(this.room, this.ySortGroup);
+    this.gridService.createPlayersGrid(this.room, this.ySortGroup);
     this.cameraService.handleFocus(playerOffset);
     // this.input.mouse?.disableContextMenu();
     this.input.setDefaultCursor('url(assets/cursors/pointer.png) 4 4, auto');
-    this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
-      this.input.setDefaultCursor('url(assets/cursors/pointer.png) 4 4, auto');
-    });
-    this.input.on('pointerup', (pointer: Phaser.Input.Pointer) => {
-      this.input.setDefaultCursor('url(assets/cursors/pointer.png) 4 4, auto');
-    });
+    this.input.on('pointerdown', (p: Phaser.Input.Pointer) => { if (p.rightButtonDown()) this.input.setDefaultCursor('url(assets/cursors/pointer.png) 4 4, auto'); });
+    this.input.on('pointerup', (p: Phaser.Input.Pointer) => { if (p.rightButtonReleased()) this.input.setDefaultCursor('url(assets/cursors/pointer.png) 4 4, auto'); });
 
     // LISTEN CHANGES AND EVENTS
     $(this.room.state).players.onAdd((player: PlayerState, sessionId: string) => {
@@ -115,10 +102,10 @@ export class GameScene extends Phaser.Scene {
 
       $(player).towers.onAdd((tower: TowerState, towerId: string) => {
         // this.buildingService.addBuildingSprite(tower, "tower", playerOffset, player, this.ySortGroup);
-        this.buildingService.addBuildingSprite(tower, "tower", player, this.ySortGroup);
+        this.buildingService.addBuilding(tower, "tower", player, this.ySortGroup);
 
         $(tower).listen("placingPending", (pending) => {
-          if (!pending) this.buildingService.updateBuildingSprite(tower.id, "placing");
+          if (!pending) this.buildingService.updateBuilding(tower.id, "placing");
         });
 
         $(tower).listen("sellingPending", (pending) => {
@@ -128,21 +115,21 @@ export class GameScene extends Phaser.Scene {
           //     this.buildingService.deselectBuilding();
           //   }
           // }
-          if (pending) this.buildingService.updateBuildingSprite(tower.id, "selling");
+          if (pending) this.buildingService.updateBuilding(tower.id, "selling");
         });
       });
 
       $(player).towers.onRemove((tower: TowerState, towerId: string) => {
-        this.buildingService.removeBuildingSprite(towerId);
+        this.buildingService.removeBuilding(towerId);
         // this.buildingService.deselectBuilding();
       });
 
       $(player).walls.onAdd((wall: WallState, wallId: string) => {
         // this.buildingService.addBuildingSprite(wall, "wall", playerOffset, player, this.ySortGroup);
-        this.buildingService.addBuildingSprite(wall, "wall", player, this.ySortGroup);
+        this.buildingService.addBuilding(wall, "wall", player, this.ySortGroup);
 
         $(wall).listen("placingPending", (pending) => {
-          if (!pending) this.buildingService.updateBuildingSprite(wall.id, "placing");
+          if (!pending) this.buildingService.updateBuilding(wall.id, "placing");
         });
 
         $(wall).listen("sellingPending", (pending) => {
@@ -152,12 +139,12 @@ export class GameScene extends Phaser.Scene {
           //     this.buildingService.deselectBuilding();
           //   }
           // }
-          if (pending) this.buildingService.updateBuildingSprite(wall.id, "selling");
+          if (pending) this.buildingService.updateBuilding(wall.id, "selling");
         });
       });
 
       $(player).walls.onRemove((wall: WallState, wallId: string) => {
-        this.buildingService.removeBuildingSprite(wallId);
+        this.buildingService.removeBuilding(wallId);
         // this.buildingService.deselectBuilding();
       });
 

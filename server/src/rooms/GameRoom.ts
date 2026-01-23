@@ -182,6 +182,8 @@ export class GameRoom extends Room<GameState> {
     this.onMessage("destroy_rock", (client: Client, data: { dataId: string, type: string, rockId: string }) => {
       const player = this.state.players.get(client.sessionId);
       if (!player) return;
+      const rock = player.rocks.get(data.rockId);
+      if (!rock || rock.destroyPending)  return;
       const isDuringWave = this.state.wavePhase === 'running';
 
       const paymentCost = this.shopService.checkShopPayment(player, data.dataId, data.type);
@@ -194,7 +196,6 @@ export class GameRoom extends Room<GameState> {
       this.shopService.levelupUpgrade(player, data.dataId);
 
       if (isDuringWave) {
-        const rock = player.rocks.get(data.rockId);
         if (rock) {
           rock.destroyPending = true;
         }

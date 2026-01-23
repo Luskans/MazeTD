@@ -6,28 +6,20 @@ export class BuildingSelectionService {
   private selectedBuildingId: string | null = null;
 
   constructor(private scene: Phaser.Scene) {
-    // Initialisation du calque de dessin pour les portées
     this.selectionGraphics = this.scene.add.graphics().setDepth(3);
   }
 
-  /**
-   * Sélectionne un bâtiment et dessine sa portée
-   */
   public select(sprite: Phaser.GameObjects.Sprite, buildingState: any, type: "tower" | "wall", ownerId: string) {
-    // 1. Nettoyage de la sélection précédente
     this.deselect();
 
-    // 2. Application de l'effet visuel sur le nouveau sprite
     this.selectedSprite = sprite;
     this.selectedBuildingId = buildingState.id;
     this.selectedSprite.postFX.addGlow(0xffffff, 2);
 
-    // 3. Dessin de la portée si c'est une tour
     if (type === "tower") {
       this.drawTowerRange(sprite, buildingState);
     }
 
-    // 4. Notification pour l'UI (React/Vue/etc.)
     window.dispatchEvent(new CustomEvent('select-building', {
       detail: { 
         isVisible: true, 
@@ -38,9 +30,6 @@ export class BuildingSelectionService {
     }));
   }
 
-  /**
-   * Logique de dessin géométrique des portées
-   */
   private drawTowerRange(sprite: Phaser.GameObjects.Sprite, buildingState: any) {
     const towerData = TOWERS_DATA[buildingState.dataId];
     if (!towerData) return;
@@ -54,7 +43,6 @@ export class BuildingSelectionService {
     this.selectionGraphics.clear();
     this.selectionGraphics.fillStyle(fillColor, fillAlpha);
 
-    // Calcul de l'angle de base selon la direction (0=E, 1=S, 2=W, 3=N)
     const baseAngle = (buildingState.direction || 0) * (Math.PI / 2);
     const coneAngleRad = Phaser.Math.DegToRad(towerData.attack.angle || 90);
 
@@ -82,7 +70,6 @@ export class BuildingSelectionService {
         break;
     }
 
-    // Animation de pulsation sur la zone dessinée
     this.scene.tweens.add({
       targets: this.selectionGraphics,
       alpha: 0.4,
@@ -114,9 +101,6 @@ export class BuildingSelectionService {
     this.selectionGraphics.fillPoints([p1, p2, p3, p4], true);
   }
 
-  /**
-   * Désélectionne le bâtiment actuel et nettoie les visuels
-   */
   public deselect() {
     this.selectedBuildingId = null;
     this.selectionGraphics.clear();

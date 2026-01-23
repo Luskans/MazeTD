@@ -8,7 +8,6 @@
   import { shopStore } from '../../stores/shopStore.svelte';
 
   function handleTowerClick(tower: any) {
-    console.log("data", tower);
     (window as any).phaserGame.events.emit('choose_tower', { 
       dataId: tower.id, 
       type: tower.type, 
