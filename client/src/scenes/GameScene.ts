@@ -19,6 +19,7 @@ import { GridService3 } from "../services/GridService3";
 import { PathService2 } from "../services/PathService2";
 import { EnemyUIService } from "../services/EnemyUIService";
 import { GridService4 } from "../services/GridService4";
+import { BuildingService2 } from "../services/BuildingService2";
 
 export class GameScene extends Phaser.Scene {
   private room!: Room<GameState>;
@@ -29,7 +30,7 @@ export class GameScene extends Phaser.Scene {
   private cameraService!: CameraService;
   private pathService!: PathService;
   private pathService2!: PathService2;
-  private buildingService!: BuildingService;
+  private buildingService!: BuildingService2;
   private upgradeService!: UpgradeService;
   private waveService!: WaveService;
   private pathfindingService!: PathfindingService;
@@ -64,7 +65,7 @@ export class GameScene extends Phaser.Scene {
     this.pathService = new PathService(this, this.room);
     this.pathService2 = new PathService2(this, this.room);
     this.pathfindingService = new PathfindingService(this.room);
-    this.buildingService = new BuildingService(this, this.room, this.pathfindingService);
+    this.buildingService = new BuildingService2(this, this.room, this.pathfindingService);
     this.upgradeService = new UpgradeService(this, this.room);
     this.waveService = new WaveService(this);
     this.enemyService = new EnemyService(this, this.room);
@@ -113,51 +114,51 @@ export class GameScene extends Phaser.Scene {
       });
 
       $(player).towers.onAdd((tower: TowerState, towerId: string) => {
-        this.buildingService.addBuildingSprite(tower, "tower", playerOffset, player, this.ySortGroup);
+        // this.buildingService.addBuildingSprite(tower, "tower", playerOffset, player, this.ySortGroup);
+        this.buildingService.addBuildingSprite(tower, "tower", player, this.ySortGroup);
 
         $(tower).listen("placingPending", (pending) => {
-          if (!pending) {
-            this.buildingService.updateBuildingSprite(tower.id, "placing");
-          }
+          if (!pending) this.buildingService.updateBuildingSprite(tower.id, "placing");
         });
 
         $(tower).listen("sellingPending", (pending) => {
-          if (pending) {
-            this.buildingService.updateBuildingSprite(tower.id, "selling");
-            if (this.buildingService.getSelectedId() === tower.id) {
-              this.buildingService.deselectBuilding();
-            }
-          }
+          // if (pending) {
+          //   this.buildingService.updateBuildingSprite(tower.id, "selling");
+          //   if (this.buildingService.getSelectedId() === tower.id) {
+          //     this.buildingService.deselectBuilding();
+          //   }
+          // }
+          if (pending) this.buildingService.updateBuildingSprite(tower.id, "selling");
         });
       });
 
       $(player).towers.onRemove((tower: TowerState, towerId: string) => {
         this.buildingService.removeBuildingSprite(towerId);
-        this.buildingService.deselectBuilding();
+        // this.buildingService.deselectBuilding();
       });
 
       $(player).walls.onAdd((wall: WallState, wallId: string) => {
-        this.buildingService.addBuildingSprite(wall, "wall", playerOffset, player, this.ySortGroup);
+        // this.buildingService.addBuildingSprite(wall, "wall", playerOffset, player, this.ySortGroup);
+        this.buildingService.addBuildingSprite(wall, "wall", player, this.ySortGroup);
 
         $(wall).listen("placingPending", (pending) => {
-          if (!pending) {
-            this.buildingService.updateBuildingSprite(wall.id, "placing");
-          }
+          if (!pending) this.buildingService.updateBuildingSprite(wall.id, "placing");
         });
 
         $(wall).listen("sellingPending", (pending) => {
-          if (pending) {
-            this.buildingService.updateBuildingSprite(wall.id, "selling");
-            if (this.buildingService.getSelectedId() === wall.id) {
-              this.buildingService.deselectBuilding();
-            }
-          }
+          // if (pending) {
+          //   this.buildingService.updateBuildingSprite(wall.id, "selling");
+          //   if (this.buildingService.getSelectedId() === wall.id) {
+          //     this.buildingService.deselectBuilding();
+          //   }
+          // }
+          if (pending) this.buildingService.updateBuildingSprite(wall.id, "selling");
         });
       });
 
       $(player).walls.onRemove((wall: WallState, wallId: string) => {
         this.buildingService.removeBuildingSprite(wallId);
-        this.buildingService.deselectBuilding();
+        // this.buildingService.deselectBuilding();
       });
 
       $(player).enemies.onAdd((enemy: EnemyState, enemyId: string) => {
@@ -213,22 +214,23 @@ export class GameScene extends Phaser.Scene {
       this.room.send("levelup_building", { buildingId: data.buildingId });
     });
     this.game.events.on('sell_building', (data: { buildingId: string, buildingType: string }) => {
-      this.buildingService.deselectBuilding();
+      this.buildingService.deselect();
       this.room.send("sell_building", { buildingId: data.buildingId, buildingType: data.buildingType });
     });
     this.game.events.on('rotate_building', (data: { buildingId: string }) => {
       this.room.send("rotate_building", { buildingId: data.buildingId });
       const player = this.room.state.players.get(this.room.sessionId);
       const tower = player?.towers.get(data.buildingId);
-      const sprite = this.buildingService.getSprite(data.buildingId);
+      // const sprite = this.buildingService.getSprite(data.buildingId);
 
-      if (tower && sprite) {
+      if (tower && player) {
         tower.direction = (tower.direction + 1) % 4;
-        this.buildingService.selectBuilding(tower, player.sessionId, "tower", sprite);
+        // this.buildingService.selectBuilding(tower, player.sessionId, "tower", sprite);
+        this.buildingService.refreshSelection(tower, player.sessionId, "tower");
       }
     });
     this.game.events.on('deselect_building', () => {
-      this.buildingService.deselectBuilding();
+      this.buildingService.deselect();
     });
 
 
