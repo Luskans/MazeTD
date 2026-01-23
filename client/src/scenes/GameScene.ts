@@ -18,12 +18,14 @@ import { GridService2 } from "../services/GridService2";
 import { GridService3 } from "../services/GridService3";
 import { PathService2 } from "../services/PathService2";
 import { EnemyUIService } from "../services/EnemyUIService";
+import { GridService4 } from "../services/GridService4";
 
 export class GameScene extends Phaser.Scene {
   private room!: Room<GameState>;
   private gridService!: GridService;
   private gridService2!: GridService2;
   private gridService3!: GridService3;
+  private gridService4!: GridService4;
   private cameraService!: CameraService;
   private pathService!: PathService;
   private pathService2!: PathService2;
@@ -51,6 +53,7 @@ export class GameScene extends Phaser.Scene {
     this.gridService = new GridService(this, this.room);
     this.gridService2 = new GridService2(this, this.room);
     this.gridService3 = new GridService3(this, this.room);
+    this.gridService4 = new GridService4(this, this.room);
     const player = this.room.state.players.get(this.room.sessionId)
     const playerIndex = Array.from(this.room.state.players.keys()).indexOf(this.room.sessionId);
     const playerOffset = this.gridService.getPlayerOffset(playerIndex);

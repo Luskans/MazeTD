@@ -40,8 +40,9 @@ export class LoadingScene extends Phaser.Scene {
       progressBox.destroy();
     });
 
-    this.load.image('tileset', 'assets/grid/tileset.webp');
-    this.load.image('ocean', 'assets/grid/ocean.webp');
+    this.load.image('cliff', 'assets/grid/tileset_cliff.png');
+    this.load.image('tileset', 'assets/grid/tileset.png');
+    this.load.image('ocean', 'assets/grid/ocean.png');
     this.load.image('overlay', 'assets/grid/overlay.webp');
     this.load.image('rock0', 'assets/grid/rock0.png');
     this.load.image('rock1', 'assets/grid/rock1.png');

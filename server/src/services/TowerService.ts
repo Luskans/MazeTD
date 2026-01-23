@@ -144,7 +144,7 @@ export class TowerService {
       }
     }
 
-    if (isDuringWave) {
+    if (isDuringWave && !building.placingPending) {
       building.sellingPending = true;
     } else {
       if (buildingType === "tower") {
