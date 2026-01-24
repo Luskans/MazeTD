@@ -1,6 +1,7 @@
 import type { Room } from "colyseus.js";
 import type { GameState } from "../../../server/src/rooms/schema/GameState";
 import { MAP_DATA } from "../../../server/src/datas/mapData";
+import { COLORS } from "../styles/theme";
 
 function getGridPixelSize(room: Room<GameState>) {
   const w = room.state.grid.col  * MAP_DATA.cellSize;
@@ -43,6 +44,6 @@ export const getPlayerOffset = (room: Room<GameState>, sessionId: string): { x: 
 
 export const getColorByAreaType = (type: string): number => {
   // const colors: any = { damage: 0xd94a2a, attackSpeed: 0xf2c94c, range: 0x8e3fd6, speed: 0x2fa4c7 };
-  const colors: any = { damage: 0xff8e74, attackSpeed: 0xffdf81, range: 0xdbb4ff, speed: 0x9fe9ff };
-  return colors[type] || 0xffffff;
+  const colors: any = { damage: COLORS.DAMAGE, attackSpeed: COLORS.ATTACK_SPEED, range: COLORS.RANGE, speed: COLORS.SPEED };
+  return colors[type] || COLORS.WHITE;
 }

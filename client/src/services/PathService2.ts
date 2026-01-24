@@ -1,5 +1,6 @@
 import type { Room } from "colyseus.js";
 import type { GameState } from "../../../server/src/rooms/schema/GameState";
+import { COLORS } from "../styles/theme";
 
 export class PathService2 {
   private scene: Phaser.Scene;
@@ -20,12 +21,7 @@ export class PathService2 {
     this.scene.events.on('update', this.updateAnimations, this);
   }
 
-  public drawPath(
-    path: any[],
-    offset: { x: number; y: number },
-    type: "current" | "pending",
-    sessionId: string
-  ) {
+  public drawPath(path: any[], offset: { x: number; y: number }, type: "current" | "pending", sessionId: string) {
     const pathKey = `${sessionId}_${type}`;
     if (path.length < 2) {
       this.cleanupPath(pathKey);
@@ -49,9 +45,9 @@ export class PathService2 {
     let entry = this.paths.get(pathKey);
     if (!entry) {
       entry = {
-        graphics: this.scene.add.graphics().setDepth(10),
+        graphics: this.scene.add.graphics().setDepth(4),
         points,
-        color: 0xffffff,
+        color: COLORS.GLOW,
         type,
         animOffset: 0
       };
@@ -83,13 +79,7 @@ export class PathService2 {
     }
   }
 
-  private redrawPath(entry: {
-    graphics: Phaser.GameObjects.Graphics;
-    points: { x: number; y: number }[];
-    color: number;
-    type: "current" | "pending";
-    animOffset: number;
-  }) {
+  private redrawPath(entry: { graphics: Phaser.GameObjects.Graphics; points: { x: number; y: number }[]; color: number; type: "current" | "pending"; animOffset: number; }) {
     const g = entry.graphics;
     g.clear();
     g.lineStyle(2, entry.color, 0.8);
@@ -101,11 +91,7 @@ export class PathService2 {
     }
   }
 
-  private drawChevronPath(
-    graphics: Phaser.GameObjects.Graphics,
-    points: { x: number; y: number }[],
-    offset: number
-  ) {
+  private drawChevronPath(graphics: Phaser.GameObjects.Graphics, points: { x: number; y: number }[], offset: number) {
     const spacing = 16;
     const size = 4;
 
@@ -140,10 +126,7 @@ export class PathService2 {
     }
   }
 
-  private drawDashedPath(
-    graphics: Phaser.GameObjects.Graphics,
-    points: { x: number; y: number }[]
-  ) {
+  private drawDashedPath(graphics: Phaser.GameObjects.Graphics, points: { x: number; y: number }[]) {
     const dash = 4;
     const gap = 8;
 

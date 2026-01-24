@@ -93,6 +93,8 @@ export class LoadingScene extends Phaser.Scene {
     this.load.image("dot", "assets/particles/dot.png");
     this.load.image("ball", "assets/particles/ball.png");
     this.load.image("line", "assets/particles/line.png");
+
+    this.load.image("income", "icons/income.png");
   }
 
   async create() {

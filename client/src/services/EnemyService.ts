@@ -1,6 +1,7 @@
 import type { Room } from "colyseus.js";
 import type { GameState } from "../../../server/src/rooms/schema/GameState";
 import type { EnemyState } from "../../../server/src/rooms/schema/EnemyState";
+import { COLORS } from "../styles/theme";
 
 export class EnemyService {
   private scene: Phaser.Scene;
@@ -118,7 +119,7 @@ export class EnemyService {
     const sprite = this.enemySprites.get(id);
     if (!sprite) return;
 
-    sprite.setTintFill(0xffffff);
+    sprite.setTintFill(COLORS.GLOW);
 
     this.scene.tweens.add({
       targets: sprite,
@@ -138,7 +139,7 @@ export class EnemyService {
   private playSpawnEffect(sprite: Phaser.GameObjects.Sprite) {
     sprite.setScale(0);
     sprite.setAlpha(0);
-    sprite.setTintFill(0xffffff);
+    sprite.setTintFill(COLORS.GLOW);
 
     this.scene.tweens.add({
       targets: sprite,

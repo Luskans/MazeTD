@@ -1,3 +1,5 @@
+import { COLORS } from "../styles/theme";
+
 export class BuildingPreviewService {
   private previewContainer: Phaser.GameObjects.Container;
   private ghostSprite: Phaser.GameObjects.Sprite;
@@ -18,7 +20,7 @@ export class BuildingPreviewService {
       angle: { min: 260, max: 280 },
       scale: { start: 0.25, end: 0 },
       alpha: 1,
-      tint: [0xff0000, 0x00ff00],
+      tint: [COLORS.DAMAGE, COLORS.ATTACK_SPEED],
       frequency: 40,
       emitting: false,
       emitZone: {
@@ -52,7 +54,7 @@ export class BuildingPreviewService {
     if (!this.previewContainer.visible) return;
 
     this.previewContainer.setPosition(x, y);
-    this.gridRect.setFillStyle(isValid ? 0x00ff00 : 0xff0000, 0.4);
+    this.gridRect.setFillStyle(isValid ? COLORS.VALID : COLORS.INVALID, 0.4);
 
     if (this.currentType === 'tower' && activeBuffColors.length > 0) {
       const centerX = x + (this.currentSize * 16);

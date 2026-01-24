@@ -6,6 +6,7 @@ import type { GameState } from "../../../server/src/rooms/schema/GameState";
 import type { RockState } from "../../../server/src/rooms/schema/RockState";
 import { getPlayerOffset } from "./utils";
 import { GridService3 } from "./GridService3";
+import { COLORS } from "../styles/theme";
 
 export class UpgradeService {
   private scene: Phaser.Scene;
@@ -87,7 +88,7 @@ export class UpgradeService {
         break;
       }
     }
-    this.gridRect.setFillStyle(foundRock ? 0x00ff00 : 0xff0000, 0.4);
+    this.gridRect.setFillStyle(foundRock ? COLORS.VALID :COLORS.INVALID, 0.4);
 
     if (!foundRock) {
       this.clearHighlight();
@@ -103,7 +104,7 @@ export class UpgradeService {
     if (sprite) {
       this.highlightedSprite = sprite;
       sprite.postFX.clear();
-      sprite.postFX.addGlow(0xffffff, 2);
+      sprite.postFX.addGlow(COLORS.GLOW, 2);
     }
   }
 
@@ -157,7 +158,7 @@ export class UpgradeService {
       scale: { start: 0.8, end: 0 },
       alpha: { start: 1, end: 0 },
       lifespan: 600,
-      tint: 0x8C8074,
+      tint: COLORS.ROCK,
       gravityY: 200,
       frequency: -1,
     });

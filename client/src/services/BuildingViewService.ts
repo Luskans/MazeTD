@@ -1,5 +1,6 @@
 import type { TowerState } from "../../../server/src/rooms/schema/TowerState";
 import type { WallState } from "../../../server/src/rooms/schema/WallState";
+import { COLORS } from "../styles/theme";
 
 export class BuildingViewService {
   private buildingsSprites: Map<string, Phaser.GameObjects.Sprite> = new Map();
@@ -49,17 +50,16 @@ export class BuildingViewService {
       }
     });
 
-    if (buildingState.placingPending) sprite.setTint(0x8CD1FF);
+    if (buildingState.placingPending) sprite.setTint(COLORS.PENDING_PLACE);
     if (buildingState.sellingPending) {
-      sprite.setTint(0xF8BBD0);
+      sprite.setTint(COLORS.PENDING_SELL);
       sprite.input!.cursor ='url(assets/cursors/pointer.png) 4 4, auto';
     }
 
     this.buildingsSprites.set(buildingState.id, sprite);
     ySortGroup.add(sprite);
 
-    this.playConstructionEffect(sprite);
-    
+    this.playConstructionEffect(sprite);    
     return sprite;
   }
 
@@ -93,7 +93,7 @@ export class BuildingViewService {
       sprite.input!.cursor = 'url(assets/cursors/hand_point.png) 6 4, pointer';
       this.playEndPlacingEffect(sprite);
     } else if (action === "selling") {
-      sprite.setAlpha(1).setTint(0xF8BBD0);
+      sprite.setAlpha(1).setTint(COLORS.PENDING_SELL);
       sprite.input!.cursor ='url(assets/cursors/pointer.png) 4 4, auto';
       this.playSellingEffect(sprite);
     }

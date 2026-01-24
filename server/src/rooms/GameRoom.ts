@@ -16,6 +16,9 @@ import { ShopService } from "../services/ShopService";
 import { TowerService } from "../services/TowerService";
 import { AreaService } from "../services/AreaService";
 import { UpgradeService } from "../services/UpgradeService";
+import { UPGRADES_DATA } from "../datas/upgradesData";
+import { TOWERS_DATA } from "../datas/towersData";
+import { WALLS_DATA } from "../datas/wallsData";
 
 export class GameRoom extends Room<GameState> {
   private eventBus: TypedEventEmitter;
@@ -110,6 +113,9 @@ export class GameRoom extends Room<GameState> {
 
       // 8. Update le chemin
       this.pathfindingService.calculateAndSetPath(player, isDuringWave);
+
+      const buildingData = (data.type === 'tower') ? TOWERS_DATA[data.dataId] : WALLS_DATA[data.dataId];
+      client.send("success", { action: buildingData.name, cost: paymentCost });
     });
     // this.onMessage("place_building", (client: Client, data: { buildingId: string, x: number, y: number, buildingSize: number, buildingType: string }) => {
     //   const player = this.state.players.get(client.sessionId);
@@ -164,6 +170,9 @@ export class GameRoom extends Room<GameState> {
       this.shopService.makeShopPayment(player, paymentCost);
       const upgrade = this.shopService.levelupUpgrade(player, data.dataId);
       this.shopService.applyUpgrade(player, upgrade);
+
+      const upgradeData = UPGRADES_DATA[data.dataId];
+      client.send("success", { action: upgradeData.name, cost: paymentCost });
     });
     // this.onMessage("buy_upgrade", (client: Client, data: { buildingId: string, buildingType: string }) => {
     //   const player = this.state.players.get(client.sessionId);
@@ -204,7 +213,8 @@ export class GameRoom extends Room<GameState> {
           player.rocks.delete(data.rockId); 
         }
       }
-      this.pathfindingService.calculateAndSetPath(player, isDuringWave); 
+      this.pathfindingService.calculateAndSetPath(player, isDuringWave);
+      client.send("success", { action: "Rock destroyed", cost: paymentCost });
     });
     // this.onMessage("destroy_rock", (client: Client, data: { buildingId: string, buildingType: string, rockId: string }) => {
     //   const player = this.state.players.get(client.sessionId);
@@ -235,15 +245,23 @@ export class GameRoom extends Room<GameState> {
     this.onMessage("grant_vision", (client: Client, data: { targetId: string }) => {
       const player = this.state.players.get(client.sessionId);
       if (!player || !data.targetId) return;
-
       player.viewers.set(data.targetId, true);
+
+      const targetClient = this.clients.find(c => c.sessionId === data.targetId);
+      if (targetClient) {
+        targetClient.send("info", { from: player.username, message: "gave you the vision of his area !" });
+      }
     });
 
     this.onMessage("remove_vision", (client: Client, data: { targetId: string }) => {
       const player = this.state.players.get(client.sessionId);
       if (!player || !data.targetId) return;
-
       player.viewers.delete(data.targetId);
+
+      const targetClient = this.clients.find(c => c.sessionId === data.targetId);
+      if (targetClient) {
+        targetClient.send("info", { from: player.username, message: "has removed your vision of his area !" });
+      }
     });
 
     this.onMessage("player_ready", (client: Client) => {
@@ -252,6 +270,7 @@ export class GameRoom extends Room<GameState> {
 
       if (this.state.wavePhase === "running") return;
       player.isReady = true;
+      this.broadcast("info", { from: player.username, message: "is ready." });
 
       const allReady = Array.from(this.state.players.values()).every(p => p.isReady && !p.isDefeated && !p.isDisconnected);
       if (allReady && this.state.wavePhase === "countdown") {
@@ -272,6 +291,8 @@ export class GameRoom extends Room<GameState> {
       const tower = this.towerService.getTower(player, data.buildingId);
       this.towerService.levelupTower(player, paymentCost, tower);
       this.towerService.updateTower(tower);
+
+      client.send("success", { action: "Level up", cost: paymentCost });
     });
     // this.onMessage("levelup_building", (client: Client, data: { buildingId: string }) => {
     //   const player = this.state.players.get(client.sessionId);
@@ -294,7 +315,9 @@ export class GameRoom extends Room<GameState> {
         client.send("error", "Error to sell the building.");
         return;
       }
-      this.pathfindingService.calculateAndSetPath(player, isDuringWave); 
+      this.pathfindingService.calculateAndSetPath(player, isDuringWave);
+      
+      client.send("success", { action: "Building sold", cost: goldReceived });
     });
     // this.onMessage("sell_building", (client: Client, data: { buildingId: string, buildingType: string }) => {
     //   const player = this.state.players.get(client.sessionId);

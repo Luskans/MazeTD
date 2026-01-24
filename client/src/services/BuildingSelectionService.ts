@@ -1,4 +1,5 @@
 import { TOWERS_DATA } from "../../../server/src/datas/towersData";
+import { COLORS } from "../styles/theme";
 
 export class BuildingSelectionService {
   private selectionGraphics: Phaser.GameObjects.Graphics;
@@ -14,7 +15,7 @@ export class BuildingSelectionService {
 
     this.selectedSprite = sprite;
     this.selectedBuildingId = buildingState.id;
-    this.selectedSprite.postFX.addGlow(0xffffff, 2);
+    this.selectedSprite.postFX.addGlow(COLORS.GLOW, 2);
 
     if (type === "tower") {
       this.drawTowerRange(sprite, buildingState);
@@ -37,7 +38,7 @@ export class BuildingSelectionService {
     const centerX = sprite.x;
     const centerY = sprite.y;
     const range = buildingState.range;
-    const fillColor = 0xffffff;
+    const fillColor = COLORS.GLOW;
     const fillAlpha = 0.2;
 
     this.selectionGraphics.clear();

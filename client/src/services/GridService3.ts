@@ -5,6 +5,7 @@ import { getRandom } from "../../../server/src/services/utils";
 import { getColorByAreaType } from "./utils";
 import type { CheckpointState } from "../../../server/src/rooms/schema/CheckpointState";
 import type { PlayerState } from "../../../server/src/rooms/schema/PlayerState";
+import { COLORS } from "../styles/theme";
 
 // const TILE = {
 //   TOP_LEFT: 64, TOP_START: 65, TOP_END: 68, TOP_RIGHT: 69,
@@ -110,7 +111,7 @@ export class GridService3 {
 
       // 0. On crée le mask aux dimensions des zones
       const mask = this.scene.add.graphics();
-      mask.fillStyle(0xffffff);
+      mask.fillStyle(COLORS.GLOW);
       mask.fillRect(pos.x + MAP_DATA.outsideSize, pos.y + MAP_DATA.outsideSize, room.state.grid.col * 32, room.state.grid.row * 32);
       this.mask = mask.createGeometryMask();
 
@@ -352,8 +353,8 @@ export class GridService3 {
             fontSize: '24px',
             fontStyle: 'bold',
             // color: `#${baseColor.toString(16).padStart(6, '0')}`,
-            color: '#ffffff',
-            stroke: '#51361e',
+            color: COLORS.WHITE,
+            stroke: COLORS.OUTLINE,
             // stroke: '#000000',
             // stroke: `#${baseColor.toString(16).padStart(6, '0')}`,
             strokeThickness: 4
@@ -375,7 +376,7 @@ export class GridService3 {
     const sprite = this.rockSprites.get(rockId);
     if (sprite) {
       // sprite.setAlpha(0.5);
-      sprite.setTint(0xF8BBD0);
+      sprite.setTint(COLORS.PENDING_SELL);
     }
   }
 

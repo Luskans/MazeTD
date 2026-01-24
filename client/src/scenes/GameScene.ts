@@ -4,7 +4,6 @@ import type { PlayerState } from "../../../server/src/rooms/schema/PlayerState";
 import { CameraService } from '../services/CameraService';
 import { PathService } from "../services/PathService";
 import { BuildingService } from "../services/BuildingService";
-import { WaveService } from "../services/WaveService";
 import { PathfindingService } from "../../../server/src/services/PathfindingService";
 import { getGameRoom } from "../colyseus/gameRoomService";
 import { UpgradeService } from "../services/UpgradeService";
@@ -17,6 +16,7 @@ import { GridService3 } from "../services/GridService3";
 import { PathService2 } from "../services/PathService2";
 import { EnemyUIService } from "../services/EnemyUIService";
 import { BuildingService2 } from "../services/BuildingService2";
+import { FloatingTextService } from "../services/FloatingTextService";
 
 export class GameScene extends Phaser.Scene {
   private room!: Room<GameState>;
@@ -26,7 +26,6 @@ export class GameScene extends Phaser.Scene {
   private pathService2!: PathService2;
   private buildingService!: BuildingService2;
   private upgradeService!: UpgradeService;
-  private waveService!: WaveService;
   private pathfindingService!: PathfindingService;
   private enemyService!: EnemyService;
   private enemyUIService!: EnemyUIService;
@@ -52,13 +51,13 @@ export class GameScene extends Phaser.Scene {
     console.log(`Player number ${playerIndex} named ${player.username} with ID ${player.sessionId} connected.`)
 
     // INIT SERVICES
+    FloatingTextService.getInstance().init(this);
     this.cameraService = new CameraService(this, this.room);
     this.pathService = new PathService(this, this.room);
     this.pathService2 = new PathService2(this, this.room);
     this.pathfindingService = new PathfindingService(this.room);
     this.buildingService = new BuildingService2(this, this.room, this.pathfindingService);
     this.upgradeService = new UpgradeService(this, this.room, this.gridService);
-    this.waveService = new WaveService(this);
     this.enemyService = new EnemyService(this, this.room);
     this.enemyUIService = new EnemyUIService(this);
 
@@ -190,9 +189,6 @@ export class GameScene extends Phaser.Scene {
     // $(player).walls.onRemove((wallState: any, key: string) => {
     //   this.buildingService.removeBuildingSprite(key);
     // });
-    this.room.onMessage("error", (message: string) => {
-      console.log(`Error from server : ${message}`)
-    });
     this.game.events.on('focus_on_player', (playerIndex: number) => {
       const playerOffset = this.gridService.getPlayerOffset(playerIndex);
       this.cameraService.handleFocus(playerOffset);
@@ -218,6 +214,15 @@ export class GameScene extends Phaser.Scene {
     });
     this.game.events.on('deselect_building', () => {
       this.buildingService.deselect();
+    });
+    this.room.onMessage("error", (message: string) => {
+      FloatingTextService.getInstance().error(this.input.activePointer.worldX, this.input.activePointer.worldY, message);
+    });
+    this.room.onMessage("success", ({action, cost}) => {
+      FloatingTextService.getInstance().success(this.input.activePointer.worldX, this.input.activePointer.worldY, action, cost);
+    });
+    this.room.onMessage("info", ({from, message}) => {
+      FloatingTextService.getInstance().info(from, message);
     });
 
 

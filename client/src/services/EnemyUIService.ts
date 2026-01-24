@@ -2,6 +2,8 @@
 //   private scene: Phaser.Scene;
 //   private bars = new Map<string, Phaser.GameObjects.Container>();
 
+import { COLORS } from "../styles/theme";
+
 //   constructor(scene: Phaser.Scene) {
 //     this.scene = scene;
 
@@ -88,14 +90,10 @@ export class EnemyUIService {
     scene.events.on('enemy_despawned', this.onDespawn, this);
   }
 
-  private onSpawn(data: {
-    id: string;
-    sprite: Phaser.GameObjects.Sprite;
-    maxHp: number;
-  }) {
+  private onSpawn(data: { id: string; sprite: Phaser.GameObjects.Sprite; maxHp: number; }) {
     const graphics = this.scene.add.graphics();
     const container = this.scene.add.container(0, 0, [graphics]);
-    container.setDepth(9920);
+    container.setDepth(data.sprite.depth + 1);
 
     this.bars.set(data.id, {
       container,
@@ -108,10 +106,7 @@ export class EnemyUIService {
     this.redrawBar(data.id);
   }
 
-  private onHpChanged(data: {
-    id: string;
-    hp: number;
-  }) {
+  private onHpChanged(data: { id: string; hp: number; }) {
     const entry = this.bars.get(data.id);
     if (!entry) return;
 
@@ -135,7 +130,7 @@ export class EnemyUIService {
     graphics.clear();
 
     // --- BORDURE NOIRE ---
-    graphics.fillStyle(0x000000, 1);
+    graphics.fillStyle(COLORS.BAR_OUTLINE, 1);
     graphics.fillRoundedRect(
       -width / 2 - padding,
       -height / 2 - padding,
@@ -145,7 +140,7 @@ export class EnemyUIService {
     );
 
     // --- FOND ---
-    graphics.fillStyle(0x222222, 0.8);
+    graphics.fillStyle(COLORS.BAR_BACK, 0.8);
     graphics.fillRoundedRect(
       -width / 2,
       -height / 2,
@@ -159,14 +154,14 @@ export class EnemyUIService {
     let endColor: number;
 
     if (ratio <= 0.25) {
-      startColor = 0xff3b3b;
-      endColor = 0xb30000;
+      startColor = COLORS.BAR_HIGH;
+      endColor = COLORS.BAR_HIGH;
     } else if (ratio <= 0.5) {
-      startColor = 0xffb347;
-      endColor = 0xe67e22;
+      startColor = COLORS.BAR_MID;
+      endColor = COLORS.BAR_MID;
     } else {
-      startColor = 0x6bff6b;
-      endColor = 0x1e8f1e;
+      startColor = COLORS.BAR_LOW;
+      endColor = COLORS.BAR_LOW;
     }
 
     const barWidth = Math.max(0, (width - 2) * ratio);
