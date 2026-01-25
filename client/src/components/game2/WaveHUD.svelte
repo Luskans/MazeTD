@@ -1,12 +1,15 @@
 <script lang="ts">
   import { network } from "../../colyseus/Network";
+    import { AudioService } from "../../services/AudioService";
   import { gameStore } from "../../stores/gameStore.svelte";
 
   const progress = $derived(Math.max(0, Math.min(1, (gameStore.countdown ?? 0) / (gameStore.countdownMax ?? 1))) * 100);
 
   function handleClick() {
+    AudioService.getInstance().playSFX('hover');
     network.sendPlayerReady();
   }
+  const playHover = () => AudioService.getInstance().playSFX('hover');
 </script>
 
 <div class="wave-hud">
@@ -18,7 +21,7 @@
     </div>
   </div>
   {#if !gameStore.me?.isReady && gameStore.wavePhase === "countdown"}
-  <button onclick={handleClick}>Ready</button>
+  <button onclick={handleClick} onmouseenter={playHover}>Ready</button>
   {/if}
 </div>
 

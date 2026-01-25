@@ -6,6 +6,7 @@ import { MapSchema } from "@colyseus/schema";
 import { toast } from "@zerodevx/svelte-toast";
 import { network } from "./Network";
 import { addChatMessage, addSystemMessage, chat, clearChat } from "../stores/chatStore.svelte";
+import { AudioService } from "../services/AudioService";
 
 let cleanupFns: (() => void)[] = [];
 
@@ -20,6 +21,7 @@ export function connectLobby(room: Room<LobbyState>) {
 
       $(customers).onAdd((customer, id) => {
         syncCustomers(room);
+        AudioService.getInstance().playSFX('connect');
 
         $(customer).onChange(() => {
           syncCustomers(room);
@@ -28,6 +30,7 @@ export function connectLobby(room: Room<LobbyState>) {
 
       $(customers).onRemove(() => {
         syncCustomers(room);
+        AudioService.getInstance().playSFX('disconnect');
       });
 
       syncCustomers(room);
@@ -54,6 +57,7 @@ export function connectLobby(room: Room<LobbyState>) {
           ...lobbyStore.kicks,
           [targetId]: voters
         };
+        AudioService.getInstance().playSFX('back');
 
         $(kicks).onChange(() => {
           lobbyStore.kicks = {
@@ -69,6 +73,7 @@ export function connectLobby(room: Room<LobbyState>) {
     room.onMessage("lobby_countdown", (sec: number) => {
       lobbyStore.countdown = sec;
       lobbyStore.isLocked = (sec <= 3);
+      AudioService.getInstance().playSFX('countdown')
     })
   );
 
@@ -81,6 +86,7 @@ export function connectLobby(room: Room<LobbyState>) {
 
   cleanupFns.push(
     room.onMessage("kicked", () => {
+      AudioService.getInstance().playSFX('disconnect');
       toast.push("You were kicked from this lobby.", { classes: ["custom"] });
       disconnectLobby();
       network.leaveRoom();
@@ -112,6 +118,7 @@ export function connectLobby(room: Room<LobbyState>) {
   cleanupFns.push(
     room.onMessage("chat", (msg: any) => {
       addChatMessage(msg.from ?? "anonymous", msg.text);
+      AudioService.getInstance().playSFX('chat')
     })
   );
 

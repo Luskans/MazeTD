@@ -1,5 +1,6 @@
 <script lang="ts">
   import { network } from "../../colyseus/Network";
+    import { AudioService } from "../../services/AudioService";
   import { lobbyStore, type CustomerStore } from "../../stores/lobbyStore.svelte";
 
   const {customer, canKick} = $props<{
@@ -11,6 +12,7 @@
   const isSelf = $derived(customer.sessionId === lobbyStore.me?.sessionId)
 
   function kick() {
+    // AudioService.getInstance().playSFX('confirm')
     network.voteKick(customer.sessionId);
   }
 </script>
@@ -35,6 +37,7 @@
         class:disabled={!canKick}
         onclick={kick}
         disabled={!canKick}
+        onmouseenter={() => {if (canKick) AudioService.getInstance().playSFX('hover')}}
       >
         Kick
       </button>

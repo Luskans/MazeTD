@@ -5,12 +5,17 @@
   import { network } from "../colyseus/Network";
   import { lobbyStore } from "../stores/lobbyStore.svelte";
   import { addSystemMessage } from "../stores/chatStore.svelte";
+  import { AudioService } from "../services/AudioService";
 
   let readyButtonText = $derived(lobbyStore.me?.isReady ? "Not Ready" : "Ready");
   let isHostAndPrivate = $derived(lobbyStore.isPrivate && lobbyStore.hostId === lobbyStore.me?.sessionId);
+  let soundClose = true;
 
   function toggleReady() {
     if (lobbyStore.isLocked) return;
+    if (soundClose) AudioService.getInstance().playSFX('open');
+    else AudioService.getInstance().playSFX('close');
+    soundClose = !soundClose;
     network.sendCustomerReady();
   }
 
@@ -33,7 +38,12 @@
       .catch(() =>
         toast.push("Error to copy invite link.", { classes: ["custom"] })
       );
+    AudioService.getInstance().playSFX('confirm');
   }
+
+  $effect(() => {
+    // if (lobbyStore.countdown !== null) AudioService.getInstance().playSFX('countdown');
+  });
 </script>
 
 <section class="screen lobby-screen">
@@ -41,7 +51,11 @@
     <h2>Lobby</h2>
 
     {#if isHostAndPrivate}
-      <button class="btn primary" onclick={invite}>
+      <button
+        class="btn primary"
+        onclick={invite}
+        onmouseenter={() => AudioService.getInstance().playSFX('hover')}
+      >
         Invite
       </button>
     {/if}
@@ -68,6 +82,7 @@
           class:disabled={lobbyStore.isLocked}
           disabled={lobbyStore.isLocked}
           onclick={toggleReady}
+          onmouseenter={() => {if (!lobbyStore.isLocked) AudioService.getInstance().playSFX('hover')}}
         >
           {readyButtonText}
         </button>
@@ -76,7 +91,8 @@
           class="btn secondary"
           class:disabled={lobbyStore.isLocked}
           disabled={lobbyStore.isLocked}
-          onclick={() => network.leaveRoom()}
+          onclick={() => {network.leaveRoom(), AudioService.getInstance().playSFX('disconnect')}}
+          onmouseenter={() => {if (!lobbyStore.isLocked) AudioService.getInstance().playSFX('hover')}}
         >
           Leave
         </button>

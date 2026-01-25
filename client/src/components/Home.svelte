@@ -3,6 +3,7 @@
   import { getOrCreateUID, getUsername, isUsernameValid, setUsername } from '../colyseus/Customer';
   import Leaderboard from './pages/Leaderboard.svelte';
   import { toast } from '@zerodevx/svelte-toast'
+    import { AudioService } from '../services/AudioService';
 
   let username = $state<string | null>(getUsername());
   let usernameInput = $state('');
@@ -34,6 +35,8 @@
       isJoining = false;
       return;
     }
+
+    // AudioService.getInstance().playSFX('connect')
 
     try {
       const roomIdFromUrl = window.location.pathname.slice(1);
@@ -86,6 +89,7 @@
           class="btn primary"
           disabled={!canPlay || isJoining}
           onclick={() => joinLobby(false)}
+          onmouseenter={() => AudioService.getInstance().playSFX('hover')}
         >
           {isJoining ? 'Joining...' : 'Play'}
         </button>
@@ -94,6 +98,7 @@
           class="btn secondary"
           disabled={!canPlay || isJoining}
           onclick={() => joinLobby(true)}
+          onmouseenter={() => AudioService.getInstance().playSFX('hover')}
         >
           {isJoining ? 'Joining...' : 'Create private room'}
         </button>
