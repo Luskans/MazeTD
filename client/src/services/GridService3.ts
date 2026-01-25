@@ -48,6 +48,8 @@ export class GridService3 {
       this.scene = scene;
       this.room = room;
       this.createWorldOcean();
+      this.createCheckpointsAnimation();
+      this.createAreasAnimation();
   }
 
   private getGridPixelSize() {
@@ -95,14 +97,36 @@ export class GridService3 {
     this.scene.add.tileSprite(0, 0, worldWidth, worldHeight, 'ocean').setOrigin(0, 0).setDepth(0);
   }
 
+  private createCheckpointsAnimation() {
+    for (let i = 0; i < 9; i++) {
+      this.scene.anims.create({
+        key: `checkpoint_anim_${i}`,
+        frames: this.scene.anims.generateFrameNumbers('checkpoints', { start: i * 6, end: (i * 6) + 5 }),
+        frameRate: 1,
+        repeat: -1
+      });
+    }
+  }
+
+  private createAreasAnimation() {
+    for (let i = 0; i < 4; i++) {
+      this.scene.anims.create({
+        key: `area_anim_${i}`,
+        frames: this.scene.anims.generateFrameNumbers('areas', { start: i * 6, end: (i * 6) + 5 }),
+        frameRate: 6,
+        repeat: -1
+      });
+    }
+  }
+
   public createPlayersGrid(room: Room<GameState>, ySortGroup: Phaser.GameObjects.Group) {
     const { width: gridW, height: gridH } = this.getGridPixelSize();
-    const players = Array.from(room.state.players.values());
+    const players = Array.from(room.state.players.values()) as PlayerState[];
 
     // Créer l'océan
     // this.scene.add.tileSprite(0, 0, worldSize.worldWidth, worldSize.worldHeight, 'water').setDepth(0);
 
-    players.forEach((player, index) => {
+    players.forEach((player: PlayerState, index: number) => {
       const pos = this.computeGridPosition2x4(index, gridW, gridH);
 
       // On définit la taille de notre "île" (Grille + 2 cases de marge pour herbe/falaise)
@@ -213,17 +237,6 @@ export class GridService3 {
       //   sprite.setDepth(4); 
       // });
 
-      for (let i = 0; i < 9; i++) {
-        this.scene.anims.create({
-          key: `checkpoint_anim_${i}`,
-          frames: this.scene.anims.generateFrameNumbers('checkpoints', { 
-            start: i * 6, 
-            end: (i * 6) + 5 
-          }),
-          frameRate: 1,
-          repeat: -1
-        });
-      }
       const checkpoints = room.state.grid.checkpoints;
       checkpoints.forEach((c: CheckpointState, index: number) => {
         const x = startX + c.gridX * MAP_DATA.cellSize;
@@ -232,7 +245,7 @@ export class GridService3 {
         const sprite = this.scene.add.sprite(x + 32, y + 32, 'checkpoints');
         sprite.setOrigin(0.5, 0.5); 
         sprite.setDepth(1);
-        this.checkpointSprites.set(`${(player as PlayerState).sessionId}_checkpoint_${index}`, sprite);
+        this.checkpointSprites.set(`${player.sessionId}_checkpoint_${index}`, sprite);
         // ySortGroup.add(sprite);
         sprite.play({key: `checkpoint_anim_${index}`, startFrame: Math.floor(Math.random() * 6)});
         
@@ -245,17 +258,6 @@ export class GridService3 {
       });
 
       // --- AREAS ---
-      for (let i = 0; i < 4; i++) {
-        this.scene.anims.create({
-          key: `area_anim_${i}`,
-          frames: this.scene.anims.generateFrameNumbers('areas', { 
-            start: i * 6, 
-            end: (i * 6) + 5 
-          }),
-          frameRate: 6,
-          repeat: -1
-        });
-      }
       for (const area of room.state.grid.areas) {
         const x = startX + area.gridX * MAP_DATA.cellSize;
         const y = startY + area.gridY * MAP_DATA.cellSize;
@@ -295,8 +297,6 @@ export class GridService3 {
         // areaShape2.setMask(this.mask);
 
         const perimeter = 2 * Math.PI * area.radius;
-        const particleCount = Math.floor(perimeter / 1.5);
-        console.log(`particles : ${5000 / (perimeter / 4)}`)
         const circleZone = new Phaser.Geom.Circle(x, y, area.radius);
         const emitter = this.scene.add.particles(0, 0, 'dot', {
           // lifespan: 2500,

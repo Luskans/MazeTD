@@ -1,6 +1,7 @@
 import type { TowerState } from "../../../server/src/rooms/schema/TowerState";
 import type { WallState } from "../../../server/src/rooms/schema/WallState";
 import { COLORS } from "../styles/theme";
+import { FloatingTextService } from "./FloatingTextService";
 
 export class BuildingViewService {
   private buildingsSprites: Map<string, Phaser.GameObjects.Sprite> = new Map();
@@ -59,7 +60,7 @@ export class BuildingViewService {
     this.buildingsSprites.set(buildingState.id, sprite);
     ySortGroup.add(sprite);
 
-    this.playConstructionEffect(sprite);    
+    this.playBuildEffect(sprite);
     return sprite;
   }
 
@@ -84,18 +85,21 @@ export class BuildingViewService {
     this.buildingsParticles.set(id, emitter);
   }
 
-  public updateStatus(id: string, action: "placing" | "selling") {
+  public updateStatus(id: string, action: "placing" | "selling" | "levelup") {
     const sprite = this.buildingsSprites.get(id);
     if (!sprite) return;
 
     if (action === "placing") {
       sprite.setAlpha(1).clearTint();
       sprite.input!.cursor = 'url(assets/cursors/hand_point.png) 6 4, pointer';
-      this.playEndPlacingEffect(sprite);
+      // this.playEndPlacingEffect(sprite);
     } else if (action === "selling") {
       sprite.setAlpha(1).setTint(COLORS.PENDING_SELL);
       sprite.input!.cursor ='url(assets/cursors/pointer.png) 4 4, auto';
-      this.playSellingEffect(sprite);
+      this.playSellEffect(sprite);
+    } else if (action === "levelup") {
+      this.playLevelupEffect(sprite);
+      // this.test(sprite);
     }
   }
 
@@ -124,48 +128,86 @@ export class BuildingViewService {
     return this.buildingsSprites.get(id);
   }
 
-  private playConstructionEffect(sprite: Phaser.GameObjects.Sprite) {
-    sprite.setScale(1.5);
+  public playBuildEffect(sprite: Phaser.GameObjects.Sprite) {
+    sprite.setScale(0);
     this.scene.tweens.add({
-      targets: sprite,
-      scale: 1,
-      ease: 'Back.out',
-      duration: 300
+        targets: sprite,
+        scaleX: 1,
+        scaleY: 1,
+        duration: 400,
+        ease: 'Back.easeOut',
+        easeParams: [2.5],
     });
   }
 
-  private playSellingEffect(sprite: Phaser.GameObjects.Sprite) {
-    const originalScale = sprite.scale;
-    sprite.setScale(originalScale + 1);
-    this.scene.tweens.add({
-      targets: sprite,
-      scale: originalScale,
-      ease: 'Back.out',
-      duration: 300
-    });
-  }
+  public playSellEffect(sprite: Phaser.GameObjects.Sprite) {
+    const x = sprite.x;
+    const y = sprite.y;
 
-  private playEndPlacingEffect(sprite: Phaser.GameObjects.Sprite) {
-    const originalScale = sprite.scale;
-    sprite.setScale(originalScale + 1);
-    this.scene.tweens.add({
-      targets: sprite,
-      scale: originalScale,
-      ease: 'Back.out',
-      duration: 300
+    const particles = this.scene.add.particles(x, y, 'dot', {
+      speed: { min: 160, max: 220 },
+      scale: { start: 0.8, end: 0 },
+      alpha: { start: 1, end: 0 },
+      lifespan: 600,
+      tint: COLORS.ROCK,
+      gravityY: 200,
+      frequency: -1,
     });
-  }
 
-  private playEndSellingEffect(sprite: Phaser.GameObjects.Sprite) {
-    const originalY = sprite.y;
+    particles.setDepth(sprite.depth + 1);
+    particles.explode(20);
+
     this.scene.tweens.add({
       targets: sprite,
-      y: originalY + 120,
-      ease: 'Back.out',
-      duration: 300,
+      x: x + 4,
+      yoyo: true,
+      duration: 50,
+      repeat: 3,
       onComplete: () => {
-        sprite.destroy(); 
+        particles.destroy();
       }
     });
+  }
+
+  public playLevelupEffect(sprite: Phaser.GameObjects.Sprite) {
+    const { x, y, width, height } = sprite;
+    
+    const beam = this.scene.add.graphics();
+    beam.fillStyle(0xffffff, 0.8);
+    beam.fillRect(-32, 0, width / 2, height - 32); 
+    beam.setPosition(x, y - 64);
+    beam.setDepth(sprite.depth + 1);
+
+    beam.postFX.addBloom(0xffffff, 1, 1, 2, 3);
+
+    this.scene.tweens.add({
+        targets: beam,
+        y: y - (height * 1.5),
+        scaleX: 0.1,
+        alpha: 0,
+        duration: 800,
+        ease: 'Expo.easeOut',
+        onComplete: () => beam.destroy()
+    });
+
+    sprite.setTint(0xffff00);
+    this.scene.tweens.add({
+        targets: sprite,
+        scale: 1.2,
+        duration: 100,
+        yoyo: true,
+        onComplete: () => sprite.clearTint()
+    });
+  }
+  public test(sprite: Phaser.GameObjects.Sprite) {
+    // sprite.postFX.addShine(0.5, 0.5, 0xff00ff, false); // fais disparaitre en true, marche pas en false
+    // sprite.postFX.addGradient(0xff00ff, 0x00ff00, 0.4, 0, 0, 0.7, 0.7); // baisser l'alpha pour plus de visibilité
+    // sprite.postFX.addWipe(0.2, 0, 0); // marche pas
+    // sprite.postFX.addBarrel(10); // fais disparaitre
+    // sprite.postFX.addBloom(0xff00ff); // fais une coloration flou par dessus
+    // sprite.postFX.addCircle(8, 0xff00ff, 0xff0000, 1);
+    const effect = sprite.postFX.addColorMatrix();
+    effect.lsd(false);
+
   }
 }

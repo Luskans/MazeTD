@@ -55,6 +55,7 @@ export class UpgradeService {
 
   private startPreparation(event: {dataId: string, type: string}) {
     if (event.dataId !== "destroy") {
+      this.playBoughtEffect();
       this.room.send("buy_upgrade", {
         dataId: event.dataId,
         type: event.type
@@ -176,5 +177,57 @@ export class UpgradeService {
         particles.destroy();
       }
     });
+  }
+
+  public playBoughtEffect() {
+    if (!this.scene) return;
+    const cam = this.scene.cameras.main;
+    const { centerX, centerY, width, height } = cam.worldView;
+
+    const flash = this.scene.add.rectangle(centerX, centerY, width, height, 0xffffff, 0.6)
+      .setDepth(10002)
+      .setAlpha(0);
+
+    this.scene.tweens.add({
+      targets: flash,
+      alpha: 0.3,
+      duration: 50,
+      yoyo: true,
+      onComplete: () => flash.destroy()
+    });
+
+    // const graphics = this.scene.add.graphics();
+    // const cam = this.scene.cameras.main;
+    
+    // graphics.lineStyle(10, 0xffffff, 1);
+    // graphics.strokeRect(cam.worldView.x, cam.worldView.y, cam.worldView.width, cam.worldView.height);
+    // graphics.setDepth(10005);
+    // graphics.setAlpha(0);
+
+    // this.scene.tweens.add({
+    //     targets: graphics,
+    //     alpha: 1,
+    //     duration: 200,
+    //     yoyo: true,
+    //     repeat: 1,
+    //     onComplete: () => graphics.destroy()
+    // });
+
+    const particles = this.scene.add.particles(centerX, cam.worldView.y, 'dot', {
+      x: { min: -width/2, max: width/2 },
+      y: 0,
+      quantity: 4,
+      lifespan: 2000,
+      speedY: { min: 200, max: 400 },
+      scale: { start: 0.5, end: 0 },
+      tint: [COLORS.DAMAGE, COLORS.ATTACK_SPEED, COLORS.SPEED, COLORS.RANGE],
+      gravityY: 200,
+      emitting: false
+    });
+
+    particles.setDepth(10003);
+    particles.explode(40);
+
+    this.scene.time.delayedCall(2000, () => particles.destroy());
   }
 }

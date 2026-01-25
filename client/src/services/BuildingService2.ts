@@ -138,7 +138,7 @@ export class BuildingService2 {
     }
   }
 
-  public updateBuilding(id: string, action: "placing" | "selling") {
+  public updateBuilding(id: string, action: "placing" | "selling" | "levelup") {
     this.view.updateStatus(id, action);
   }
 

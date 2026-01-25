@@ -114,8 +114,8 @@ export class GameRoom extends Room<GameState> {
       // 8. Update le chemin
       this.pathfindingService.calculateAndSetPath(player, isDuringWave);
 
-      const buildingData = (data.type === 'tower') ? TOWERS_DATA[data.dataId] : WALLS_DATA[data.dataId];
-      client.send("success", { action: buildingData.name, cost: paymentCost });
+      // const buildingData = (data.type === 'tower') ? TOWERS_DATA[data.dataId] : WALLS_DATA[data.dataId];
+      client.send("object", { action: 'Built', cost: paymentCost, x: data.x, y: data.y });
     });
     // this.onMessage("place_building", (client: Client, data: { buildingId: string, x: number, y: number, buildingSize: number, buildingType: string }) => {
     //   const player = this.state.players.get(client.sessionId);
@@ -172,7 +172,9 @@ export class GameRoom extends Room<GameState> {
       this.shopService.applyUpgrade(player, upgrade);
 
       const upgradeData = UPGRADES_DATA[data.dataId];
-      client.send("success", { action: upgradeData.name, cost: paymentCost });
+      // client.send("success", { action: upgradeData.name, cost: paymentCost });
+      // client.send("success", { action: upgradeData.name, cost: paymentCost, dataId: data.dataId, type: data.type });
+      client.send("upgrade", { action: upgradeData.name, cost: paymentCost });
     });
     // this.onMessage("buy_upgrade", (client: Client, data: { buildingId: string, buildingType: string }) => {
     //   const player = this.state.players.get(client.sessionId);
@@ -214,7 +216,9 @@ export class GameRoom extends Room<GameState> {
         }
       }
       this.pathfindingService.calculateAndSetPath(player, isDuringWave);
-      client.send("success", { action: "Rock destroyed", cost: paymentCost });
+      // client.send("success", { action: "Rock destroyed", cost: paymentCost });
+      // client.send("success", { action: 'Destroyed', cost: paymentCost, dataId: data.rockId, type: 'tower' });
+      client.send("object", { action: 'Destroyed', cost: paymentCost, x: rock.gridX, y: rock.gridY });
     });
     // this.onMessage("destroy_rock", (client: Client, data: { buildingId: string, buildingType: string, rockId: string }) => {
     //   const player = this.state.players.get(client.sessionId);
@@ -292,7 +296,9 @@ export class GameRoom extends Room<GameState> {
       this.towerService.levelupTower(player, paymentCost, tower);
       this.towerService.updateTower(tower);
 
-      client.send("success", { action: "Level up", cost: paymentCost });
+      // client.send("success", { action: "Level up", cost: paymentCost });
+      // client.send("success", { action: 'Level up', cost: paymentCost, dataId: data.buildingId, type: 'tower' });
+      client.send("object", { action: 'Level up', cost: paymentCost, x: tower.gridX, y: tower.gridY });
     });
     // this.onMessage("levelup_building", (client: Client, data: { buildingId: string }) => {
     //   const player = this.state.players.get(client.sessionId);
@@ -309,6 +315,7 @@ export class GameRoom extends Room<GameState> {
       const player = this.state.players.get(client.sessionId);
       if (!player) return;
       const isDuringWave = this.state.wavePhase === 'running';
+      const tower = this.towerService.getTower(player, data.buildingId);
 
       const goldReceived = this.towerService.sellBuilding(player, data.buildingId, data.buildingType, isDuringWave);
       if (goldReceived === null) {
@@ -317,7 +324,9 @@ export class GameRoom extends Room<GameState> {
       }
       this.pathfindingService.calculateAndSetPath(player, isDuringWave);
       
-      client.send("success", { action: "Building sold", cost: goldReceived });
+      client.send("object", { action: 'Sold', cost: goldReceived, x: tower.gridX, y: tower.gridY });
+      // client.send("success", { action: "Sold", cost: goldReceived });
+      // client.send("success", { action: 'Sold', cost: goldReceived, dataId: data.buildingId, type: 'tower' });
     });
     // this.onMessage("sell_building", (client: Client, data: { buildingId: string, buildingType: string }) => {
     //   const player = this.state.players.get(client.sessionId);

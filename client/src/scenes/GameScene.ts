@@ -17,6 +17,8 @@ import { PathService2 } from "../services/PathService2";
 import { EnemyUIService } from "../services/EnemyUIService";
 import { BuildingService2 } from "../services/BuildingService2";
 import { FloatingTextService } from "../services/FloatingTextService";
+import { getPlayerOffset } from "../services/utils";
+import { WaveService } from "../services/WaveService";
 
 export class GameScene extends Phaser.Scene {
   private room!: Room<GameState>;
@@ -29,6 +31,7 @@ export class GameScene extends Phaser.Scene {
   private pathfindingService!: PathfindingService;
   private enemyService!: EnemyService;
   private enemyUIService!: EnemyUIService;
+  private waveService!: WaveService;
   private ySortGroup!: Phaser.GameObjects.Group;
 
   constructor() {
@@ -60,6 +63,7 @@ export class GameScene extends Phaser.Scene {
     this.upgradeService = new UpgradeService(this, this.room, this.gridService);
     this.enemyService = new EnemyService(this, this.room);
     this.enemyUIService = new EnemyUIService(this);
+    this.waveService = new WaveService(this);
 
     // GROUP OF ALL SPRITES TO Y SORT THEM
     this.ySortGroup = this.add.group();
@@ -71,6 +75,11 @@ export class GameScene extends Phaser.Scene {
     this.input.on('pointerup', (p: Phaser.Input.Pointer) => { if (p.rightButtonReleased()) this.input.setDefaultCursor('url(assets/cursors/pointer.png) 4 4, auto'); });
 
     // LISTEN CHANGES AND EVENTS
+    $(this.room.state).listen("countdown", (value) => {
+      const waveCount = this.room.state.waveCount;
+      if ((value as number) <= 3) this.waveService.playShakeEffect();
+      if (value === 0) this.waveService.playStartEffect(waveCount);
+    });
     $(this.room.state).players.onAdd((player: PlayerState, sessionId: string) => {
       const playerIndex = Array.from(this.room.state.players.keys()).indexOf(sessionId);
       const playerOffset = this.gridService.getPlayerOffset(playerIndex);
@@ -194,10 +203,12 @@ export class GameScene extends Phaser.Scene {
       this.cameraService.handleFocus(playerOffset);
     });
     this.game.events.on('levelup_building', (data: { buildingId: string }) => {
+      this.buildingService.updateBuilding(data.buildingId, 'levelup');
       this.room.send("levelup_building", { buildingId: data.buildingId });
     });
     this.game.events.on('sell_building', (data: { buildingId: string, buildingType: string }) => {
       this.buildingService.deselect();
+      this.buildingService.updateBuilding(data.buildingId, 'selling');
       this.room.send("sell_building", { buildingId: data.buildingId, buildingType: data.buildingType });
     });
     this.game.events.on('rotate_building', (data: { buildingId: string }) => {
@@ -218,8 +229,12 @@ export class GameScene extends Phaser.Scene {
     this.room.onMessage("error", (message: string) => {
       FloatingTextService.getInstance().error(this.input.activePointer.worldX, this.input.activePointer.worldY, message);
     });
-    this.room.onMessage("success", ({action, cost}) => {
-      FloatingTextService.getInstance().success(this.input.activePointer.worldX, this.input.activePointer.worldY, action, cost);
+    this.room.onMessage("object", ({action, cost, x, y}) => {
+      const position = getPlayerOffset(this.room, this.room.sessionId);
+      FloatingTextService.getInstance().object(x * 32 + position.x + 32, y * 32 + position.y, action, cost);
+    });
+    this.room.onMessage("upgrade", ({action, cost}) => {
+      FloatingTextService.getInstance().upgrade(action, cost);
     });
     this.room.onMessage("info", ({from, message}) => {
       FloatingTextService.getInstance().info(from, message);

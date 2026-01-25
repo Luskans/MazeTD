@@ -6,16 +6,17 @@ export const COLORS = {
 
   VALID: 0x75db70,
   INVALID: 0xdb7070,
-
-  PENDING_SELL: 0x8CD1FF,
-  PENDING_PLACE: 0xF8BBD0,
+  PENDING_PLACE: 0x8CD1FF,
+  PENDING_SELL: 0xF8BBD0,
   GLOW: 0xffffff,
 
   DAMAGE: 0xff8e74,
   ATTACK_SPEED: 0xffdf81,
   RANGE: 0xdbb4ff,
   SPEED: 0x9fe9ff,
-  ROCK: 0x8C8074,
+
+  ROCK: 0x928D7E,
+  GOLD: 0xffd700,
 
   BAR_HIGH: 0xff3b3b,
   BAR_MID: 0xffb347,
